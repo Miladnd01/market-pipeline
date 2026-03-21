@@ -5,7 +5,7 @@ WORKDIR /app
 # Copy requirements from market_pipeline folder
 COPY market_pipeline/requirements.txt .
 
-# Install dependencies  
+# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy entire market_pipeline folder to /app

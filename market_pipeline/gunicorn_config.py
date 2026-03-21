@@ -1,4 +1,3 @@
-# gunicorn_config.py
 import multiprocessing
 
 # Bind

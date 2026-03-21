@@ -4,6 +4,7 @@ import time
 import argparse
 import traceback
 from datetime import datetime
+import pytz
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,6 +13,9 @@ import collectors.finnhub      as fh
 import collectors.alphavantage as av
 import collectors.twelvedata   as td
 from db.connection import create_schema, get_connection
+
+# ─── Deutsche Zeitzone ─────────────────────────────────────────
+BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
 # ─── تنظیمات از .env ──────────────────────────────────────────
 DEFAULT_SYMBOLS = [
@@ -69,7 +73,8 @@ def fix_null_symbol_info():
 
 # ─── یک دور کامل ──────────────────────────────────────────────
 def run_cycle(symbols: list[str], cycle_num: int):
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    # Deutsche Zeit statt UTC
+    now = datetime.now(BERLIN_TZ).strftime("%Y-%m-%d %H:%M:%S %Z")
 
     print(f"\n{'═'*52}")
     print(f"  Cycle #{cycle_num}  |  {now}  |  {len(symbols)} symbol(s)")

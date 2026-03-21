@@ -1,11 +1,9 @@
 from flask import Flask, render_template
 import threading
-import time
 import os
-import sys
 
-# اضافه کردن pipeline به path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'market_pipeline'))
+# Import مستقیم main (چون توی همون پوشه است)
+from main import main as pipeline_main
 
 app = Flask(__name__)
 
@@ -22,9 +20,6 @@ def run_pipeline_loop():
     global pipeline_status
     
     try:
-        # Import pipeline بعد از اضافه کردن به path
-        from main import main as pipeline_main
-        
         pipeline_status["running"] = True
         print("🚀 Starting market data pipeline in background...")
         

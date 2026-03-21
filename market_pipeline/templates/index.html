@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Data Dashboard - Live</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: #fff;
+        }
+        .header {
+            background: rgba(0,0,0,0.3);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .header h1 {
+            font-size: 1.8em;
+        }
+        .status-badge {
+            background: #4caf50;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .status-badge.running::before {
+            content: "🟢";
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        .info-bar {
+            background: rgba(255,255,255,0.1);
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .dashboard-container {
+            width: 100%;
+            height: calc(100vh - 120px);
+            padding: 0;
+        }
+        .dashboard-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-size: 1.5em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Live Market Data Dashboard</h1>
+        <div class="status-badge running">
+            Pipeline Active
+        </div>
+    </div>
+
+    <div class="info-bar">
+        🔄 Auto-updating every hour | 📈 Live data from Finnhub, Alpha Vantage & Twelve Data | 💾 PostgreSQL Database
+    </div>
+
+    <div class="dashboard-container">
+        <!-- فعلاً یک پیام Loading، بعداً Power BI Embed اضافه می‌کنیم -->
+        <div class="loading">
+            <div>
+                <h2>🚀 Dashboard Loading...</h2>
+                <p style="margin-top: 20px; font-size: 0.8em; opacity: 0.8;">
+                    Pipeline is collecting data in background
+                </p>
+                <p style="margin-top: 10px; font-size: 0.7em; opacity: 0.6;">
+                    Power BI dashboard will be embedded here
+                </p>
+            </div>
+        </div>
+        
+        <!-- بعداً این رو uncomment کن و URL رو عوض کن:
+        <iframe 
+            src="YOUR_POWER_BI_EMBED_URL_HERE"
+            frameborder="0" 
+            allowFullScreen="true">
+        </iframe>
+        -->
+    </div>
+
+    <script>
+        // هر 30 ثانیه status رو چک کن
+        setInterval(async () => {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                console.log('Pipeline status:', data);
+            } catch (error) {
+                console.error('Status check failed:', error);
+            }
+        }, 30000);
+    </script>
+</body>
+</html>

@@ -1,8 +1,3 @@
-"""
-db/connection.py
-مدیریت اتصال PostgreSQL — Star Schema (dim + fact)
-"""
-
 import os
 import psycopg2
 from dotenv import load_dotenv
@@ -12,11 +7,11 @@ load_dotenv()
 
 def get_connection():
     return psycopg2.connect(
-        host=os.getenv("PGHOST", "localhost"),
+        host=os.getenv("PGHOST", "dpg-d6v9lh94tr6s73dgj93g-a.frankfurt-postgres.render.com"),
         port=int(os.getenv("PGPORT", "5432")),
-        dbname=os.getenv("PGDATABASE", "Marketdb"),
-        user=os.getenv("PGUSER", "postgres"),
-        password=os.getenv("PGPASSWORD", "Admin"),
+        dbname=os.getenv("PGDATABASE", "marketdb_6mxq"),
+        user=os.getenv("PGUSER", "marketdb_6mxq_user"),
+        password=os.getenv("PGPASSWORD", "gSbpVTiDKKo7YCrgLg3dHSipcpJpR9JF"),
     )
 
 

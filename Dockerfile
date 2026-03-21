@@ -8,8 +8,8 @@ COPY market_pipeline/requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy everything
-COPY . .
+# Copy market_pipeline folder contents
+COPY market_pipeline/ .
 
 # Expose port
 EXPOSE 8080

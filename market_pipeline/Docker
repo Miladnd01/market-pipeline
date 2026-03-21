@@ -2,18 +2,14 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements from market_pipeline
+# Copy requirements from market_pipeline folder
 COPY market_pipeline/requirements.txt .
 
-# Install dependencies
+# Install dependencies  
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy market_pipeline code
-COPY market_pipeline/ ./market_pipeline/
-
-# Copy app.py and templates from root
-COPY app.py .
-COPY templates/ ./templates/
+# Copy entire market_pipeline folder to /app
+COPY market_pipeline/ .
 
 # Expose port
 EXPOSE 8080

@@ -2,21 +2,20 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copy requirements from market_pipeline folder
+# Abhängigkeiten installieren
 COPY market_pipeline/requirements.txt .
-
-# Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy entire market_pipeline folder to /app
+# Den gesamten Inhalt kopieren
 COPY market_pipeline/ .
 
-# Expose port
+# Port freigeben
 EXPOSE 8080
 
-# Environment
+# Umgebungsvariablen
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
 
-# Run with Gunicorn using config file
-CMD ["gunicorn", "--config", "gunicorn_config.py", "app:app"]
+# Gunicorn mit der Konfigurationsdatei starten
+# Angenommen deine Konfig-Datei heißt gunicorn_config.py
+CMD ["gunicorn", "-c", "gunicorn_config.py", "app:app"]

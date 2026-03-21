@@ -1,15 +1,22 @@
-﻿FROM python:3.11-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
 # Copy requirements
-COPY market_pipeline/requirements.txt .
+COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application
-COPY market_pipeline/ .
+# Copy everything
+COPY . .
 
-# Run pipeline
-CMD ["python", "main.py"]
+# Expose port
+EXPOSE 8080
+
+# Set environment
+ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
+
+# Run Flask app (pipeline runs in background thread)
+CMD ["python", "app.py"]

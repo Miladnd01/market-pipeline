@@ -1,20 +1,3 @@
-# ═══════════════════════════════════════════════════════════
-# Stage 1: Build .NET Application
-# ═══════════════════════════════════════════════════════════
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS dotnet-build
-WORKDIR /app
-
-# Copy and restore .NET project
-COPY Maschin/*.csproj ./Maschin/
-RUN dotnet restore ./Maschin/MaschinenDataein.csproj
-
-# Build .NET app
-COPY Maschin/ ./Maschin/
-RUN dotnet publish ./Maschin/MaschinenDataein.csproj -c Release -o /app/dotnet-out
-
-# ═══════════════════════════════════════════════════════════
-# Stage 2: Final Runtime (Python + .NET Runtime)
-# ═══════════════════════════════════════════════════════════
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 
 # Install Python and Supervisor

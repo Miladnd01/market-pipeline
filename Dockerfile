@@ -19,4 +19,4 @@ ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
 
 # Run Flask app (pipeline runs in background thread)
-CMD ["python", "app.py"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "--timeout", "120", "app:app"]

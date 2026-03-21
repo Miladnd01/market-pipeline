@@ -17,7 +17,7 @@ import collectors.twelvedata   as td
 from db.connection import create_schema, get_connection
 
 # --- Konfiguration ---
-BERLIN_TZ = pytz.timezone('Europe/Berlin')
+called_at = datetime.now(BERLIN_TZ)
 
 DEFAULT_SYMBOLS = [
     s.strip()

@@ -17,7 +17,8 @@ import collectors.twelvedata   as td
 from db.connection import create_schema, get_connection
 
 # --- Konfiguration ---
-called_at = datetime.now(BERLIN_TZ)
+# Definition der Zeitzone (Muss vor der Verwendung definiert sein!)
+BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
 DEFAULT_SYMBOLS = [
     s.strip()
@@ -58,7 +59,7 @@ def fix_null_symbol_info():
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                # Setze Zeitzone für die Session, damit Logs aktuell aussehen
+                # WICHTIG: Setzt die Datenbank-Session auf Berliner Zeit
                 cur.execute("SET TIME ZONE 'Europe/Berlin';")
                 cur.execute(sql)
                 updated = cur.rowcount
@@ -70,9 +71,11 @@ def fix_null_symbol_info():
 
 def run_cycle(symbols: list[str], cycle_num: int):
     """Führt einen Sammlungs-Durchlauf für alle Symbole aus."""
-    now = datetime.now(BERLIN_TZ).strftime("%Y-%m-%d %H:%M:%S %Z")
+    # Hier wird die aktuelle Zeit für das Log berechnet
+    now_str = datetime.now(BERLIN_TZ).strftime("%Y-%m-%d %H:%M:%S %Z")
+    
     print(f"\n{'═'*52}")
-    print(f"  Cycle #{cycle_num}  |  {now}  |  {len(symbols)} symbol(s)")
+    print(f"  Cycle #{cycle_num}  |  {now_str}  |  {len(symbols)} symbol(s)")
     print(f"{'═'*52}")
 
     # Indikatoren nur beim ersten Mal oder alle 10 Zyklen
@@ -88,7 +91,7 @@ def run_cycle(symbols: list[str], cycle_num: int):
             print(f"    [Finnhub ERROR] {e}")
         time.sleep(1)
 
-        # 2. Alpha Vantage (RSI, EMA, etc.)
+        # 2. Alpha Vantage
         if fetch_indicators:
             try:
                 av.run(symbol, interval="daily", max_records=ALPHA_MAX)
@@ -96,7 +99,7 @@ def run_cycle(symbols: list[str], cycle_num: int):
                 print(f"    [AlphaVantage ERROR] {e}")
             time.sleep(2)
 
-        # 3. Twelve Data (Candles)
+        # 3. Twelve Data
         try:
             td.run(symbol, outputsize=TWELVE_SIZE)
         except Exception as e:
@@ -114,7 +117,6 @@ def main(override_symbols=None, once=False):
     # Datenbank-Schema sicherstellen
     create_schema()
 
-    # Einmaliger Modus
     if once:
         run_cycle(symbols, cycle_num=1)
         return
@@ -144,13 +146,10 @@ def main(override_symbols=None, once=False):
 
 # --- CLI Entrypoint ---
 if __name__ == "__main__":
-    # Dieser Block verhindert den Gunicorn-Absturz
     parser = argparse.ArgumentParser(description="Market Data Pipeline CLI")
     parser.add_argument("--symbols", type=str, default=None, help="Comma separated symbols")
     parser.add_argument("--once", action="store_true", help="Run one cycle and exit")
     
-    # Gunicorn übergibt Argumente, die hier ignoriert werden, 
-    # wenn main.py nur importiert wird.
     args = parser.parse_args()
 
     input_symbols = [s.strip() for s in args.symbols.split(",") if s.strip()] if args.symbols else None

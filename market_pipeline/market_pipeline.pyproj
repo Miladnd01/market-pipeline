@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{A5E45FCE-4EA9-449E-9F6B-B7870F40537C}</ProjectGuid>
+    <ProjectHome>.</ProjectHome>
+    <StartupFile>main.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
+    <WorkingDirectory>.</WorkingDirectory>
+    <OutputPath>.</OutputPath>
+    <ProjectTypeGuids>{888888A0-9F3D-457C-B088-3A5042F75D52}</ProjectTypeGuids>
+    <LaunchProvider>Standard Python launcher</LaunchProvider>
+    <InterpreterId>
+    </InterpreterId>
+    <InterpreterVersion>
+    </InterpreterVersion>
+    <Name>market_pipeline</Name>
+    <RootNamespace>market_pipeline</RootNamespace>
+    <SuppressEnvironmentCreationPrompt>True</SuppressEnvironmentCreationPrompt>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <DebugSymbols>true</DebugSymbols>
+    <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
+  </PropertyGroup>
+  <!-- ═══ Hauptdateien ═══ -->
+  <ItemGroup>
+    <Compile Include="main.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <!-- ═══ collectors/ ═══ -->
+  <ItemGroup>
+    <Compile Include="collectors\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="collectors\finnhub.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="collectors\alphavantage.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="collectors\twelvedata.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <!-- ═══ db/ ═══ -->
+  <ItemGroup>
+    <Compile Include="db\__init__.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="db\connection.py">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <!-- ═══ Konfigurationsdateien ═══ -->
+  <ItemGroup>
+    <Content Include=".env" />
+    <Content Include="requirements.txt" />
+    <Content Include="README.md" />
+    <Content Include="SETUP_GUIDE.md" />
+    <Content Include="create_schema.sql" />
+    <Content Include="queries_for_powerbi.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="collectors\" />
+    <Folder Include="db\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
+</Project>

@@ -2,28 +2,85 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <title>Market Intelligence v3 - Pro Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Market Intelligence v4.1 - Ultimate Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <style>
-        body { background: #020617; color: #f1f5f9; }
-        .card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid #1e293b; border-radius: 1.5rem; }
-        .gradient-text { background: linear-gradient(90deg, #3b82f6, #10b981); -webkit-background-clip: text; color: transparent; }
+        * { font-family: 'Inter', sans-serif; transition: background-color 0.2s, border-color 0.2s; }
+        body { background: #020617; color: #f1f5f9; overflow-x: hidden; }
+        
+        .card { 
+            background: rgba(15, 23, 42, 0.6); 
+            backdrop-filter: blur(12px); 
+            border: 1px solid #1e293b; 
+            border-radius: 1.25rem; 
+        }
+        .card:hover { 
+            border-color: #3b82f6; 
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+        }
+
+        .gradient-text { 
+            background: linear-gradient(135deg, #60a5fa, #34d399, #a78bfa); 
+            -webkit-background-clip: text; 
+            background-clip: text;
+            color: transparent; 
+        }
+
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px currentColor; }
+
+        /* Custom Scrollbar */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
+
+        /* Price Flash Animation */
+        @keyframes priceFlash {
+            0% { background-color: rgba(59, 130, 246, 0.2); }
+            100% { background-color: transparent; }
+        }
+        .flash { animation: priceFlash 0.8s ease-out; }
     </style>
 </head>
-<body class="p-6">
+<body class="p-4 md:p-6 lg:p-8">
 
-    <div class="max-w-[1600px] mx-auto">
-        <header class="flex justify-between items-center mb-8">
+    <div class="max-w-[1700px] mx-auto">
+        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
             <div>
-                <h1 class="text-4xl font-black gradient-text">ANALYTICS ENGINE</h1>
-                <p class="text-slate-500 font-mono text-sm">Status: <span id="sync-status" class="text-emerald-400">Synchronized</span></p>
+                <div class="flex items-center gap-3">
+                    <h1 class="text-4xl font-black gradient-text tracking-tighter italic">MARKET CORE</h1>
+                    <span class="bg-blue-500/10 text-blue-400 text-[10px] font-mono px-2 py-1 rounded-full border border-blue-500/20">V 4.1 PRO</span>
+                </div>
+                <div class="flex items-center gap-4 mt-2 text-[11px] font-mono text-slate-500 uppercase tracking-widest">
+                    <div class="flex items-center gap-2">
+                        <span class="status-dot bg-emerald-500 animate-pulse"></span>
+                        <span id="sync-status" class="text-emerald-400">Node: Active</span>
+                    </div>
+                    <span class="opacity-30">|</span>
+                    <span>Updated: <span id="last-update-time" class="text-slate-300">--:--:--</span></span>
+                </div>
             </div>
-            <div class="flex gap-4">
-                <div class="card px-6 py-3 flex flex-col items-center">
-                    <span class="text-[10px] text-slate-500 uppercase">Success Rate</span>
-                    <span id="stat-success" class="text-xl font-bold text-emerald-400">--%</span>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
+                <div class="card px-5 py-3 border-l-4 border-l-blue-500/50">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">Symbols</span>
+                    <div id="stat-symbols" class="text-2xl font-black tracking-tight">--</div>
+                </div>
+                <div class="card px-5 py-3 border-l-4 border-l-purple-500/50">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">Requests</span>
+                    <div id="stat-calls" class="text-2xl font-black tracking-tight">--</div>
+                </div>
+                <div class="card px-5 py-3 border-l-4 border-l-emerald-500/50">
+                    <span class="text-[10px] text-emerald-500/70 font-bold uppercase">Health</span>
+                    <div id="stat-success" class="text-2xl font-black text-emerald-400 tracking-tight">--%</div>
+                </div>
+                <div class="card px-5 py-3 border-l-4 border-l-orange-500/50">
+                    <span class="text-[10px] text-slate-500 font-bold uppercase">Latency</span>
+                    <div id="stat-latency" class="text-2xl font-black text-blue-400 tracking-tight">--ms</div>
                 </div>
             </div>
         </header>
@@ -32,47 +89,76 @@
             
             <div class="lg:col-span-8 space-y-6">
                 <div class="card p-6">
-                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">📈 Market Price Intervals (24h)</h2>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="font-bold flex items-center gap-2 text-lg italic">
+                            <span class="text-blue-500">◈</span> Real-time Ingestion History
+                        </h3>
+                        <div class="flex gap-2" id="timeframe-selector">
+                            <button class="tf-btn px-3 py-1 rounded-md text-[10px] font-bold bg-blue-600" data-tf="24">24H</button>
+                            <button class="tf-btn px-3 py-1 rounded-md text-[10px] font-bold bg-slate-800" data-tf="12">12H</button>
+                            <button class="tf-btn px-3 py-1 rounded-md text-[10px] font-bold bg-slate-800" data-tf="6">6H</button>
+                        </div>
+                    </div>
                     <div class="h-[400px]">
                         <canvas id="mainPriceChart"></canvas>
                     </div>
+                    <div id="legend-container" class="mt-4 flex flex-wrap gap-4 justify-center border-t border-white/5 pt-4"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="card p-6">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">API Latency Trend</h3>
-                        <div class="h-48">
-                            <canvas id="latencyChart"></canvas>
-                        </div>
+                    <div class="card p-5">
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Volatility Index</h4>
+                        <div id="volatility-list" class="space-y-3"></div>
                     </div>
-                    <div class="card p-6">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Assets Overview</h3>
-                        <div id="quoteTable" class="space-y-3">
-                            </div>
+                    <div class="card p-5">
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Live Asset Stream</h4>
+                        <div id="quoteTable" class="space-y-2 custom-scroll max-h-[160px] overflow-y-auto"></div>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-4 space-y-6">
-                <div class="card p-6 border-blue-500/30">
-                    <h3 class="font-bold mb-4">System Architecture</h3>
-                    <div class="space-y-4 relative">
-                        <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs">
-                            <span class="text-blue-400 font-bold uppercase">Ingestion</span><br>Finnhub & Twelve Data API
+                <div class="card p-6 text-center">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Pipeline Reliability</h4>
+                    <div class="h-52 relative">
+                        <canvas id="reliabilityChart"></canvas>
+                        <div class="absolute inset-0 flex flex-col items-center justify-center">
+                            <span id="circle-percent" class="text-4xl font-black text-emerald-400 italic">--%</span>
+                            <span class="text-[9px] text-slate-500 uppercase font-bold">Uptime Score</span>
                         </div>
-                        <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs">
-                            <span class="text-emerald-400 font-bold uppercase">Processing</span><br>Python Gthread Worker
+                    </div>
+                    <div class="flex justify-around mt-6 pt-4 border-t border-white/5">
+                        <div>
+                            <span class="block text-[10px] text-slate-500 uppercase">Success</span>
+                            <span id="success-count-label" class="font-bold text-emerald-500 text-sm">0</span>
                         </div>
-                        <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-xs text-center font-mono italic">
-                            PostgreSQL Storage Layer
+                        <div class="w-px bg-white/5"></div>
+                        <div>
+                            <span class="block text-[10px] text-slate-500 uppercase">Errors</span>
+                            <span id="error-count-label" class="font-bold text-red-500 text-sm">0</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="card p-6">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Distribution</h3>
-                    <div class="h-64">
-                        <canvas id="distributionChart"></canvas>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">AI Market Sentiment</h4>
+                    <div class="flex justify-between items-end mb-2">
+                        <span id="sentiment-value" class="text-xl font-black uppercase italic">Neutral</span>
+                        <span class="text-[10px] text-slate-500 font-mono">Bias: 0.00</span>
+                    </div>
+                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div id="sentiment-bar" class="h-full bg-blue-500 transition-all duration-1000" style="width: 50%"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] font-bold text-slate-600 mt-2 uppercase tracking-tighter">
+                        <span>Bearish Zone</span>
+                        <span>Bullish Zone</span>
+                    </div>
+                </div>
+
+                <div class="card p-5">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center italic">Network Latency History</h4>
+                    <div class="h-24">
+                        <canvas id="latencyChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -80,12 +166,13 @@
     </div>
 
     <script>
-        let priceChart, latencyChart, distChart;
+        let priceChart, latencyChart, reliabilityChart;
+        let cachedData = null;
+        let currentTimeframe = 24;
 
-        function setupCharts() {
-            // Preis-Kurven-Diagramm
-            const pCtx = document.getElementById('mainPriceChart').getContext('2d');
-            priceChart = new Chart(pCtx, {
+        function initCharts() {
+            // Price Chart
+            priceChart = new Chart(document.getElementById('mainPriceChart'), {
                 type: 'line',
                 data: { datasets: [] },
                 options: {
@@ -93,64 +180,149 @@
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     scales: {
-                        x: { type: 'time', time: { unit: 'hour' }, grid: { display: false } },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                        x: { type: 'time', time: { unit: 'hour' }, grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } },
+                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#475569', font: { size: 10 } } }
                     },
-                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+                    plugins: { legend: { display: false } }
                 }
             });
 
-            // Latenz-Diagramm
-            const lCtx = document.getElementById('latencyChart').getContext('2d');
-            latencyChart = new Chart(lCtx, {
-                type: 'line',
-                data: { labels: [], datasets: [{ label: 'ms', data: [], borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4 }] },
+            // Reliability
+            reliabilityChart = new Chart(document.getElementById('reliabilityChart'), {
+                type: 'doughnut',
+                data: { labels: ['OK', 'ERR'], datasets: [{ data: [100, 0], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0, cutout: '85%' }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Latency
+            latencyChart = new Chart(document.getElementById('latencyChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [{ data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
             });
         }
 
-        async function updateData() {
-            const response = await fetch('/api/dashboard');
-            const data = await response.json();
+        async function refresh() {
+            try {
+                const res = await fetch('/api/dashboard');
+                const data = await res.json();
+                cachedData = data;
 
-            // Stats Update
-            document.getElementById('stat-success').innerText = data.stats.success_rate + '%';
+                // Stats Update
+                document.getElementById('stat-symbols').innerText = data.stats.total_symbols;
+                document.getElementById('stat-calls').innerText = data.stats.total_api_calls;
+                document.getElementById('stat-success').innerText = data.stats.success_rate + '%';
+                document.getElementById('circle-percent').innerText = data.stats.success_rate + '%';
+                document.getElementById('success-count-label').innerText = data.stats.total_api_calls - (data.stats.error_count || 0);
+                document.getElementById('error-count-label').innerText = data.stats.error_count || 0;
 
-            // Kurven Update (Prices)
-            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
-            priceChart.data.datasets = Object.keys(data.history).map((sym, i) => ({
-                label: sym,
-                data: data.history[sym],
-                borderColor: colors[i % colors.length],
-                borderWidth: 3,
-                pointRadius: 0,
-                tension: 0.3
-            }));
+                // Reliability Chart
+                reliabilityChart.data.datasets[0].data = [data.stats.success_rate, 100 - data.stats.success_rate];
+                reliabilityChart.update();
+
+                // Latency Update
+                if (data.latency_history?.length) {
+                    const last = data.latency_history.slice(-15);
+                    latencyChart.data.labels = last.map((_, i) => i);
+                    latencyChart.data.datasets[0].data = last.map(h => h.ms);
+                    latencyChart.update();
+                    document.getElementById('stat-latency').innerText = Math.round(last[last.length-1].ms) + 'ms';
+                }
+
+                // Price Chart
+                updatePriceDisplay();
+
+                // Live Feed
+                document.getElementById('quoteTable').innerHTML = data.quotes.map(q => `
+                    <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5">
+                        <span class="font-bold text-[11px]">${q.symbol}</span>
+                        <div class="text-right">
+                            <span class="font-mono text-[11px] block">$${q.price.toFixed(2)}</span>
+                            <span class="text-[9px] ${q.change >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">
+                                ${q.change >= 0 ? '↑' : '↓'} ${Math.abs(q.change).toFixed(2)}%
+                            </span>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Volatility calculation (simplified)
+                const volHtml = Object.keys(data.history).slice(0, 4).map(sym => {
+                    const prices = data.history[sym];
+                    const v = prices.length > 2 ? Math.abs((prices[prices.length-1].y - prices[0].y) / prices[0].y * 10).toFixed(2) : "0.00";
+                    return `
+                        <div class="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span class="text-xs font-mono">${sym}</span>
+                            <div class="w-24 bg-slate-800 h-1 rounded-full overflow-hidden">
+                                <div class="bg-blue-500 h-full" style="width: ${Math.min(parseFloat(v)*10, 100)}%"></div>
+                            </div>
+                            <span class="text-[10px] text-blue-400 font-bold">${v}%</span>
+                        </div>
+                    `;
+                }).join('');
+                document.getElementById('volatility-list').innerHTML = volHtml;
+
+                // Sentiment
+                const avgChange = data.quotes.reduce((a, b) => a + b.change, 0) / data.quotes.length;
+                const sentiment = avgChange > 0.1 ? "Bullish" : (avgChange < -0.1 ? "Bearish" : "Neutral");
+                const barWidth = Math.max(10, Math.min(90, 50 + (avgChange * 20)));
+                document.getElementById('sentiment-value').innerText = sentiment;
+                document.getElementById('sentiment-value').className = `text-xl font-black italic ${avgChange > 0.1 ? 'text-emerald-400' : (avgChange < -0.1 ? 'text-red-400' : 'text-blue-400')}`;
+                document.getElementById('sentiment-bar').style.width = barWidth + '%';
+                document.getElementById('sentiment-bar').className = `h-full transition-all duration-1000 ${avgChange > 0.1 ? 'bg-emerald-500' : (avgChange < -0.1 ? 'bg-red-500' : 'bg-blue-500')}`;
+
+                document.getElementById('last-update-time').innerText = new Date().toLocaleTimeString();
+            } catch (e) {
+                console.error("Fetch error", e);
+                document.getElementById('sync-status').innerText = "Retry...";
+                document.getElementById('sync-status').className = "text-orange-500";
+            }
+        }
+
+        function updatePriceDisplay() {
+            if (!cachedData) return;
+            const colors = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#c084fc'];
+            const limit = Date.now() - (currentTimeframe * 3600000);
+            
+            priceChart.data.datasets = Object.keys(cachedData.history).map((sym, i) => {
+                const color = colors[i % colors.length];
+                const ctx = document.getElementById('mainPriceChart').getContext('2d');
+                const grad = ctx.createLinearGradient(0, 0, 0, 400);
+                grad.addColorStop(0, color + '22');
+                grad.addColorStop(1, color + '00');
+
+                return {
+                    label: sym,
+                    data: cachedData.history[sym].filter(p => p.x >= limit),
+                    borderColor: color,
+                    backgroundColor: grad,
+                    fill: true,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.3
+                };
+            });
             priceChart.update();
 
-            // Latenz Update
-            latencyChart.data.labels = data.latency_history.map(h => h.t);
-            latencyChart.data.datasets[0].data = data.latency_history.map(h => h.ms);
-            latencyChart.update();
-
-            // Tabelle Update
-            document.getElementById('quoteTable').innerHTML = data.quotes.map(q => `
-                <div class="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl transition-all">
-                    <div>
-                        <span class="font-bold text-blue-400">${q.symbol}</span>
-                        <span class="text-[10px] text-slate-500 ml-2">${q.time}</span>
-                    </div>
-                    <div class="text-right">
-                        <div class="font-mono">$${q.price.toFixed(2)}</div>
-                        <div class="text-xs ${q.change >= 0 ? 'text-emerald-400' : 'text-red-400'}">${q.change.toFixed(2)}%</div>
-                    </div>
+            document.getElementById('legend-container').innerHTML = priceChart.data.datasets.map(ds => `
+                <div class="flex items-center gap-1.5">
+                    <span class="w-2 h-2 rounded-full" style="background:${ds.borderColor}"></span>
+                    <span class="text-[10px] font-bold uppercase text-slate-400">${ds.label}</span>
                 </div>
             `).join('');
         }
 
-        setupCharts();
-        updateData();
-        setInterval(updateData, 30000);
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            btn.onclick = () => {
+                document.querySelectorAll('.tf-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-800'));
+                btn.classList.replace('bg-slate-800', 'bg-blue-600');
+                currentTimeframe = parseInt(btn.dataset.tf);
+                updatePriceDisplay();
+            };
+        });
+
+        initCharts();
+        refresh();
+        setInterval(refresh, 30000);
     </script>
 </body>
 </html>

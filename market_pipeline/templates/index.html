@@ -2,174 +2,155 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Intelligence Dashboard</title>
+    <title>Market Intelligence v3 - Pro Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     <style>
-        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        .pulse-green { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); animation: pulse 2s infinite; }
-        @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
+        body { background: #020617; color: #f1f5f9; }
+        .card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid #1e293b; border-radius: 1.5rem; }
+        .gradient-text { background: linear-gradient(90deg, #3b82f6, #10b981); -webkit-background-clip: text; color: transparent; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-6">
 
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-        <div>
-            <h1 class="text-3xl font-black tracking-tight text-white">MARKET <span class="text-blue-500">PIPELINE</span></h1>
-            <p class="text-gray-400 text-sm">Real-time Financial Data Engine v3.0</p>
-        </div>
-        <div class="flex gap-4">
-            <div id="statusBadge" class="glass px-4 py-2 rounded-full flex items-center gap-2 border-emerald-500/50">
-                <div class="h-3 w-3 bg-emerald-500 rounded-full pulse-green"></div>
-                <span class="text-sm font-bold uppercase tracking-widest text-emerald-400">System Live</span>
+    <div class="max-w-[1600px] mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-4xl font-black gradient-text">ANALYTICS ENGINE</h1>
+                <p class="text-slate-500 font-mono text-sm">Status: <span id="sync-status" class="text-emerald-400">Synchronized</span></p>
             </div>
-        </div>
-    </div>
+            <div class="flex gap-4">
+                <div class="card px-6 py-3 flex flex-col items-center">
+                    <span class="text-[10px] text-slate-500 uppercase">Success Rate</span>
+                    <span id="stat-success" class="text-xl font-bold text-emerald-400">--%</span>
+                </div>
+            </div>
+        </header>
 
-    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <div class="lg:col-span-2 space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div class="glass p-4 rounded-2xl">
-                    <p class="text-xs text-gray-500 uppercase">Symbols</p>
-                    <p id="totalSymbols" class="text-2xl font-bold">--</p>
-                </div>
-                <div class="glass p-4 rounded-2xl">
-                    <p class="text-xs text-gray-500 uppercase">API Calls</p>
-                    <p id="totalAPICalls" class="text-2xl font-bold">--</p>
-                </div>
-                <div class="glass p-4 rounded-2xl">
-                    <p class="text-xs text-gray-500 uppercase">Health</p>
-                    <p id="successRate" class="text-2xl font-bold text-emerald-400">--%</p>
-                </div>
-                <div class="glass p-4 rounded-2xl">
-                    <p class="text-xs text-gray-500 uppercase">Latency</p>
-                    <p id="avgLatency" class="text-2xl font-bold text-blue-400">--ms</p>
-                </div>
-            </div>
-
-            <div class="glass p-6 rounded-3xl">
-                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                    <span>📊</span> Market Movers (Change %)
-                </h3>
-                <div class="h-64">
-                    <canvas id="performanceChart"></canvas>
-                </div>
-            </div>
-
-            <div class="glass rounded-3xl overflow-hidden">
-                <table class="w-full text-left border-collapse text-sm">
-                    <thead class="bg-white/5 uppercase text-xs text-gray-400">
-                        <tr>
-                            <th class="p-4">Asset</th>
-                            <th class="p-4 text-right">Price</th>
-                            <th class="p-4 text-right">Change</th>
-                            <th class="p-4 text-right">Last Sync</th>
-                        </tr>
-                    </thead>
-                    <tbody id="quotesContent" class="divide-y divide-white/5">
-                        </tbody>
-                </table>
-            </div>
-        </div>
-
-        <div class="space-y-6">
-            
-            <div class="glass p-6 rounded-3xl border-blue-500/20">
-                <h3 class="text-sm font-bold text-gray-400 mb-6 uppercase tracking-widest text-center">Pipeline Architecture</h3>
-                <div class="relative space-y-4 text-center">
-                    <div class="bg-blue-600/20 border border-blue-500 p-2 rounded-lg text-xs">External APIs (Finnhub, Twelve)</div>
-                    <div class="text-blue-500">↓</div>
-                    <div class="bg-purple-600/20 border border-purple-500 p-2 rounded-lg text-xs font-bold">Python Worker (Multiprocessing)</div>
-                    <div class="text-purple-500">↓</div>
-                    <div class="bg-emerald-600/20 border border-emerald-500 p-2 rounded-lg text-xs font-mono italic">PostgreSQL Database</div>
-                </div>
-            </div>
-
-            <div class="glass p-6 rounded-3xl">
-                <h3 class="text-sm font-bold mb-4 uppercase">Reliability</h3>
-                <div class="h-40">
-                    <canvas id="healthChart"></canvas>
-                </div>
-            </div>
-
-            <div class="glass p-6 rounded-3xl">
-                <h3 class="text-sm font-bold mb-4 uppercase">System Logs</h3>
-                <div id="apiLogsContent" class="space-y-3 font-mono text-[10px]">
+            <div class="lg:col-span-8 space-y-6">
+                <div class="card p-6">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">📈 Market Price Intervals (24h)</h2>
+                    <div class="h-[400px]">
+                        <canvas id="mainPriceChart"></canvas>
                     </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">API Latency Trend</h3>
+                        <div class="h-48">
+                            <canvas id="latencyChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card p-6">
+                        <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Assets Overview</h3>
+                        <div id="quoteTable" class="space-y-3">
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="card p-6 border-blue-500/30">
+                    <h3 class="font-bold mb-4">System Architecture</h3>
+                    <div class="space-y-4 relative">
+                        <div class="p-3 bg-blue-500/10 border border-blue-500/20 rounded-xl text-xs">
+                            <span class="text-blue-400 font-bold uppercase">Ingestion</span><br>Finnhub & Twelve Data API
+                        </div>
+                        <div class="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-xs">
+                            <span class="text-emerald-400 font-bold uppercase">Processing</span><br>Python Gthread Worker
+                        </div>
+                        <div class="p-3 bg-purple-500/10 border border-purple-500/20 rounded-xl text-xs text-center font-mono italic">
+                            PostgreSQL Storage Layer
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card p-6">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase mb-4">Distribution</h3>
+                    <div class="h-64">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        let perfChart, healthChart;
+        let priceChart, latencyChart, distChart;
 
-        function initCharts() {
-            const ctx1 = document.getElementById('performanceChart').getContext('2d');
-            perfChart = new Chart(ctx1, {
-                type: 'bar',
-                data: { labels: [], datasets: [{ label: 'Change %', data: [], backgroundColor: '#3b82f6', borderRadius: 8 }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+        function setupCharts() {
+            // Preis-Kurven-Diagramm
+            const pCtx = document.getElementById('mainPriceChart').getContext('2d');
+            priceChart = new Chart(pCtx, {
+                type: 'line',
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        x: { type: 'time', time: { unit: 'hour' }, grid: { display: false } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' } }
+                    },
+                    plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+                }
             });
 
-            const ctx2 = document.getElementById('healthChart').getContext('2d');
-            healthChart = new Chart(ctx2, {
-                type: 'doughnut',
-                data: { labels: ['Success', 'Errors'], datasets: [{ data: [100, 0], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }] },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            // Latenz-Diagramm
+            const lCtx = document.getElementById('latencyChart').getContext('2d');
+            latencyChart = new Chart(lCtx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'ms', data: [], borderColor: '#3b82f6', fill: true, backgroundColor: 'rgba(59, 130, 246, 0.1)', tension: 0.4 }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
         }
 
-        async function refreshData() {
-            try {
-                const res = await fetch('/api/dashboard');
-                const data = await res.json();
+        async function updateData() {
+            const response = await fetch('/api/dashboard');
+            const data = await response.json();
 
-                // Stats
-                document.getElementById('totalSymbols').innerText = data.stats.total_symbols;
-                document.getElementById('totalAPICalls').innerText = data.stats.total_api_calls;
-                document.getElementById('successRate').innerText = data.stats.success_rate + '%';
-                
-                // Update Charts
-                const labels = data.quotes.map(q => q.symbol_code);
-                const values = data.quotes.map(q => q.change_pct);
-                perfChart.data.labels = labels;
-                perfChart.data.datasets[0].data = values;
-                perfChart.data.datasets[0].backgroundColor = values.map(v => v >= 0 ? '#10b981' : '#ef4444');
-                perfChart.update();
+            // Stats Update
+            document.getElementById('stat-success').innerText = data.stats.success_rate + '%';
 
-                healthChart.data.datasets[0].data = [data.stats.success_rate, 100 - data.stats.success_rate];
-                healthChart.update();
+            // Kurven Update (Prices)
+            const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+            priceChart.data.datasets = Object.keys(data.history).map((sym, i) => ({
+                label: sym,
+                data: data.history[sym],
+                borderColor: colors[i % colors.length],
+                borderWidth: 3,
+                pointRadius: 0,
+                tension: 0.3
+            }));
+            priceChart.update();
 
-                // Update Table
-                document.getElementById('quotesContent').innerHTML = data.quotes.map(q => `
-                    <tr class="hover:bg-white/5 transition-colors">
-                        <td class="p-4 font-bold text-blue-400">${q.symbol_code}</td>
-                        <td class="p-4 text-right font-mono">$${q.price.toFixed(2)}</td>
-                        <td class="p-4 text-right font-bold ${q.change_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}">
-                            ${q.change_pct >= 0 ? '+' : ''}${q.change_pct.toFixed(2)}%
-                        </td>
-                        <td class="p-4 text-right text-gray-500 text-xs">${q.time_berlin}</td>
-                    </tr>
-                `).join('');
+            // Latenz Update
+            latencyChart.data.labels = data.latency_history.map(h => h.t);
+            latencyChart.data.datasets[0].data = data.latency_history.map(h => h.ms);
+            latencyChart.update();
 
-                // Update Logs
-                document.getElementById('apiLogsContent').innerHTML = data.api_logs.slice(0, 5).map(log => `
-                    <div class="flex justify-between border-b border-white/5 pb-1">
-                        <span class="text-gray-400">${log.source_name}</span>
-                        <span class="${log.http_status === 200 ? 'text-emerald-500' : 'text-red-500'}">${log.http_status}</span>
+            // Tabelle Update
+            document.getElementById('quoteTable').innerHTML = data.quotes.map(q => `
+                <div class="flex justify-between items-center p-3 hover:bg-white/5 rounded-xl transition-all">
+                    <div>
+                        <span class="font-bold text-blue-400">${q.symbol}</span>
+                        <span class="text-[10px] text-slate-500 ml-2">${q.time}</span>
                     </div>
-                `).join('');
-
-            } catch (e) { console.error("Sync Error", e); }
+                    <div class="text-right">
+                        <div class="font-mono">$${q.price.toFixed(2)}</div>
+                        <div class="text-xs ${q.change >= 0 ? 'text-emerald-400' : 'text-red-400'}">${q.change.toFixed(2)}%</div>
+                    </div>
+                </div>
+            `).join('');
         }
 
-        initCharts();
-        refreshData();
-        setInterval(refreshData, 30000);
+        setupCharts();
+        updateData();
+        setInterval(updateData, 30000);
     </script>
 </body>
 </html>

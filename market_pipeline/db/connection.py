@@ -2,19 +2,24 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
+# .env laden
 load_dotenv()
 
-
 def get_connection():
-    return psycopg2.connect(
+    """Erstellt eine Verbindung und setzt die Session-Zeitzone auf Berlin."""
+    conn = psycopg2.connect(
         host=os.getenv("PGHOST", "dpg-d6v9lh94tr6s73dgj93g-a.frankfurt-postgres.render.com"),
         port=int(os.getenv("PGPORT", "5432")),
         dbname=os.getenv("PGDATABASE", "marketdb_6mxq"),
         user=os.getenv("PGUSER", "marketdb_6mxq_user"),
         password=os.getenv("PGPASSWORD", "gSbpVTiDKKo7YCrgLg3dHSipcpJpR9JF"),
     )
+    # WICHTIG: Jede Verbindung startet sofort im Berlin-Modus
+    with conn.cursor() as cur:
+        cur.execute("SET TIME ZONE 'Europe/Berlin';")
+    return conn
 
-
+# Korrigierte DDL mit Berliner Zeit als Standardwert
 DDL = """
 -- ============================================================
 -- DIMENSION TABLES
@@ -51,50 +56,45 @@ CREATE TABLE IF NOT EXISTS dim_indicator (
 );
 
 -- ============================================================
--- FACT TABLES
+-- FACT TABLES (Zeitstempel auf Berlin optimiert)
 -- ============================================================
 
--- قیمت لحظه‌ای
 CREATE TABLE IF NOT EXISTS fact_market_quote (
-    quote_id       BIGSERIAL PRIMARY KEY,
-    symbol_id      INT NOT NULL REFERENCES dim_symbol(symbol_id),
-    source_id      INT NOT NULL REFERENCES dim_source(source_id),
-    fetched_at_utc TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    quote_time_utc TIMESTAMPTZ,
-    price          NUMERIC(18,6),
-    open           NUMERIC(18,6),
-    high           NUMERIC(18,6),
-    low            NUMERIC(18,6),
-    previous_close NUMERIC(18,6),
-    change         NUMERIC(18,6),
-    change_pct     NUMERIC(10,4),
-    raw_payload    JSONB,
+    quote_id        BIGSERIAL PRIMARY KEY,
+    symbol_id       INT NOT NULL REFERENCES dim_symbol(symbol_id),
+    source_id       INT NOT NULL REFERENCES dim_source(source_id),
+    -- Nutzt jetzt die Berliner Zeit als Default
+    fetched_at_utc  TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
+    quote_time_utc  TIMESTAMPTZ,
+    price           NUMERIC(18,6),
+    open            NUMERIC(18,6),
+    high            NUMERIC(18,6),
+    low             NUMERIC(18,6),
+    previous_close  NUMERIC(18,6),
+    change          NUMERIC(18,6),
+    change_pct      NUMERIC(10,4),
+    raw_payload     JSONB,
     CONSTRAINT uq_fact_quote UNIQUE (symbol_id, source_id, quote_time_utc)
 );
 
 CREATE INDEX IF NOT EXISTS ix_quote_symbol_time
     ON fact_market_quote (symbol_id, fetched_at_utc DESC);
 
--- شاخص‌های تکنیکال
 CREATE TABLE IF NOT EXISTS fact_market_indicator (
     indicator_fact_id BIGSERIAL PRIMARY KEY,
-    symbol_id         INT NOT NULL REFERENCES dim_symbol(symbol_id),
-    source_id         INT NOT NULL REFERENCES dim_source(source_id),
-    indicator_id      INT NOT NULL REFERENCES dim_indicator(indicator_id),
-    interval_id       INT REFERENCES dim_interval(interval_id),
-    candle_time_utc   TIMESTAMPTZ NOT NULL,
-    value             NUMERIC(18,6),
-    macd              NUMERIC(18,6),
-    macd_signal       NUMERIC(18,6),
-    macd_hist         NUMERIC(18,6),
-    raw_payload       JSONB,
+    symbol_id          INT NOT NULL REFERENCES dim_symbol(symbol_id),
+    source_id          INT NOT NULL REFERENCES dim_source(source_id),
+    indicator_id       INT NOT NULL REFERENCES dim_indicator(indicator_id),
+    interval_id        INT REFERENCES dim_interval(interval_id),
+    candle_time_utc    TIMESTAMPTZ NOT NULL,
+    value              NUMERIC(18,6),
+    macd               NUMERIC(18,6),
+    macd_signal        NUMERIC(18,6),
+    macd_hist          NUMERIC(18,6),
+    raw_payload        JSONB,
     CONSTRAINT uq_fact_indicator UNIQUE (symbol_id, indicator_id, interval_id, candle_time_utc)
 );
 
-CREATE INDEX IF NOT EXISTS ix_indicator_symbol_time
-    ON fact_market_indicator (symbol_id, indicator_id, candle_time_utc DESC);
-
--- کندل‌استیک
 CREATE TABLE IF NOT EXISTS fact_market_timeseries (
     timeseries_id   BIGSERIAL PRIMARY KEY,
     symbol_id       INT NOT NULL REFERENCES dim_symbol(symbol_id),
@@ -110,15 +110,11 @@ CREATE TABLE IF NOT EXISTS fact_market_timeseries (
     CONSTRAINT uq_fact_timeseries UNIQUE (symbol_id, interval_id, candle_time_utc)
 );
 
-CREATE INDEX IF NOT EXISTS ix_timeseries_symbol_time
-    ON fact_market_timeseries (symbol_id, interval_id, candle_time_utc DESC);
-
--- داده‌های بنیادی
 CREATE TABLE IF NOT EXISTS fact_company_fundamental (
     fundamental_id    BIGSERIAL PRIMARY KEY,
     symbol_id         INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id         INT NOT NULL REFERENCES dim_source(source_id),
-    fetched_at_utc    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    fetched_at_utc    TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
     ipo_date          DATE,
     market_cap        NUMERIC(22,2),
     share_outstanding NUMERIC(18,2),
@@ -136,15 +132,11 @@ CREATE TABLE IF NOT EXISTS fact_company_fundamental (
     raw_metrics       JSONB
 );
 
-CREATE INDEX IF NOT EXISTS ix_fundamental_symbol
-    ON fact_company_fundamental (symbol_id, fetched_at_utc DESC);
-
--- تقویم سود
 CREATE TABLE IF NOT EXISTS fact_earnings_calendar (
     earnings_id      BIGSERIAL PRIMARY KEY,
     symbol_id        INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id        INT NOT NULL REFERENCES dim_source(source_id),
-    fetched_at_utc   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    fetched_at_utc   TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
     report_date      DATE,
     hour             TEXT,
     eps_estimate     NUMERIC(12,4),
@@ -155,12 +147,11 @@ CREATE TABLE IF NOT EXISTS fact_earnings_calendar (
     CONSTRAINT uq_fact_earnings UNIQUE (symbol_id, report_date)
 );
 
--- لاگ API calls
 CREATE TABLE IF NOT EXISTS log_api_call (
     log_id        BIGSERIAL PRIMARY KEY,
     source_id     INT REFERENCES dim_source(source_id),
     symbol_id     INT REFERENCES dim_symbol(symbol_id),
-    called_at_utc TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    called_at_utc TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
     endpoint      TEXT,
     http_status   INT,
     response_ms   INT,
@@ -171,7 +162,7 @@ CREATE TABLE IF NOT EXISTS log_api_call (
 -- SEED DATA
 -- ============================================================
 INSERT INTO dim_source (source_name, base_url, notes) VALUES
-    ('finnhub',      'https://finnhub.io/api/v1',        '60 req/min free'),
+    ('finnhub',      'https://finnhub.io/api/v1',         '60 req/min free'),
     ('alphavantage', 'https://www.alphavantage.co/query', '25 req/day free'),
     ('twelvedata',   'https://api.twelvedata.com',        '800 req/day free')
 ON CONFLICT (source_name) DO NOTHING;
@@ -195,21 +186,18 @@ INSERT INTO dim_interval (interval_code, interval_type) VALUES
 ON CONFLICT (interval_code) DO NOTHING;
 """
 
-
 def create_schema():
-    """Star Schema + seed data را می‌سازد."""
+    """Schema erstellen und verifizieren."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(DDL)
         conn.commit()
-    print("[DB] Star Schema created / verified.")
-
+    print("[DB] Star Schema verified & Timezone set to Berlin.")
 
 # ============================================================
-# DIMENSION HELPERS — با in-memory cache
+# DIMENSION HELPERS
 # ============================================================
 _cache: dict = {}
-
 
 def _upsert_dim(conn, table: str, uk_col: str, uk_val: str,
                 pk_col: str, extra: dict | None = None) -> int:
@@ -240,20 +228,16 @@ def _upsert_dim(conn, table: str, uk_col: str, uk_val: str,
     _cache[cache_key] = row_id
     return row_id
 
-
 def get_source_id(conn, name: str) -> int:
     return _upsert_dim(conn, "dim_source", "source_name", name, "source_id")
-
 
 def get_symbol_id(conn, code: str, **kwargs) -> int:
     allowed = {"company_name", "exchange", "country", "currency", "sector", "industry"}
     extra   = {k: v for k, v in kwargs.items() if k in allowed and v}
     return _upsert_dim(conn, "dim_symbol", "symbol_code", code, "symbol_id", extra or None)
 
-
 def get_interval_id(conn, code: str) -> int:
     return _upsert_dim(conn, "dim_interval", "interval_code", code, "interval_id")
-
 
 def get_indicator_id(conn, name: str) -> int:
     return _upsert_dim(conn, "dim_indicator", "indicator_name", name, "indicator_id")

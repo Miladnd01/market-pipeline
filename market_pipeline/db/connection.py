@@ -6,7 +6,10 @@ from dotenv import load_dotenv
 load_dotenv()
 
 def get_connection():
-    """Erstellt eine Verbindung und setzt die Session-Zeitzone auf Berlin."""
+    """
+    Erstellt eine Verbindung zur PostgreSQL-Datenbank.
+    Setzt die Session auf Europe/Berlin.
+    """
     conn = psycopg2.connect(
         host=os.getenv("PGHOST", "dpg-d6v9lh94tr6s73dgj93g-a.frankfurt-postgres.render.com"),
         port=int(os.getenv("PGPORT", "5432")),
@@ -14,16 +17,18 @@ def get_connection():
         user=os.getenv("PGUSER", "marketdb_6mxq_user"),
         password=os.getenv("PGPASSWORD", "gSbpVTiDKKo7YCrgLg3dHSipcpJpR9JF"),
     )
-    # WICHTIG: Jede Verbindung startet sofort im Berlin-Modus
+    # Stellt sicher, dass die Datenbank-Verbindung im Berlin-Modus arbeitet
     with conn.cursor() as cur:
         cur.execute("SET TIME ZONE 'Europe/Berlin';")
     return conn
 
-# Korrigierte DDL mit Berliner Zeit als Standardwert
+
+# ============================================================
+# DDL - DATA DEFINITION LANGUAGE (BERLIN OPTIMIERT)
+# ============================================================
+# Wir nutzen TIMESTAMP statt TIMESTAMPTZ, um das "+00" zu entfernen.
 DDL = """
--- ============================================================
--- DIMENSION TABLES
--- ============================================================
+-- 1. DIMENSION TABLES
 CREATE TABLE IF NOT EXISTS dim_source (
     source_id   SERIAL PRIMARY KEY,
     source_name TEXT NOT NULL UNIQUE,
@@ -55,17 +60,14 @@ CREATE TABLE IF NOT EXISTS dim_indicator (
     category       TEXT
 );
 
--- ============================================================
--- FACT TABLES (Zeitstempel auf Berlin optimiert)
--- ============================================================
-
+-- 2. FACT TABLES (Zeitstempel ohne Zeitzonen-Anhang)
 CREATE TABLE IF NOT EXISTS fact_market_quote (
     quote_id        BIGSERIAL PRIMARY KEY,
     symbol_id       INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id       INT NOT NULL REFERENCES dim_source(source_id),
-    -- Nutzt jetzt die Berliner Zeit als Default
-    fetched_at_utc  TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
-    quote_time_utc  TIMESTAMPTZ,
+    -- Nutzt lokale Berliner Zeit ohne Zone
+    fetched_at_utc  TIMESTAMP NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
+    quote_time_utc  TIMESTAMP,
     price           NUMERIC(18,6),
     open            NUMERIC(18,6),
     high            NUMERIC(18,6),
@@ -77,16 +79,13 @@ CREATE TABLE IF NOT EXISTS fact_market_quote (
     CONSTRAINT uq_fact_quote UNIQUE (symbol_id, source_id, quote_time_utc)
 );
 
-CREATE INDEX IF NOT EXISTS ix_quote_symbol_time
-    ON fact_market_quote (symbol_id, fetched_at_utc DESC);
-
 CREATE TABLE IF NOT EXISTS fact_market_indicator (
     indicator_fact_id BIGSERIAL PRIMARY KEY,
     symbol_id          INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id          INT NOT NULL REFERENCES dim_source(source_id),
     indicator_id       INT NOT NULL REFERENCES dim_indicator(indicator_id),
     interval_id        INT REFERENCES dim_interval(interval_id),
-    candle_time_utc    TIMESTAMPTZ NOT NULL,
+    candle_time_utc    TIMESTAMP NOT NULL,
     value              NUMERIC(18,6),
     macd               NUMERIC(18,6),
     macd_signal        NUMERIC(18,6),
@@ -95,26 +94,11 @@ CREATE TABLE IF NOT EXISTS fact_market_indicator (
     CONSTRAINT uq_fact_indicator UNIQUE (symbol_id, indicator_id, interval_id, candle_time_utc)
 );
 
-CREATE TABLE IF NOT EXISTS fact_market_timeseries (
-    timeseries_id   BIGSERIAL PRIMARY KEY,
-    symbol_id       INT NOT NULL REFERENCES dim_symbol(symbol_id),
-    source_id       INT NOT NULL REFERENCES dim_source(source_id),
-    interval_id     INT NOT NULL REFERENCES dim_interval(interval_id),
-    candle_time_utc TIMESTAMPTZ NOT NULL,
-    open            NUMERIC(18,6),
-    high            NUMERIC(18,6),
-    low             NUMERIC(18,6),
-    close           NUMERIC(18,6),
-    volume          NUMERIC(20,2),
-    raw_payload     JSONB,
-    CONSTRAINT uq_fact_timeseries UNIQUE (symbol_id, interval_id, candle_time_utc)
-);
-
 CREATE TABLE IF NOT EXISTS fact_company_fundamental (
     fundamental_id    BIGSERIAL PRIMARY KEY,
     symbol_id         INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id         INT NOT NULL REFERENCES dim_source(source_id),
-    fetched_at_utc    TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
+    fetched_at_utc    TIMESTAMP NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
     ipo_date          DATE,
     market_cap        NUMERIC(22,2),
     share_outstanding NUMERIC(18,2),
@@ -132,35 +116,18 @@ CREATE TABLE IF NOT EXISTS fact_company_fundamental (
     raw_metrics       JSONB
 );
 
-CREATE TABLE IF NOT EXISTS fact_earnings_calendar (
-    earnings_id      BIGSERIAL PRIMARY KEY,
-    symbol_id        INT NOT NULL REFERENCES dim_symbol(symbol_id),
-    source_id        INT NOT NULL REFERENCES dim_source(source_id),
-    fetched_at_utc   TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
-    report_date      DATE,
-    hour             TEXT,
-    eps_estimate     NUMERIC(12,4),
-    eps_actual       NUMERIC(12,4),
-    revenue_estimate NUMERIC(22,2),
-    revenue_actual   NUMERIC(22,2),
-    raw_payload      JSONB,
-    CONSTRAINT uq_fact_earnings UNIQUE (symbol_id, report_date)
-);
-
 CREATE TABLE IF NOT EXISTS log_api_call (
     log_id        BIGSERIAL PRIMARY KEY,
     source_id     INT REFERENCES dim_source(source_id),
     symbol_id     INT REFERENCES dim_symbol(symbol_id),
-    called_at_utc TIMESTAMPTZ NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
+    called_at_utc TIMESTAMP NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
     endpoint      TEXT,
     http_status   INT,
     response_ms   INT,
     error_msg     TEXT
 );
 
--- ============================================================
--- SEED DATA
--- ============================================================
+-- 3. SEED DATA (Standardwerte)
 INSERT INTO dim_source (source_name, base_url, notes) VALUES
     ('finnhub',      'https://finnhub.io/api/v1',         '60 req/min free'),
     ('alphavantage', 'https://www.alphavantage.co/query', '25 req/day free'),
@@ -175,27 +142,38 @@ INSERT INTO dim_indicator (indicator_name, description, category) VALUES
 ON CONFLICT (indicator_name) DO NOTHING;
 
 INSERT INTO dim_interval (interval_code, interval_type) VALUES
-    ('1min',  'intraday'),
-    ('5min',  'intraday'),
-    ('15min', 'intraday'),
-    ('30min', 'intraday'),
-    ('1h',    'intraday'),
-    ('1day',  'daily'),
-    ('1week', 'weekly'),
-    ('daily', 'daily')
+    ('1min', 'intraday'), ('5min', 'intraday'), ('15min', 'intraday'), 
+    ('30min', 'intraday'), ('1h', 'intraday'), ('1day', 'daily'), 
+    ('1week', 'weekly'), ('daily', 'daily')
 ON CONFLICT (interval_code) DO NOTHING;
 """
 
 def create_schema():
-    """Schema erstellen und verifizieren."""
+    """Erstellt das Star-Schema und bereinigt alte Views."""
     with get_connection() as conn:
         with conn.cursor() as cur:
+            # Lösche alle alten Views, falls diese noch existieren
+            cur.execute("DROP VIEW IF EXISTS vw_api_log CASCADE;")
+            cur.execute("DROP VIEW IF EXISTS log_api_call_berlin CASCADE;")
+            cur.execute("DROP VIEW IF EXISTS vw_latest_quotes CASCADE;")
+            
+            # Tabellen erstellen
             cur.execute(DDL)
+            
+            # Neue View erstellen, die direkt die Berliner Zeit anzeigt
+            cur.execute(\"\"\"
+                CREATE OR REPLACE VIEW vw_api_log AS
+                SELECT log_id, called_at_utc AS zeit_berlin, endpoint, http_status, response_ms
+                FROM log_api_call
+                ORDER BY log_id DESC;
+            \"\"\")
+            
         conn.commit()
-    print("[DB] Star Schema verified & Timezone set to Berlin.")
+    print("[DB] Berlin-Zeit-Schema (TIMESTAMP) erfolgreich erstellt.")
+
 
 # ============================================================
-# DIMENSION HELPERS
+# DIMENSION HELPERS (In-Memory Cache)
 # ============================================================
 _cache: dict = {}
 
@@ -216,11 +194,7 @@ def _upsert_dim(conn, table: str, uk_col: str, uk_val: str,
     else:
         upd = f"{uk_col} = EXCLUDED.{uk_col}"
 
-    sql = f"""
-        INSERT INTO {table} ({cn}) VALUES ({ph})
-        ON CONFLICT ({uk_col}) DO UPDATE SET {upd}
-        RETURNING {pk_col};
-    """
+    sql = f"INSERT INTO {table} ({cn}) VALUES ({ph}) ON CONFLICT ({uk_col}) DO UPDATE SET {upd} RETURNING {pk_col};"
     with conn.cursor() as cur:
         cur.execute(sql, vals)
         row_id = cur.fetchone()[0]

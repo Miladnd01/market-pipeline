@@ -17,7 +17,6 @@ import collectors.twelvedata   as td
 from db.connection import create_schema, get_connection
 
 # --- Konfiguration ---
-# Definition der Zeitzone (Muss vor der Verwendung definiert sein!)
 BERLIN_TZ = pytz.timezone('Europe/Berlin')
 
 DEFAULT_SYMBOLS = [
@@ -28,6 +27,115 @@ DEFAULT_SYMBOLS = [
 POLL_INTERVAL = int(os.getenv("POLL_INTERVAL_SECONDS", "60"))
 ALPHA_MAX     = int(os.getenv("ALPHA_MAX_RECORDS", "10"))
 TWELVE_SIZE   = int(os.getenv("TWELVE_OUTPUTSIZE", "30"))
+
+
+def print_live_dashboard():
+    """
+    Live Terminal Dashboard - Zeigt aktuelle Daten aus der Datenbank.
+    Wird nach jedem Cycle automatisch aufgerufen.
+    """
+    queries = {
+        "📈 LATEST QUOTES": """
+            SELECT 
+                symbol_code AS Symbol,
+                ROUND(price::numeric, 2) AS Price,
+                ROUND(change_pct::numeric, 2) AS "Change%",
+                TO_CHAR(fetched_at_utc AT TIME ZONE 'Europe/Berlin', 'HH24:MI:SS') AS "Time (Berlin)"
+            FROM fact_market_quote q
+            JOIN dim_symbol s ON s.symbol_id = q.symbol_id
+            ORDER BY q.fetched_at_utc DESC
+            LIMIT 5;
+        """,
+        
+        "📊 CANDLE DATA (Last 3)": """
+            SELECT 
+                symbol_code AS Symbol,
+                ROUND(close::numeric, 2) AS Close,
+                ROUND(volume::numeric, 0) AS Volume,
+                TO_CHAR(candle_time_utc AT TIME ZONE 'Europe/Berlin', 'DD.MM HH24:MI') AS "Time"
+            FROM fact_market_timeseries t
+            JOIN dim_symbol s ON s.symbol_id = t.symbol_id
+            ORDER BY t.candle_time_utc DESC
+            LIMIT 3;
+        """,
+        
+        "🔧 API CALLS (Last 5)": """
+            SELECT 
+                src.source_name AS Source,
+                endpoint AS Endpoint,
+                http_status AS Status,
+                response_ms AS "MS",
+                TO_CHAR(called_at_utc AT TIME ZONE 'Europe/Berlin', 'HH24:MI:SS') AS "Time"
+            FROM log_api_call l
+            LEFT JOIN dim_source src ON src.source_id = l.source_id
+            ORDER BY l.called_at_utc DESC
+            LIMIT 5;
+        """,
+        
+        "💰 FUNDAMENTALS": """
+            SELECT 
+                s.symbol_code AS Symbol,
+                ROUND((f.market_cap / 1000)::numeric, 1) || 'B' AS "Market Cap",
+                ROUND(f.pe_ratio::numeric, 2) AS "P/E"
+            FROM fact_company_fundamental f
+            JOIN dim_symbol s ON s.symbol_id = f.symbol_id
+            ORDER BY f.fetched_at_utc DESC
+            LIMIT 3;
+        """
+    }
+
+    # Terminal leeren (funktioniert auf Linux/Mac, auf Windows optional)
+    os.system('clear' if os.name != 'nt' else 'cls')
+    
+    print("\n" + "="*80)
+    print(f"   📊 MARKET DATA PIPELINE - LIVE DASHBOARD")
+    print(f"   🕐 {datetime.now(BERLIN_TZ).strftime('%Y-%m-%d %H:%M:%S %Z')}")
+    print("="*80)
+
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cur:
+                for title, sql in queries.items():
+                    print(f"\n{title}")
+                    print("-" * 80)
+                    
+                    cur.execute(sql)
+                    rows = cur.fetchall()
+                    
+                    if not rows:
+                        print("  (No data yet)")
+                        continue
+                    
+                    # Spaltennamen
+                    colnames = [desc[0] for desc in cur.description]
+                    
+                    # Header formatieren
+                    col_widths = []
+                    for i, name in enumerate(colnames):
+                        max_width = len(str(name))
+                        for row in rows:
+                            max_width = max(max_width, len(str(row[i])) if row[i] else 0)
+                        col_widths.append(min(max_width + 2, 20))  # Max 20 Zeichen
+                    
+                    # Header drucken
+                    header = " | ".join(f"{name:<{col_widths[i]}}" for i, name in enumerate(colnames))
+                    print(f"  {header}")
+                    print("  " + "-" * len(header))
+                    
+                    # Daten drucken
+                    for row in rows:
+                        line = " | ".join(
+                            f"{str(val) if val is not None else 'NULL':<{col_widths[i]}}" 
+                            for i, val in enumerate(row)
+                        )
+                        print(f"  {line}")
+                        
+    except Exception as e:
+        print(f"\n  ⚠️ [DASHBOARD ERROR] {e}")
+        traceback.print_exc()
+    
+    print("\n" + "="*80 + "\n")
+
 
 def fix_null_symbol_info():
     """Füllt fehlende Stammdaten in dim_symbol aus den Fundamentals auf."""
@@ -59,8 +167,6 @@ def fix_null_symbol_info():
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                # WICHTIG: Setzt die Datenbank-Session auf Berliner Zeit
-                cur.execute("SET TIME ZONE 'Europe/Berlin';")
                 cur.execute(sql)
                 updated = cur.rowcount
             conn.commit()
@@ -69,14 +175,14 @@ def fix_null_symbol_info():
     except Exception as e:
         print(f"  [FIX ERROR] {e}")
 
+
 def run_cycle(symbols: list[str], cycle_num: int):
     """Führt einen Sammlungs-Durchlauf für alle Symbole aus."""
-    # Hier wird die aktuelle Zeit für das Log berechnet
     now_str = datetime.now(BERLIN_TZ).strftime("%Y-%m-%d %H:%M:%S %Z")
     
-    print(f"\n{'═'*52}")
-    print(f"  Cycle #{cycle_num}  |  {now_str}  |  {len(symbols)} symbol(s)")
-    print(f"{'═'*52}")
+    print(f"\n{'═'*80}")
+    print(f"  🔄 Cycle #{cycle_num}  |  {now_str}  |  {len(symbols)} symbol(s)")
+    print(f"{'═'*80}")
 
     # Indikatoren nur beim ersten Mal oder alle 10 Zyklen
     fetch_indicators = (cycle_num == 1) or (cycle_num % 10 == 0)
@@ -88,7 +194,7 @@ def run_cycle(symbols: list[str], cycle_num: int):
         try:
             fh.run(symbol, fetch_fundamentals=fetch_indicators, fetch_earn=(cycle_num == 1))
         except Exception as e:
-            print(f"    [Finnhub ERROR] {e}")
+            print(f"    ❌ [Finnhub ERROR] {e}")
         time.sleep(1)
 
         # 2. Alpha Vantage
@@ -96,19 +202,24 @@ def run_cycle(symbols: list[str], cycle_num: int):
             try:
                 av.run(symbol, interval="daily", max_records=ALPHA_MAX)
             except Exception as e:
-                print(f"    [AlphaVantage ERROR] {e}")
+                print(f"    ❌ [AlphaVantage ERROR] {e}")
             time.sleep(2)
 
         # 3. Twelve Data
         try:
             td.run(symbol, outputsize=TWELVE_SIZE)
         except Exception as e:
-            print(f"    [TwelveData ERROR] {e}")
+            print(f"    ❌ [TwelveData ERROR] {e}")
         time.sleep(2)
 
     # Daten-Konsistenz prüfen
     fix_null_symbol_info()
-    print(f"\n  ✓ Cycle #{cycle_num} complete.")
+    
+    # ✅ NEU: Live Dashboard anzeigen
+    print_live_dashboard()
+    
+    print(f"\n  ✅ Cycle #{cycle_num} complete.\n")
+
 
 def main(override_symbols=None, once=False):
     """Hauptfunktion der Pipeline."""
@@ -121,28 +232,29 @@ def main(override_symbols=None, once=False):
         run_cycle(symbols, cycle_num=1)
         return
 
-    print(f"\n[AUTO-LOOP] Interval: {POLL_INTERVAL}s | Symbols: {', '.join(symbols)}")
+    print(f"\n🚀 [AUTO-LOOP] Interval: {POLL_INTERVAL}s | Symbols: {', '.join(symbols)}")
 
     cycle_num = 1
     while True:
         try:
             run_cycle(symbols, cycle_num)
         except KeyboardInterrupt:
-            print("\n\n[✓] Pipeline stopped by user.")
+            print("\n\n✅ [STOPPED] Pipeline stopped by user.")
             sys.exit(0)
         except Exception as e:
-            print(f"\n[CRITICAL ERROR] {e}")
+            print(f"\n❌ [CRITICAL ERROR] {e}")
             traceback.print_exc()
 
         cycle_num += 1
         
         # Countdown bis zum nächsten Start
         try:
-            print(f"  ⏱ Next cycle in {POLL_INTERVAL} seconds...")
+            print(f"  ⏱️  Next cycle in {POLL_INTERVAL} seconds...")
             time.sleep(POLL_INTERVAL)
         except KeyboardInterrupt:
-            print("\n[✓] Pipeline stopped.")
+            print("\n✅ [STOPPED] Pipeline stopped.")
             sys.exit(0)
+
 
 # --- CLI Entrypoint ---
 if __name__ == "__main__":

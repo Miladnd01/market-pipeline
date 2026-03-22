@@ -1,372 +1,1074 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Market Intelligence v5.1 - Combined Ultimate</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+    <title>Market Intelligence Dashboard</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <style>
-        * { font-family: 'Inter', sans-serif; }
-        body { 
-            background: radial-gradient(circle at 20% 30%, #0a0f2a, #020617); 
-            color: #f1f5f9; 
-            overflow-x: hidden;
+        * {
+            font-family: "Inter", sans-serif;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-main: #020617;
+            --bg-secondary: #0b1120;
+            --panel: rgba(15, 23, 42, 0.72);
+            --panel-strong: rgba(15, 23, 42, 0.88);
+            --border-soft: rgba(148, 163, 184, 0.14);
+            --border-accent: rgba(96, 165, 250, 0.28);
+
+            --text-main: #e2e8f0;
+            --text-soft: #cbd5e1;
+            --text-muted: #94a3b8;
+            --text-faint: #64748b;
+
+            --primary: #60a5fa;
+            --primary-strong: #2563eb;
+            --secondary: #22d3ee;
+            --success: #34d399;
+            --danger: #f87171;
+            --warning: #fbbf24;
+
+            --shadow-soft: 0 12px 32px rgba(2, 6, 23, 0.34);
+            --shadow-hover: 0 20px 44px rgba(2, 6, 23, 0.45);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
             min-height: 100vh;
-        }
-        
-        .card { 
-            background: rgba(10, 20, 40, 0.65); 
-            backdrop-filter: blur(16px); 
-            border: 1px solid rgba(59, 130, 246, 0.2); 
-            border-radius: 1.5rem; 
-            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.4, 1);
-        }
-        .card:hover { 
-            border-color: #3b82f6; 
-            box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.25);
-            transform: translateY(-3px);
+            overflow-x: hidden;
+            color: var(--text-main);
+            background:
+                radial-gradient(circle at top left, rgba(37, 99, 235, 0.18), transparent 26%),
+                radial-gradient(circle at top right, rgba(34, 211, 238, 0.10), transparent 22%),
+                radial-gradient(circle at bottom center, rgba(59, 130, 246, 0.06), transparent 30%),
+                linear-gradient(180deg, var(--bg-main) 0%, var(--bg-secondary) 100%);
         }
 
-        .gradient-text { 
-            background: linear-gradient(135deg, #60a5fa, #34d399, #f59e0b, #a78bfa); 
-            -webkit-background-clip: text; 
+        .dashboard-shell {
+            position: relative;
+        }
+
+        .dashboard-shell::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background:
+                linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+            background-size: 34px 34px;
+            mask-image: radial-gradient(circle at center, black 35%, transparent 90%);
+            opacity: 0.25;
+        }
+
+        .glass-card {
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.62));
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid var(--border-soft);
+            border-radius: 24px;
+            box-shadow: var(--shadow-soft);
+            transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--border-accent);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .hero-title {
+            background: linear-gradient(135deg, #f8fafc 0%, #93c5fd 40%, #22d3ee 100%);
+            -webkit-background-clip: text;
             background-clip: text;
-            color: transparent; 
-            background-size: 300% auto;
-            animation: shimmer 3s ease infinite;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            color: transparent;
         }
 
-        .status-dot { 
-            height: 10px; 
-            width: 10px; 
-            border-radius: 50%; 
-            display: inline-block; 
-            box-shadow: 0 0 12px currentColor;
-            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.1); }
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
         }
 
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.3); border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
-
-        .price-ticker {
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 8px;
-            padding: 4px 8px;
-            font-family: monospace;
-        }
-        
-        .badge {
-            background: rgba(59, 130, 246, 0.15);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            border-radius: 20px;
-            padding: 2px 10px;
-            font-size: 10px;
+        .eyebrow {
+            font-size: 11px;
             font-weight: 700;
-            letter-spacing: 0.5px;
-            color: #60a5fa;
+            letter-spacing: 0.28em;
+            text-transform: uppercase;
+            color: var(--text-faint);
+        }
+
+        .badge-soft {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #bfdbfe;
+            background: rgba(96, 165, 250, 0.12);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 999px;
+            display: inline-block;
+            box-shadow: 0 0 12px currentColor;
+        }
+
+        .status-pulse {
+            animation: pulseSoft 2s ease-in-out infinite;
+        }
+
+        @keyframes pulseSoft {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.65;
+                transform: scale(1.08);
+            }
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -20% -35% auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.18), transparent 65%);
+            pointer-events: none;
+        }
+
+        .metric-icon {
+            width: 40px;
+            height: 40px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-muted);
+        }
+
+        .segmented-control {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 16px;
+            background: rgba(2, 6, 23, 0.5);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .tf-btn {
+            padding: 9px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 12px;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+        }
+
+        .tf-btn:hover {
+            color: white;
+            background: rgba(255,255,255,0.06);
+        }
+
+        .tf-btn.active {
+            color: white;
+            background: linear-gradient(135deg, #2563eb, #0ea5e9);
+            box-shadow: 0 10px 22px rgba(37, 99, 235, 0.26);
+        }
+
+        .chart-shell {
+            position: relative;
+            height: 420px;
+        }
+
+        .legend-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.06);
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-soft);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .scroll-custom::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .scroll-custom::-webkit-scrollbar-track {
+            background: rgba(30, 41, 59, 0.22);
+            border-radius: 999px;
+        }
+
+        .scroll-custom::-webkit-scrollbar-thumb {
+            background: rgba(100, 116, 139, 0.48);
+            border-radius: 999px;
+        }
+
+        .scroll-custom::-webkit-scrollbar-thumb:hover {
+            background: rgba(96, 165, 250, 0.8);
+        }
+
+        .feed-row {
+            border-radius: 18px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.2s ease;
+        }
+
+        .feed-row:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(96, 165, 250, 0.22);
+        }
+
+        .mono-box {
+            background: rgba(2, 6, 23, 0.55);
+            border: 1px solid rgba(96, 165, 250, 0.18);
+            border-radius: 14px;
+            padding: 8px 12px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        .mini-divider {
+            height: 1px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(148, 163, 184, 0.22), transparent);
+        }
+
+        .sentiment-track {
+            height: 10px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.7);
+        }
+
+        .sentiment-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.35s ease, background 0.35s ease;
+            box-shadow: 0 0 14px rgba(96, 165, 250, 0.3);
+        }
+
+        .vol-bar {
+            height: 7px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: rgba(30, 41, 59, 0.7);
+        }
+
+        .vol-bar > div {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.35s ease;
+        }
+
+        .subtle-ring {
+            position: relative;
+        }
+
+        .subtle-ring::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), transparent 40%, rgba(34, 211, 238, 0.12));
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(12px);
+            animation: fadeLift 0.8s ease forwards;
+        }
+
+        @keyframes fadeLift {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .chart-shell {
+                height: 360px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 14px;
+            }
+
+            .chart-shell {
+                height: 280px;
+            }
+
+            .glass-card {
+                border-radius: 20px;
+            }
         }
     </style>
 </head>
-<body class="p-4 md:p-6 lg:p-8">
+<body class="dashboard-shell p-4 md:p-6 lg:p-8">
+    <main id="main-container" class="max-w-[1800px] mx-auto opacity-0 transition-opacity duration-700">
+        <!-- Header -->
+        <header class="mb-8 fade-in">
+            <div class="glass-card subtle-ring p-6 md:p-8">
+                <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-8">
+                    <div class="max-w-3xl">
+                        <div class="flex flex-wrap items-center gap-3 mb-4">
+                            <span class="badge-soft">
+                                <i class="fas fa-signal"></i>
+                                Live Monitoring Suite
+                            </span>
+                            <span class="badge-soft">
+                                <i class="fas fa-layer-group"></i>
+                                Version 6.0
+                            </span>
+                        </div>
 
-    <div class="max-w-[1800px] mx-auto opacity-0 transition-opacity duration-700" id="main-container">
-        <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
-            <div>
-                <div class="flex items-center gap-3 mb-2">
-                    <i class="fas fa-microchip text-3xl text-blue-500"></i>
-                    <h1 class="text-4xl md:text-5xl font-black gradient-text tracking-tighter">MARKET CORE</h1>
-                    <span class="badge">V 5.1 ULTRA</span>
-                </div>
-                <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 uppercase tracking-wider">
-                    <div class="flex items-center gap-2">
-                        <span class="status-dot bg-emerald-500"></span>
-                        <span id="sync-status" class="text-emerald-400 font-bold tracking-widest">STABLE</span>
-                    </div>
-                    <span class="text-slate-700">|</span>
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-clock text-blue-500"></i>
-                        <span>Sync: <span id="last-update-time" class="text-slate-300">--:--:--</span></span>
-                    </div>
-                </div>
-            </div>
+                        <p class="eyebrow mb-3">Realtime Trading Analytics</p>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
-                <div class="card p-4 border-l-4 border-l-blue-500">
-                    <div class="text-[10px] text-slate-500 font-bold uppercase">Assets</div>
-                    <div id="stat-symbols" class="text-2xl font-black">--</div>
-                </div>
-                <div class="card p-4 border-l-4 border-l-purple-500">
-                    <div class="text-[10px] text-slate-500 font-bold uppercase">Calls</div>
-                    <div id="stat-calls" class="text-2xl font-black">--</div>
-                </div>
-                <div class="card p-4 border-l-4 border-l-emerald-500">
-                    <div class="text-[10px] text-slate-500 font-bold uppercase">Health</div>
-                    <div id="stat-success" class="text-2xl font-black text-emerald-400">--%</div>
-                </div>
-                <div class="card p-4 border-l-4 border-l-orange-500">
-                    <div class="text-[10px] text-slate-500 font-bold uppercase">Latency</div>
-                    <div id="stat-latency" class="text-2xl font-black text-blue-400">--ms</div>
+                        <div class="flex items-start gap-4">
+                            <div class="hidden sm:grid w-14 h-14 rounded-2xl place-items-center bg-blue-500/10 border border-blue-400/20 text-blue-300 mt-1">
+                                <i class="fas fa-chart-line text-2xl"></i>
+                            </div>
+
+                            <div>
+                                <h1 class="hero-title text-3xl md:text-5xl font-black tracking-tight">
+                                    Market Intelligence
+                                </h1>
+                                <p class="text-sm md:text-base text-slate-400 mt-3 max-w-2xl leading-relaxed">
+                                    Live quotes, execution health, gateway latency and sentiment signals in one focused dashboard.
+                                </p>
+
+                                <div class="flex flex-wrap items-center gap-4 mt-5 text-xs font-medium text-slate-400">
+                                    <div class="flex items-center gap-2">
+                                        <span class="status-dot status-pulse bg-emerald-500"></span>
+                                        <span id="sync-status" class="text-emerald-400 font-semibold">Stable Connection</span>
+                                    </div>
+
+                                    <div class="hidden sm:block text-slate-700">•</div>
+
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-clock text-blue-400"></i>
+                                        <span>Last sync: <span id="last-update-time" class="text-slate-300 font-semibold">--:--:--</span></span>
+                                    </div>
+
+                                    <div class="hidden sm:block text-slate-700">•</div>
+
+                                    <div class="flex items-center gap-2">
+                                        <i class="fas fa-database text-cyan-400"></i>
+                                        <span>Source: <span class="text-slate-300 font-semibold">/api/dashboard</span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 xl:w-[640px] gap-4">
+                        <div class="glass-card metric-card p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="section-label">Assets</span>
+                                <div class="metric-icon"><i class="fas fa-layer-group"></i></div>
+                            </div>
+                            <div id="stat-symbols" class="text-3xl font-extrabold text-white">--</div>
+                            <div class="text-xs text-slate-400 mt-2">Tracked instruments</div>
+                        </div>
+
+                        <div class="glass-card metric-card p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="section-label">Calls</span>
+                                <div class="metric-icon"><i class="fas fa-plug"></i></div>
+                            </div>
+                            <div id="stat-calls" class="text-3xl font-extrabold text-white">--</div>
+                            <div class="text-xs text-slate-400 mt-2">Total API requests</div>
+                        </div>
+
+                        <div class="glass-card metric-card p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="section-label">Health</span>
+                                <div class="metric-icon"><i class="fas fa-heart-pulse"></i></div>
+                            </div>
+                            <div id="stat-success" class="text-3xl font-extrabold text-emerald-400">--%</div>
+                            <div class="text-xs text-slate-400 mt-2">Success ratio</div>
+                        </div>
+
+                        <div class="glass-card metric-card p-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="section-label">Latency</span>
+                                <div class="metric-icon"><i class="fas fa-gauge-high"></i></div>
+                            </div>
+                            <div id="stat-latency" class="text-3xl font-extrabold text-blue-400">--ms</div>
+                            <div class="text-xs text-slate-400 mt-2">Latest gateway time</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-8 space-y-6">
-                <div class="card p-6">
-                    <div class="flex flex-wrap justify-between items-center mb-6">
-                        <h3 class="font-black text-lg flex items-center gap-2 italic uppercase tracking-tight">
-                            <i class="fas fa-wave-square text-blue-500"></i> Neural Price Engine
-                        </h3>
-                        <div class="flex bg-slate-900/50 p-1 rounded-xl border border-white/5" id="timeframe-selector">
-                            <button class="tf-btn px-4 py-1.5 rounded-lg text-[10px] font-black bg-blue-600 shadow-lg shadow-blue-500/20" data-tf="24">24H</button>
-                            <button class="tf-btn px-4 py-1.5 rounded-lg text-[10px] font-black hover:bg-white/5 transition-all" data-tf="12">12H</button>
-                            <button class="tf-btn px-4 py-1.5 rounded-lg text-[10px] font-black hover:bg-white/5 transition-all" data-tf="6">6H</button>
+        <!-- Main layout -->
+        <section class="grid grid-cols-1 xl:grid-cols-12 gap-6 fade-in" style="animation-delay: 0.12s;">
+            <!-- Left side -->
+            <div class="xl:col-span-8 space-y-6">
+                <!-- Main Chart -->
+                <div class="glass-card p-6 md:p-7">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-5 mb-6">
+                        <div>
+                            <div class="section-label mb-2">Price Engine</div>
+                            <h2 class="text-xl md:text-2xl font-bold text-white flex items-center gap-3">
+                                <i class="fas fa-wave-square text-blue-400"></i>
+                                Neural Price View
+                            </h2>
+                            <p class="text-sm text-slate-400 mt-2">
+                                Multi-asset trend overlay with dynamic timeframe filtering.
+                            </p>
+                        </div>
+
+                        <div class="segmented-control" id="timeframe-selector">
+                            <button class="tf-btn active" data-tf="24">24H</button>
+                            <button class="tf-btn" data-tf="12">12H</button>
+                            <button class="tf-btn" data-tf="6">6H</button>
+                            <button class="tf-btn" data-tf="3">3H</button>
                         </div>
                     </div>
-                    <div class="h-[400px]">
+
+                    <div class="chart-shell">
                         <canvas id="mainPriceChart"></canvas>
                     </div>
-                    <div id="legend-container" class="mt-6 flex flex-wrap gap-4 justify-center"></div>
+
+                    <div class="mini-divider my-6"></div>
+
+                    <div id="legend-container" class="flex flex-wrap gap-3 justify-center"></div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="card p-6">
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4"><i class="fas fa-bolt-lightning mr-2"></i>Volatility Analysis</h4>
+                <!-- Secondary blocks -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-6">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <div class="section-label mb-2">Volatility</div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fas fa-bolt text-yellow-400"></i>
+                                    Volatility Analysis
+                                </h3>
+                            </div>
+                            <div class="mono-box text-xs text-slate-300">Normalized</div>
+                        </div>
+
                         <div id="volatility-list" class="space-y-4"></div>
                     </div>
-                    <div class="card p-6">
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4"><i class="fas fa-list-ul mr-2"></i>Live Asset Stream</h4>
-                        <div id="quoteTable" class="space-y-2 custom-scroll max-h-[180px] overflow-y-auto pr-2"></div>
+
+                    <div class="glass-card p-6">
+                        <div class="flex items-center justify-between mb-5">
+                            <div>
+                                <div class="section-label mb-2">Stream</div>
+                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                                    <i class="fas fa-list-ul text-cyan-400"></i>
+                                    Live Asset Feed
+                                </h3>
+                            </div>
+                            <div class="mono-box text-xs text-slate-300">Realtime</div>
+                        </div>
+
+                        <div id="quoteTable" class="space-y-2.5 max-h-[310px] overflow-y-auto pr-1 scroll-custom"></div>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-4 space-y-6">
-                <div class="card p-6 flex flex-col items-center">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 self-start w-full">Connection Integrity</h4>
-                    <div class="h-48 w-48 relative">
+            <!-- Right side -->
+            <div class="xl:col-span-4 space-y-6">
+                <!-- Reliability -->
+                <div class="glass-card p-6 flex flex-col items-center">
+                    <div class="w-full flex items-start justify-between mb-5">
+                        <div>
+                            <div class="section-label mb-2">Integrity</div>
+                            <h3 class="text-lg font-bold text-white">Connection Reliability</h3>
+                        </div>
+                        <div class="mono-box text-xs text-slate-300">Uptime</div>
+                    </div>
+
+                    <div class="relative h-56 w-56">
                         <canvas id="reliabilityChart"></canvas>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
                             <span id="circle-percent" class="text-4xl font-black text-emerald-400">--%</span>
-                            <span class="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Uptime Score</span>
+                            <span class="text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold mt-1">Uptime Score</span>
                         </div>
+                    </div>
+
+                    <div class="mt-4 text-sm text-slate-400 text-center max-w-xs">
+                        Reliability reflects successful request ratio over total monitored calls.
                     </div>
                 </div>
 
-                <div class="card p-6">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">AI Market Sentiment</h4>
-                    <div class="flex justify-between items-end mb-3">
-                        <span id="sentiment-value" class="text-2xl font-black uppercase italic">Scanning...</span>
-                        <div class="price-ticker border border-blue-500/30">
-                            <span id="sentiment-bias" class="text-sm font-mono text-blue-400">0.000</span>
+                <!-- Sentiment -->
+                <div class="glass-card p-6">
+                    <div class="flex items-start justify-between gap-4 mb-5">
+                        <div>
+                            <div class="section-label mb-2">Signal</div>
+                            <h3 class="text-lg font-bold text-white">AI Market Sentiment</h3>
+                        </div>
+                        <div class="mono-box border-blue-500/20">
+                            <span id="sentiment-bias" class="text-sm text-blue-300 font-semibold">0.000</span>
                         </div>
                     </div>
-                    <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div id="sentiment-bar" class="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: 50%"></div>
+
+                    <div class="flex items-end justify-between gap-3 mb-4">
+                        <div>
+                            <div id="sentiment-value" class="text-2xl font-black italic text-blue-400">Scanning...</div>
+                            <div class="text-sm text-slate-400 mt-1">Aggregate directional bias from all live quotes.</div>
+                        </div>
                     </div>
-                    <div class="flex justify-between text-[9px] font-bold text-slate-600 mt-2 uppercase tracking-tight">
-                        <span><i class="fas fa-angle-left mr-1"></i>Short Bias</span>
-                        <span>Long Bias <i class="fas fa-angle-right ml-1"></i></span>
+
+                    <div class="sentiment-track">
+                        <div id="sentiment-bar" class="sentiment-fill bg-blue-500" style="width: 50%;"></div>
+                    </div>
+
+                    <div class="flex justify-between text-[11px] font-semibold text-slate-500 mt-3 uppercase tracking-[0.12em]">
+                        <span><i class="fas fa-arrow-left mr-1"></i> Short Bias</span>
+                        <span>Long Bias <i class="fas fa-arrow-right ml-1"></i></span>
                     </div>
                 </div>
 
-                <div class="card p-6">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 text-center italic">Gateway Latency (ms)</h4>
-                    <div class="h-24">
+                <!-- Latency -->
+                <div class="glass-card p-6">
+                    <div class="flex items-start justify-between gap-4 mb-5">
+                        <div>
+                            <div class="section-label mb-2">Performance</div>
+                            <h3 class="text-lg font-bold text-white">Gateway Latency</h3>
+                        </div>
+                        <div class="mono-box text-xs text-slate-300">ms</div>
+                    </div>
+
+                    <div class="h-28">
                         <canvas id="latencyChart"></canvas>
                     </div>
+
+                    <div class="mt-4 text-sm text-slate-400">
+                        Latest samples show gateway response behavior across recent updates.
+                    </div>
+                </div>
+
+                <!-- Optional system note -->
+                <div class="glass-card p-6">
+                    <div class="section-label mb-2">System Note</div>
+                    <h3 class="text-lg font-bold text-white mb-3">Operational Summary</h3>
+                    <p class="text-sm text-slate-400 leading-relaxed">
+                        This view is optimized for clarity, low visual noise and enterprise-style monitoring. Positive and negative states only use strong color where meaning matters.
+                    </p>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
     <script>
-        let priceChart, latencyChart, reliabilityChart;
+        let priceChart = null;
+        let latencyChart = null;
+        let reliabilityChart = null;
         let cachedData = null;
         let currentTimeframe = 24;
 
+        const palette = [
+            "#60a5fa",
+            "#22d3ee",
+            "#34d399",
+            "#fbbf24",
+            "#f472b6",
+            "#c084fc"
+        ];
+
+        function getCssVar(name) {
+            return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        }
+
+        function formatNumber(value) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "--";
+            return new Intl.NumberFormat("de-DE").format(value);
+        }
+
+        function formatPercent(value, digits = 1) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "--%";
+            return `${Number(value).toFixed(digits)}%`;
+        }
+
+        function safeQuotes(quotes) {
+            return Array.isArray(quotes) ? quotes : [];
+        }
+
+        function safeHistory(history) {
+            return history && typeof history === "object" ? history : {};
+        }
+
+        function createGradient(ctx, color) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, 420);
+            gradient.addColorStop(0, `${color}40`);
+            gradient.addColorStop(0.55, `${color}12`);
+            gradient.addColorStop(1, `${color}00`);
+            return gradient;
+        }
+
         function initCharts() {
-            const ctx = document.getElementById('mainPriceChart').getContext('2d');
-            priceChart = new Chart(ctx, {
-                type: 'line',
-                data: { datasets: [] },
+            const textMuted = getCssVar("--text-muted");
+            const grid = "rgba(148, 163, 184, 0.08)";
+            const whiteFaint = "rgba(255,255,255,0.06)";
+
+            const mainCtx = document.getElementById("mainPriceChart").getContext("2d");
+            priceChart = new Chart(mainCtx, {
+                type: "line",
+                data: {
+                    datasets: []
+                },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { legend: { display: false } },
+                    animation: {
+                        duration: 500
+                    },
+                    interaction: {
+                        mode: "index",
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: "rgba(15, 23, 42, 0.95)",
+                            borderColor: "rgba(96, 165, 250, 0.2)",
+                            borderWidth: 1,
+                            titleColor: "#ffffff",
+                            bodyColor: "#cbd5e1",
+                            padding: 12,
+                            displayColors: true
+                        }
+                    },
                     scales: {
-                        x: { type: 'time', time: { unit: 'hour' }, grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } },
-                        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#475569', font: { size: 10 } } }
+                        x: {
+                            type: "time",
+                            time: {
+                                unit: "hour",
+                                tooltipFormat: "dd.MM.yyyy HH:mm"
+                            },
+                            grid: {
+                                color: whiteFaint,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textMuted,
+                                maxRotation: 0,
+                                font: {
+                                    size: 11,
+                                    weight: "600"
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: grid,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textMuted,
+                                font: {
+                                    size: 11,
+                                    weight: "600"
+                                }
+                            }
+                        }
                     }
                 }
             });
 
-            reliabilityChart = new Chart(document.getElementById('reliabilityChart'), {
-                type: 'doughnut',
-                data: { labels: ['OK', 'ERR'], datasets: [{ data: [100, 0], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0, cutout: '85%' }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            reliabilityChart = new Chart(document.getElementById("reliabilityChart"), {
+                type: "doughnut",
+                data: {
+                    labels: ["Success", "Failure"],
+                    datasets: [{
+                        data: [100, 0],
+                        backgroundColor: ["#34d399", "rgba(248, 113, 113, 0.25)"],
+                        borderWidth: 0,
+                        cutout: "82%",
+                        borderRadius: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: "rgba(15, 23, 42, 0.95)",
+                            borderColor: "rgba(96, 165, 250, 0.2)",
+                            borderWidth: 1
+                        }
+                    }
+                }
             });
 
-            latencyChart = new Chart(document.getElementById('latencyChart'), {
-                type: 'line',
-                data: { labels: [], datasets: [{ data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0 }] },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+            latencyChart = new Chart(document.getElementById("latencyChart"), {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: "#60a5fa",
+                        backgroundColor: "rgba(96, 165, 250, 0.12)",
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 0,
+                        borderWidth: 2.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "rgba(15, 23, 42, 0.95)",
+                            borderColor: "rgba(96, 165, 250, 0.2)",
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} ms`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    }
+                }
             });
 
-            document.getElementById('main-container').classList.remove('opacity-0');
+            document.getElementById("main-container").classList.remove("opacity-0");
+        }
+
+        function updateHeaderStatus(isConnected) {
+            const syncEl = document.getElementById("sync-status");
+            if (isConnected) {
+                syncEl.textContent = "Stable Connection";
+                syncEl.className = "text-emerald-400 font-semibold";
+            } else {
+                syncEl.textContent = "Disconnected";
+                syncEl.className = "text-red-400 font-semibold";
+            }
+        }
+
+        function updateBasicStats(data) {
+            const stats = data?.stats || {};
+
+            document.getElementById("stat-symbols").textContent = formatNumber(stats.total_symbols);
+            document.getElementById("stat-calls").textContent = formatNumber(stats.total_api_calls);
+
+            const successRate = Number(stats.success_rate ?? 0);
+            document.getElementById("stat-success").textContent = formatPercent(successRate, 1);
+            document.getElementById("circle-percent").textContent = formatPercent(successRate, 1);
+
+            reliabilityChart.data.datasets[0].data = [
+                Math.max(0, Math.min(100, successRate)),
+                Math.max(0, 100 - Math.max(0, Math.min(100, successRate)))
+            ];
+            reliabilityChart.update();
+        }
+
+        function updateLatency(latencyHistory) {
+            if (!Array.isArray(latencyHistory) || latencyHistory.length === 0) {
+                document.getElementById("stat-latency").textContent = "--ms";
+                latencyChart.data.labels = [];
+                latencyChart.data.datasets[0].data = [];
+                latencyChart.update();
+                return;
+            }
+
+            const last = latencyHistory.slice(-20);
+            latencyChart.data.labels = last.map((_, index) => index + 1);
+            latencyChart.data.datasets[0].data = last.map(item => Number(item.ms ?? 0));
+            latencyChart.update();
+
+            const latestMs = Number(last[last.length - 1]?.ms ?? 0);
+            document.getElementById("stat-latency").textContent = `${Math.round(latestMs)}ms`;
+        }
+
+        function updatePriceDisplay() {
+            if (!cachedData || !priceChart) return;
+
+            const history = safeHistory(cachedData.history);
+            const chartCtx = document.getElementById("mainPriceChart").getContext("2d");
+            const cutoff = Date.now() - currentTimeframe * 60 * 60 * 1000;
+
+            const datasets = Object.keys(history).map((symbol, index) => {
+                const color = palette[index % palette.length];
+                const series = Array.isArray(history[symbol]) ? history[symbol] : [];
+
+                const filtered = series
+                    .filter(point => Number(point.x) >= cutoff)
+                    .map(point => ({
+                        x: point.x,
+                        y: point.y
+                    }));
+
+                return {
+                    label: symbol,
+                    data: filtered,
+                    borderColor: color,
+                    backgroundColor: createGradient(chartCtx, color),
+                    fill: true,
+                    tension: 0.3,
+                    borderWidth: 2.4,
+                    pointRadius: 0,
+                    pointHoverRadius: 3,
+                    pointHoverBackgroundColor: color
+                };
+            });
+
+            priceChart.data.datasets = datasets;
+            priceChart.update();
+
+            const legend = datasets.map(ds => `
+                <div class="legend-chip">
+                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:${ds.borderColor}"></span>
+                    <span>${ds.label}</span>
+                </div>
+            `).join("");
+
+            document.getElementById("legend-container").innerHTML = legend || `
+                <div class="text-sm text-slate-500">Keine Chart-Daten verfügbar.</div>
+            `;
+        }
+
+        function updateLiveFeed(quotes) {
+            const list = safeQuotes(quotes);
+            const container = document.getElementById("quoteTable");
+
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div class="text-sm text-slate-500 py-6 text-center">
+                        Keine Live-Daten verfügbar.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = list.map(q => {
+                const symbol = q.symbol || "--";
+                const exchange = q.exchange || "Market";
+                const price = Number(q.price ?? 0);
+                const change = Number(q.change ?? 0);
+                const isUp = change >= 0;
+
+                return `
+                    <div class="feed-row px-4 py-3 flex items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <div class="text-sm font-bold text-white">${symbol}</div>
+                            <div class="text-[11px] text-slate-500 truncate uppercase tracking-[0.12em]">${exchange}</div>
+                        </div>
+
+                        <div class="text-right shrink-0">
+                            <div class="font-mono text-sm font-semibold text-white">$${price.toFixed(2)}</div>
+                            <div class="text-xs font-semibold ${isUp ? "text-emerald-400" : "text-red-400"}">
+                                ${isUp ? "+" : "-"}${Math.abs(change).toFixed(2)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function updateVolatility(history) {
+            const source = safeHistory(history);
+            const container = document.getElementById("volatility-list");
+            const symbols = Object.keys(source).slice(0, 5);
+
+            if (symbols.length === 0) {
+                container.innerHTML = `
+                    <div class="text-sm text-slate-500 py-4">
+                        Keine Volatilitätsdaten verfügbar.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = symbols.map(symbol => {
+                const prices = Array.isArray(source[symbol]) ? source[symbol] : [];
+
+                if (prices.length < 2) {
+                    return `
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="font-semibold text-slate-300">${symbol}</span>
+                                <span class="text-slate-500">n/a</span>
+                            </div>
+                            <div class="vol-bar"><div style="width:0%; background:#475569;"></div></div>
+                        </div>
+                    `;
+                }
+
+                const first = Number(prices[0]?.y ?? 0);
+                const last = Number(prices[prices.length - 1]?.y ?? 0);
+                const volatility = first !== 0 ? Math.abs(((last - first) / first) * 10) : 0;
+
+                let color = "#60a5fa";
+                if (volatility > 3) color = "#f87171";
+                else if (volatility > 1.5) color = "#fbbf24";
+                else if (volatility > 0.5) color = "#34d399";
+
+                const width = Math.min(volatility * 10, 100);
+
+                return `
+                    <div class="space-y-2.5">
+                        <div class="flex items-center justify-between gap-3 text-sm">
+                            <span class="font-semibold text-slate-300">${symbol}</span>
+                            <span class="font-mono text-blue-300">${volatility.toFixed(2)}%</span>
+                        </div>
+                        <div class="vol-bar">
+                            <div style="width:${width}%; background:${color};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function updateSentiment(quotes) {
+            const list = safeQuotes(quotes);
+            const valueEl = document.getElementById("sentiment-value");
+            const biasEl = document.getElementById("sentiment-bias");
+            const barEl = document.getElementById("sentiment-bar");
+
+            if (list.length === 0) {
+                valueEl.textContent = "No Signal";
+                valueEl.className = "text-2xl font-black italic text-slate-400";
+                biasEl.textContent = "0.000";
+                barEl.style.width = "50%";
+                barEl.style.background = "#64748b";
+                return;
+            }
+
+            const avgChange = list.reduce((sum, item) => sum + Number(item.change ?? 0), 0) / list.length;
+
+            let sentiment = "Neutral";
+            let colorClass = "text-blue-400";
+            let barColor = "#60a5fa";
+
+            if (avgChange > 0.15) {
+                sentiment = "Bullish";
+                colorClass = "text-emerald-400";
+                barColor = "#34d399";
+            } else if (avgChange < -0.15) {
+                sentiment = "Bearish";
+                colorClass = "text-red-400";
+                barColor = "#f87171";
+            }
+
+            const width = Math.max(8, Math.min(92, 50 + avgChange * 30));
+
+            valueEl.textContent = sentiment;
+            valueEl.className = `text-2xl font-black italic ${colorClass}`;
+            biasEl.textContent = avgChange.toFixed(3);
+            barEl.style.width = `${width}%`;
+            barEl.style.background = barColor;
+        }
+
+        function setLastUpdateTime() {
+            document.getElementById("last-update-time").textContent =
+                new Date().toLocaleTimeString("de-DE", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit"
+                });
         }
 
         async function refresh() {
             try {
-                const res = await fetch('/api/dashboard');
+                const res = await fetch("/api/dashboard", { cache: "no-store" });
+
+                if (!res.ok) {
+                    throw new Error(`HTTP ${res.status}`);
+                }
+
                 const data = await res.json();
                 cachedData = data;
 
-                // Basic Stats
-                document.getElementById('stat-symbols').innerText = data.stats.total_symbols;
-                document.getElementById('stat-calls').innerText = data.stats.total_api_calls;
-                document.getElementById('stat-success').innerText = data.stats.success_rate + '%';
-                document.getElementById('circle-percent').innerText = data.stats.success_rate + '%';
-
-                // Reliability update
-                reliabilityChart.data.datasets[0].data = [data.stats.success_rate, 100 - data.stats.success_rate];
-                reliabilityChart.update();
-
-                // Latency update
-                if (data.latency_history?.length) {
-                    const last = data.latency_history.slice(-15);
-                    latencyChart.data.labels = last.map((_, i) => i);
-                    latencyChart.data.datasets[0].data = last.map(h => h.ms);
-                    latencyChart.update();
-                    document.getElementById('stat-latency').innerText = Math.round(last[last.length-1].ms) + 'ms';
-                }
-
-                // UI Elements
+                updateHeaderStatus(true);
+                updateBasicStats(data);
+                updateLatency(data.latency_history);
                 updatePriceDisplay();
                 updateLiveFeed(data.quotes);
                 updateVolatility(data.history);
                 updateSentiment(data.quotes);
-
-                document.getElementById('last-update-time').innerText = new Date().toLocaleTimeString();
-            } catch (e) {
-                console.error("Refresh Error", e);
-                document.getElementById('sync-status').innerText = "DISCONNECTED";
-                document.getElementById('sync-status').classList.replace('text-emerald-400', 'text-red-500');
+                setLastUpdateTime();
+            } catch (error) {
+                console.error("Refresh Error:", error);
+                updateHeaderStatus(false);
             }
         }
 
-        function updatePriceDisplay() {
-            if (!cachedData) return;
-            const colors = ['#60a5fa', '#34d399', '#fbbf24', '#f87171', '#c084fc'];
-            const limit = Date.now() - (currentTimeframe * 3600000);
-            
-            priceChart.data.datasets = Object.keys(cachedData.history).map((sym, i) => {
-                const color = colors[i % colors.length];
-                const ctx = document.getElementById('mainPriceChart').getContext('2d');
-                const grad = ctx.createLinearGradient(0, 0, 0, 400);
-                grad.addColorStop(0, color + '33');
-                grad.addColorStop(1, color + '00');
+        function bindTimeframeButtons() {
+            const buttons = document.querySelectorAll(".tf-btn");
 
-                return {
-                    label: sym,
-                    data: cachedData.history[sym].filter(p => p.x >= limit),
-                    borderColor: color,
-                    backgroundColor: grad,
-                    fill: true,
-                    borderWidth: 2.5,
-                    pointRadius: 0,
-                    tension: 0.3
-                };
+            buttons.forEach(btn => {
+                btn.addEventListener("click", () => {
+                    buttons.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    currentTimeframe = Number(btn.dataset.tf || 24);
+                    updatePriceDisplay();
+                });
             });
-            priceChart.update();
-
-            document.getElementById('legend-container').innerHTML = priceChart.data.datasets.map(ds => `
-                <div class="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                    <span class="w-2 h-2 rounded-full" style="background:${ds.borderColor}"></span>
-                    <span class="text-[10px] font-black uppercase text-slate-300">${ds.label}</span>
-                </div>
-            `).join('');
         }
-
-        function updateLiveFeed(quotes) {
-            document.getElementById('quoteTable').innerHTML = quotes.map(q => `
-                <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:border-blue-500/30 transition-all">
-                    <div class="flex flex-col">
-                        <span class="font-black text-xs">${q.symbol}</span>
-                        <span class="text-[8px] text-slate-500 uppercase">${q.exchange || 'Market'}</span>
-                    </div>
-                    <div class="text-right">
-                        <span class="font-mono text-xs block font-bold">$${q.price.toFixed(2)}</span>
-                        <span class="text-[10px] ${q.change >= 0 ? 'text-emerald-400' : 'text-red-400'} font-black">
-                            ${q.change >= 0 ? '▲' : '▼'} ${Math.abs(q.change).toFixed(2)}%
-                        </span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function updateVolatility(history) {
-            const volHtml = Object.keys(history).slice(0, 4).map(sym => {
-                const prices = history[sym];
-                if (prices.length < 2) return '';
-                const v = Math.abs((prices[prices.length-1].y - prices[0].y) / prices[0].y * 10).toFixed(2);
-                const color = v > 3 ? 'bg-red-500' : (v > 1.5 ? 'bg-yellow-500' : 'bg-blue-500');
-                return `
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[10px] font-bold">
-                            <span class="text-slate-400 font-mono">${sym}</span>
-                            <span class="text-blue-400">${v}%</span>
-                        </div>
-                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                            <div class="${color} h-full" style="width: ${Math.min(parseFloat(v)*10, 100)}%"></div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            document.getElementById('volatility-list').innerHTML = volHtml;
-        }
-
-        function updateSentiment(quotes) {
-            const avgChange = quotes.reduce((a, b) => a + b.change, 0) / quotes.length;
-            const sentiment = avgChange > 0.15 ? "Bullish" : (avgChange < -0.15 ? "Bearish" : "Neutral");
-            const barWidth = Math.max(10, Math.min(90, 50 + (avgChange * 30)));
-            
-            const el = document.getElementById('sentiment-value');
-            el.innerText = sentiment;
-            el.className = `text-2xl font-black uppercase italic ${avgChange > 0.1 ? 'text-emerald-400' : (avgChange < -0.1 ? 'text-red-400' : 'text-blue-400')}`;
-            
-            document.getElementById('sentiment-bar').style.width = barWidth + '%';
-            document.getElementById('sentiment-bias').innerText = avgChange.toFixed(3);
-        }
-
-        document.querySelectorAll('.tf-btn').forEach(btn => {
-            btn.onclick = () => {
-                document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('bg-blue-600', 'shadow-lg', 'shadow-blue-500/20'));
-                btn.classList.add('bg-blue-600', 'shadow-lg', 'shadow-blue-500/20');
-                currentTimeframe = parseInt(btn.dataset.tf);
-                updatePriceDisplay();
-            };
-        });
 
         initCharts();
+        bindTimeframeButtons();
         refresh();
         setInterval(refresh, 25000);
     </script>

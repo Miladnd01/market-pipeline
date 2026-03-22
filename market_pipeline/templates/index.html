@@ -1,373 +1,175 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Market Data Dashboard - Live</title>
+    <title>Market Intelligence Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: #fff;
-            overflow-x: hidden;
-        }
-        .header {
-            background: rgba(0,0,0,0.3);
-            padding: 15px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .header h1 {
-            font-size: 1.8em;
-        }
-        .status-badge {
-            background: #4caf50;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .status-badge.running::before {
-            content: "🟢";
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        .info-bar {
-            background: rgba(255,255,255,0.1);
-            padding: 10px 20px;
-            text-align: center;
-            font-size: 0.9em;
-        }
-        .dashboard {
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .stat-card h3 {
-            font-size: 0.9em;
-            opacity: 0.8;
-            margin-bottom: 10px;
-        }
-        .stat-card .value {
-            font-size: 2em;
-            font-weight: bold;
-        }
-        .section {
-            background: rgba(255,255,255,0.1);
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .section h2 {
-            margin-bottom: 15px;
-            font-size: 1.3em;
-            border-bottom: 2px solid rgba(255,255,255,0.3);
-            padding-bottom: 10px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        th {
-            background: rgba(0,0,0,0.2);
-            font-weight: 600;
-        }
-        tr:hover {
-            background: rgba(255,255,255,0.05);
-        }
-        .positive {
-            color: #4caf50;
-        }
-        .negative {
-            color: #f44336;
-        }
-        .loading {
-            text-align: center;
-            padding: 40px;
-            font-size: 1.2em;
-        }
-        .last-update {
-            text-align: right;
-            font-size: 0.85em;
-            opacity: 0.7;
-            margin-top: 10px;
-        }
-        .error {
-            background: rgba(244, 67, 54, 0.2);
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #f44336;
-            margin: 20px 0;
-        }
+        body { background: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .pulse-green { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); animation: pulse 2s infinite; }
+        @keyframes pulse { 70% { box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } }
     </style>
 </head>
-<body>
-    <div class="header">
-        <h1>📊 Live Market Data Dashboard</h1>
-        <div class="status-badge running" id="statusBadge">
-            Pipeline Active
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <div>
+            <h1 class="text-3xl font-black tracking-tight text-white">MARKET <span class="text-blue-500">PIPELINE</span></h1>
+            <p class="text-gray-400 text-sm">Real-time Financial Data Engine v3.0</p>
+        </div>
+        <div class="flex gap-4">
+            <div id="statusBadge" class="glass px-4 py-2 rounded-full flex items-center gap-2 border-emerald-500/50">
+                <div class="h-3 w-3 bg-emerald-500 rounded-full pulse-green"></div>
+                <span class="text-sm font-bold uppercase tracking-widest text-emerald-400">System Live</span>
+            </div>
         </div>
     </div>
-    <div class="info-bar" id="infoBar">
-        🔄 Auto-updating every 30 seconds | 📈 Live data from Finnhub, Alpha Vantage & Twelve Data
-    </div>
-    
-    <div class="dashboard">
-        <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <h3>Total Symbols</h3>
-                <div class="value" id="totalSymbols">-</div>
+
+    <div class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="lg:col-span-2 space-y-6">
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                <div class="glass p-4 rounded-2xl">
+                    <p class="text-xs text-gray-500 uppercase">Symbols</p>
+                    <p id="totalSymbols" class="text-2xl font-bold">--</p>
+                </div>
+                <div class="glass p-4 rounded-2xl">
+                    <p class="text-xs text-gray-500 uppercase">API Calls</p>
+                    <p id="totalAPICalls" class="text-2xl font-bold">--</p>
+                </div>
+                <div class="glass p-4 rounded-2xl">
+                    <p class="text-xs text-gray-500 uppercase">Health</p>
+                    <p id="successRate" class="text-2xl font-bold text-emerald-400">--%</p>
+                </div>
+                <div class="glass p-4 rounded-2xl">
+                    <p class="text-xs text-gray-500 uppercase">Latency</p>
+                    <p id="avgLatency" class="text-2xl font-bold text-blue-400">--ms</p>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Total API Calls</h3>
-                <div class="value" id="totalAPICalls">-</div>
+
+            <div class="glass p-6 rounded-3xl">
+                <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+                    <span>📊</span> Market Movers (Change %)
+                </h3>
+                <div class="h-64">
+                    <canvas id="performanceChart"></canvas>
+                </div>
             </div>
-            <div class="stat-card">
-                <h3>Success Rate</h3>
-                <div class="value positive" id="successRate">-</div>
-            </div>
-            <div class="stat-card">
-                <h3>Last Update</h3>
-                <div class="value" id="lastUpdate" style="font-size: 1.2em;">-</div>
+
+            <div class="glass rounded-3xl overflow-hidden">
+                <table class="w-full text-left border-collapse text-sm">
+                    <thead class="bg-white/5 uppercase text-xs text-gray-400">
+                        <tr>
+                            <th class="p-4">Asset</th>
+                            <th class="p-4 text-right">Price</th>
+                            <th class="p-4 text-right">Change</th>
+                            <th class="p-4 text-right">Last Sync</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quotesContent" class="divide-y divide-white/5">
+                        </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Latest Quotes -->
-        <div class="section">
-            <h2>📈 Latest Stock Quotes</h2>
-            <div id="quotesContent">
-                <div class="loading">Loading quotes...</div>
+        <div class="space-y-6">
+            
+            <div class="glass p-6 rounded-3xl border-blue-500/20">
+                <h3 class="text-sm font-bold text-gray-400 mb-6 uppercase tracking-widest text-center">Pipeline Architecture</h3>
+                <div class="relative space-y-4 text-center">
+                    <div class="bg-blue-600/20 border border-blue-500 p-2 rounded-lg text-xs">External APIs (Finnhub, Twelve)</div>
+                    <div class="text-blue-500">↓</div>
+                    <div class="bg-purple-600/20 border border-purple-500 p-2 rounded-lg text-xs font-bold">Python Worker (Multiprocessing)</div>
+                    <div class="text-purple-500">↓</div>
+                    <div class="bg-emerald-600/20 border border-emerald-500 p-2 rounded-lg text-xs font-mono italic">PostgreSQL Database</div>
+                </div>
             </div>
-        </div>
 
-        <!-- Latest Candles -->
-        <div class="section">
-            <h2>📊 Latest Candle Data</h2>
-            <div id="candlesContent">
-                <div class="loading">Loading candles...</div>
+            <div class="glass p-6 rounded-3xl">
+                <h3 class="text-sm font-bold mb-4 uppercase">Reliability</h3>
+                <div class="h-40">
+                    <canvas id="healthChart"></canvas>
+                </div>
             </div>
-        </div>
 
-        <!-- API Logs -->
-        <div class="section">
-            <h2>🔧 Recent API Calls</h2>
-            <div id="apiLogsContent">
-                <div class="loading">Loading API logs...</div>
-            </div>
-        </div>
-
-        <!-- Fundamentals -->
-        <div class="section">
-            <h2>💰 Fundamentals</h2>
-            <div id="fundamentalsContent">
-                <div class="loading">Loading fundamentals...</div>
+            <div class="glass p-6 rounded-3xl">
+                <h3 class="text-sm font-bold mb-4 uppercase">System Logs</h3>
+                <div id="apiLogsContent" class="space-y-3 font-mono text-[10px]">
+                    </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Globale Variablen
-        let updateInterval;
-        let lastUpdateTime;
+        let perfChart, healthChart;
 
-        // Daten von Flask Backend laden
-        async function fetchDashboardData() {
-            try {
-                const response = await fetch('/api/dashboard');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                updateDashboard(data);
-                lastUpdateTime = new Date();
-                updateLastUpdateDisplay();
-            } catch (error) {
-                console.error('Failed to fetch dashboard data:', error);
-                showError('Failed to load data. Retrying...');
-            }
-        }
+        function initCharts() {
+            const ctx1 = document.getElementById('performanceChart').getContext('2d');
+            perfChart = new Chart(ctx1, {
+                type: 'bar',
+                data: { labels: [], datasets: [{ label: 'Change %', data: [], backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.05)' } } } }
+            });
 
-        // Dashboard aktualisieren
-        function updateDashboard(data) {
-            // Stats Cards
-            document.getElementById('totalSymbols').textContent = data.stats.total_symbols || '-';
-            document.getElementById('totalAPICalls').textContent = data.stats.total_api_calls || '-';
-            
-            const successRate = data.stats.success_rate || 0;
-            const successRateElem = document.getElementById('successRate');
-            successRateElem.textContent = successRate.toFixed(1) + '%';
-            successRateElem.className = successRate >= 95 ? 'value positive' : 'value negative';
-
-            // Quotes Table
-            if (data.quotes && data.quotes.length > 0) {
-                let quotesHTML = '<table><thead><tr><th>Symbol</th><th>Company</th><th>Price</th><th>Change %</th><th>Time (Berlin)</th></tr></thead><tbody>';
-                data.quotes.forEach(q => {
-                    const changeClass = q.change_pct >= 0 ? 'positive' : 'negative';
-                    const changeSign = q.change_pct >= 0 ? '+' : '';
-                    quotesHTML += `
-                        <tr>
-                            <td><strong>${q.symbol_code}</strong></td>
-                            <td>${q.company_name || '-'}</td>
-                            <td>$${q.price ? q.price.toFixed(2) : '-'}</td>
-                            <td class="${changeClass}">${changeSign}${q.change_pct ? q.change_pct.toFixed(2) : '0.00'}%</td>
-                            <td>${q.time_berlin || '-'}</td>
-                        </tr>
-                    `;
-                });
-                quotesHTML += '</tbody></table>';
-                document.getElementById('quotesContent').innerHTML = quotesHTML;
-            } else {
-                document.getElementById('quotesContent').innerHTML = '<div class="loading">No quote data available yet</div>';
-            }
-
-            // Candles Table
-            if (data.candles && data.candles.length > 0) {
-                let candlesHTML = '<table><thead><tr><th>Symbol</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th><th>Time</th></tr></thead><tbody>';
-                data.candles.forEach(c => {
-                    candlesHTML += `
-                        <tr>
-                            <td><strong>${c.symbol_code}</strong></td>
-                            <td>$${c.open ? c.open.toFixed(2) : '-'}</td>
-                            <td>$${c.high ? c.high.toFixed(2) : '-'}</td>
-                            <td>$${c.low ? c.low.toFixed(2) : '-'}</td>
-                            <td>$${c.close ? c.close.toFixed(2) : '-'}</td>
-                            <td>${c.volume ? c.volume.toLocaleString() : '-'}</td>
-                            <td>${c.time_berlin || '-'}</td>
-                        </tr>
-                    `;
-                });
-                candlesHTML += '</tbody></table>';
-                document.getElementById('candlesContent').innerHTML = candlesHTML;
-            } else {
-                document.getElementById('candlesContent').innerHTML = '<div class="loading">No candle data available yet</div>';
-            }
-
-            // API Logs
-            if (data.api_logs && data.api_logs.length > 0) {
-                let logsHTML = '<table><thead><tr><th>Source</th><th>Endpoint</th><th>Status</th><th>Response (ms)</th><th>Time</th></tr></thead><tbody>';
-                data.api_logs.forEach(log => {
-                    const statusClass = log.http_status === 200 ? 'positive' : 'negative';
-                    logsHTML += `
-                        <tr>
-                            <td>${log.source_name || '-'}</td>
-                            <td>${log.endpoint || '-'}</td>
-                            <td class="${statusClass}">${log.http_status || '-'}</td>
-                            <td>${log.response_ms || '-'}</td>
-                            <td>${log.time_berlin || '-'}</td>
-                        </tr>
-                    `;
-                });
-                logsHTML += '</tbody></table>';
-                document.getElementById('apiLogsContent').innerHTML = logsHTML;
-            } else {
-                document.getElementById('apiLogsContent').innerHTML = '<div class="loading">No API logs available yet</div>';
-            }
-
-            // Fundamentals
-            if (data.fundamentals && data.fundamentals.length > 0) {
-                let fundHTML = '<table><thead><tr><th>Symbol</th><th>Company</th><th>Market Cap</th><th>P/E Ratio</th><th>EPS</th></tr></thead><tbody>';
-                data.fundamentals.forEach(f => {
-                    const marketCapB = f.market_cap ? (f.market_cap / 1000).toFixed(1) + 'B' : '-';
-                    fundHTML += `
-                        <tr>
-                            <td><strong>${f.symbol_code}</strong></td>
-                            <td>${f.company_name || '-'}</td>
-                            <td>$${marketCapB}</td>
-                            <td>${f.pe_ratio ? f.pe_ratio.toFixed(2) : '-'}</td>
-                            <td>${f.eps_ttm ? f.eps_ttm.toFixed(2) : '-'}</td>
-                        </tr>
-                    `;
-                });
-                fundHTML += '</tbody></table>';
-                document.getElementById('fundamentalsContent').innerHTML = fundHTML;
-            } else {
-                document.getElementById('fundamentalsContent').innerHTML = '<div class="loading">No fundamental data available yet</div>';
-            }
-        }
-
-        // Letzte Aktualisierung anzeigen
-        function updateLastUpdateDisplay() {
-            if (lastUpdateTime) {
-                const timeStr = lastUpdateTime.toLocaleTimeString('de-DE');
-                document.getElementById('lastUpdate').textContent = timeStr;
-            }
-        }
-
-        // Fehler anzeigen
-        function showError(message) {
-            const errorHTML = `<div class="error">⚠️ ${message}</div>`;
-            document.querySelectorAll('.section').forEach(section => {
-                const content = section.querySelector('[id$="Content"]');
-                if (content && content.innerHTML.includes('Loading')) {
-                    content.innerHTML = errorHTML;
-                }
+            const ctx2 = document.getElementById('healthChart').getContext('2d');
+            healthChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: { labels: ['Success', 'Errors'], datasets: [{ data: [100, 0], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }] },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
             });
         }
 
-        // Status prüfen
-        async function checkStatus() {
+        async function refreshData() {
             try {
-                const response = await fetch('/status');
-                const data = await response.json();
-                const badge = document.getElementById('statusBadge');
-                if (data.running) {
-                    badge.className = 'status-badge running';
-                    badge.textContent = 'Pipeline Active';
-                } else {
-                    badge.className = 'status-badge';
-                    badge.style.background = '#f44336';
-                    badge.textContent = 'Pipeline Stopped';
-                }
-            } catch (error) {
-                console.error('Status check failed:', error);
-            }
+                const res = await fetch('/api/dashboard');
+                const data = await res.json();
+
+                // Stats
+                document.getElementById('totalSymbols').innerText = data.stats.total_symbols;
+                document.getElementById('totalAPICalls').innerText = data.stats.total_api_calls;
+                document.getElementById('successRate').innerText = data.stats.success_rate + '%';
+                
+                // Update Charts
+                const labels = data.quotes.map(q => q.symbol_code);
+                const values = data.quotes.map(q => q.change_pct);
+                perfChart.data.labels = labels;
+                perfChart.data.datasets[0].data = values;
+                perfChart.data.datasets[0].backgroundColor = values.map(v => v >= 0 ? '#10b981' : '#ef4444');
+                perfChart.update();
+
+                healthChart.data.datasets[0].data = [data.stats.success_rate, 100 - data.stats.success_rate];
+                healthChart.update();
+
+                // Update Table
+                document.getElementById('quotesContent').innerHTML = data.quotes.map(q => `
+                    <tr class="hover:bg-white/5 transition-colors">
+                        <td class="p-4 font-bold text-blue-400">${q.symbol_code}</td>
+                        <td class="p-4 text-right font-mono">$${q.price.toFixed(2)}</td>
+                        <td class="p-4 text-right font-bold ${q.change_pct >= 0 ? 'text-emerald-400' : 'text-red-400'}">
+                            ${q.change_pct >= 0 ? '+' : ''}${q.change_pct.toFixed(2)}%
+                        </td>
+                        <td class="p-4 text-right text-gray-500 text-xs">${q.time_berlin}</td>
+                    </tr>
+                `).join('');
+
+                // Update Logs
+                document.getElementById('apiLogsContent').innerHTML = data.api_logs.slice(0, 5).map(log => `
+                    <div class="flex justify-between border-b border-white/5 pb-1">
+                        <span class="text-gray-400">${log.source_name}</span>
+                        <span class="${log.http_status === 200 ? 'text-emerald-500' : 'text-red-500'}">${log.http_status}</span>
+                    </div>
+                `).join('');
+
+            } catch (e) { console.error("Sync Error", e); }
         }
 
-        // Initial load
-        fetchDashboardData();
-        checkStatus();
-
-        // Auto-update alle 30 Sekunden
-        updateInterval = setInterval(() => {
-            fetchDashboardData();
-            checkStatus();
-        }, 30000);
-
-        // Update display timer
-        setInterval(updateLastUpdateDisplay, 1000);
+        initCharts();
+        refreshData();
+        setInterval(refreshData, 30000);
     </script>
 </body>
 </html>

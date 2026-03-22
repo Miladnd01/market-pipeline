@@ -3,160 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Market Intelligence v4.1 - Ultimate Dashboard</title>
+    <title>Market Intelligence v5.1 - Combined Ultimate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * { font-family: 'Inter', sans-serif; transition: background-color 0.2s, border-color 0.2s; }
-        body { background: #020617; color: #f1f5f9; overflow-x: hidden; }
+        * { font-family: 'Inter', sans-serif; }
+        body { 
+            background: radial-gradient(circle at 20% 30%, #0a0f2a, #020617); 
+            color: #f1f5f9; 
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
         
         .card { 
-            background: rgba(15, 23, 42, 0.6); 
-            backdrop-filter: blur(12px); 
-            border: 1px solid #1e293b; 
-            border-radius: 1.25rem; 
+            background: rgba(10, 20, 40, 0.65); 
+            backdrop-filter: blur(16px); 
+            border: 1px solid rgba(59, 130, 246, 0.2); 
+            border-radius: 1.5rem; 
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.4, 1);
         }
         .card:hover { 
             border-color: #3b82f6; 
-            box-shadow: 0 0 30px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.25);
+            transform: translateY(-3px);
         }
 
         .gradient-text { 
-            background: linear-gradient(135deg, #60a5fa, #34d399, #a78bfa); 
+            background: linear-gradient(135deg, #60a5fa, #34d399, #f59e0b, #a78bfa); 
             -webkit-background-clip: text; 
             background-clip: text;
             color: transparent; 
+            background-size: 300% auto;
+            animation: shimmer 3s ease infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        .status-dot { height: 8px; width: 8px; border-radius: 50%; display: inline-block; box-shadow: 0 0 8px currentColor; }
+        .status-dot { 
+            height: 10px; 
+            width: 10px; 
+            border-radius: 50%; 
+            display: inline-block; 
+            box-shadow: 0 0 12px currentColor;
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.1); }
+        }
 
-        /* Custom Scrollbar */
-        .custom-scroll::-webkit-scrollbar { width: 4px; }
-        .custom-scroll::-webkit-scrollbar-track { background: transparent; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: rgba(30, 41, 59, 0.3); border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
         .custom-scroll::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
 
-        /* Price Flash Animation */
-        @keyframes priceFlash {
-            0% { background-color: rgba(59, 130, 246, 0.2); }
-            100% { background-color: transparent; }
+        .price-ticker {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 4px 8px;
+            font-family: monospace;
         }
-        .flash { animation: priceFlash 0.8s ease-out; }
+        
+        .badge {
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #60a5fa;
+        }
     </style>
 </head>
 <body class="p-4 md:p-6 lg:p-8">
 
-    <div class="max-w-[1700px] mx-auto">
+    <div class="max-w-[1800px] mx-auto opacity-0 transition-opacity duration-700" id="main-container">
         <header class="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
             <div>
-                <div class="flex items-center gap-3">
-                    <h1 class="text-4xl font-black gradient-text tracking-tighter italic">MARKET CORE</h1>
-                    <span class="bg-blue-500/10 text-blue-400 text-[10px] font-mono px-2 py-1 rounded-full border border-blue-500/20">V 4.1 PRO</span>
+                <div class="flex items-center gap-3 mb-2">
+                    <i class="fas fa-microchip text-3xl text-blue-500"></i>
+                    <h1 class="text-4xl md:text-5xl font-black gradient-text tracking-tighter">MARKET CORE</h1>
+                    <span class="badge">V 5.1 ULTRA</span>
                 </div>
-                <div class="flex items-center gap-4 mt-2 text-[11px] font-mono text-slate-500 uppercase tracking-widest">
+                <div class="flex flex-wrap items-center gap-4 text-xs font-mono text-slate-400 uppercase tracking-wider">
                     <div class="flex items-center gap-2">
-                        <span class="status-dot bg-emerald-500 animate-pulse"></span>
-                        <span id="sync-status" class="text-emerald-400">Node: Active</span>
+                        <span class="status-dot bg-emerald-500"></span>
+                        <span id="sync-status" class="text-emerald-400 font-bold tracking-widest">STABLE</span>
                     </div>
-                    <span class="opacity-30">|</span>
-                    <span>Updated: <span id="last-update-time" class="text-slate-300">--:--:--</span></span>
+                    <span class="text-slate-700">|</span>
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-clock text-blue-500"></i>
+                        <span>Sync: <span id="last-update-time" class="text-slate-300">--:--:--</span></span>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto">
-                <div class="card px-5 py-3 border-l-4 border-l-blue-500/50">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase">Symbols</span>
-                    <div id="stat-symbols" class="text-2xl font-black tracking-tight">--</div>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto">
+                <div class="card p-4 border-l-4 border-l-blue-500">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase">Assets</div>
+                    <div id="stat-symbols" class="text-2xl font-black">--</div>
                 </div>
-                <div class="card px-5 py-3 border-l-4 border-l-purple-500/50">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase">Requests</span>
-                    <div id="stat-calls" class="text-2xl font-black tracking-tight">--</div>
+                <div class="card p-4 border-l-4 border-l-purple-500">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase">Calls</div>
+                    <div id="stat-calls" class="text-2xl font-black">--</div>
                 </div>
-                <div class="card px-5 py-3 border-l-4 border-l-emerald-500/50">
-                    <span class="text-[10px] text-emerald-500/70 font-bold uppercase">Health</span>
-                    <div id="stat-success" class="text-2xl font-black text-emerald-400 tracking-tight">--%</div>
+                <div class="card p-4 border-l-4 border-l-emerald-500">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase">Health</div>
+                    <div id="stat-success" class="text-2xl font-black text-emerald-400">--%</div>
                 </div>
-                <div class="card px-5 py-3 border-l-4 border-l-orange-500/50">
-                    <span class="text-[10px] text-slate-500 font-bold uppercase">Latency</span>
-                    <div id="stat-latency" class="text-2xl font-black text-blue-400 tracking-tight">--ms</div>
+                <div class="card p-4 border-l-4 border-l-orange-500">
+                    <div class="text-[10px] text-slate-500 font-bold uppercase">Latency</div>
+                    <div id="stat-latency" class="text-2xl font-black text-blue-400">--ms</div>
                 </div>
             </div>
         </header>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
             <div class="lg:col-span-8 space-y-6">
                 <div class="card p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="font-bold flex items-center gap-2 text-lg italic">
-                            <span class="text-blue-500">◈</span> Real-time Ingestion History
+                    <div class="flex flex-wrap justify-between items-center mb-6">
+                        <h3 class="font-black text-lg flex items-center gap-2 italic uppercase tracking-tight">
+                            <i class="fas fa-wave-square text-blue-500"></i> Neural Price Engine
                         </h3>
-                        <div class="flex gap-2" id="timeframe-selector">
-                            <button class="tf-btn px-3 py-1 rounded-md text-[10px] font-bold bg-blue-600" data-tf="24">24H</button>
-                            <button class="tf-btn px-3 py-1 rounded-md text-[10px] font-bold bg-slate-800" data-tf="12">12H</button>
-                            <button class="tf-btn px-3 py-1 rounded-md text-[10px] font-bold bg-slate-800" data-tf="6">6H</button>
+                        <div class="flex bg-slate-900/50 p-1 rounded-xl border border-white/5" id="timeframe-selector">
+                            <button class="tf-btn px-4 py-1.5 rounded-lg text-[10px] font-black bg-blue-600 shadow-lg shadow-blue-500/20" data-tf="24">24H</button>
+                            <button class="tf-btn px-4 py-1.5 rounded-lg text-[10px] font-black hover:bg-white/5 transition-all" data-tf="12">12H</button>
+                            <button class="tf-btn px-4 py-1.5 rounded-lg text-[10px] font-black hover:bg-white/5 transition-all" data-tf="6">6H</button>
                         </div>
                     </div>
                     <div class="h-[400px]">
                         <canvas id="mainPriceChart"></canvas>
                     </div>
-                    <div id="legend-container" class="mt-4 flex flex-wrap gap-4 justify-center border-t border-white/5 pt-4"></div>
+                    <div id="legend-container" class="mt-6 flex flex-wrap gap-4 justify-center"></div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="card p-5">
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Volatility Index</h4>
-                        <div id="volatility-list" class="space-y-3"></div>
+                    <div class="card p-6">
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4"><i class="fas fa-bolt-lightning mr-2"></i>Volatility Analysis</h4>
+                        <div id="volatility-list" class="space-y-4"></div>
                     </div>
-                    <div class="card p-5">
-                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Live Asset Stream</h4>
-                        <div id="quoteTable" class="space-y-2 custom-scroll max-h-[160px] overflow-y-auto"></div>
+                    <div class="card p-6">
+                        <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4"><i class="fas fa-list-ul mr-2"></i>Live Asset Stream</h4>
+                        <div id="quoteTable" class="space-y-2 custom-scroll max-h-[180px] overflow-y-auto pr-2"></div>
                     </div>
                 </div>
             </div>
 
             <div class="lg:col-span-4 space-y-6">
-                <div class="card p-6 text-center">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-6">Pipeline Reliability</h4>
-                    <div class="h-52 relative">
+                <div class="card p-6 flex flex-col items-center">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 self-start w-full">Connection Integrity</h4>
+                    <div class="h-48 w-48 relative">
                         <canvas id="reliabilityChart"></canvas>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span id="circle-percent" class="text-4xl font-black text-emerald-400 italic">--%</span>
-                            <span class="text-[9px] text-slate-500 uppercase font-bold">Uptime Score</span>
-                        </div>
-                    </div>
-                    <div class="flex justify-around mt-6 pt-4 border-t border-white/5">
-                        <div>
-                            <span class="block text-[10px] text-slate-500 uppercase">Success</span>
-                            <span id="success-count-label" class="font-bold text-emerald-500 text-sm">0</span>
-                        </div>
-                        <div class="w-px bg-white/5"></div>
-                        <div>
-                            <span class="block text-[10px] text-slate-500 uppercase">Errors</span>
-                            <span id="error-count-label" class="font-bold text-red-500 text-sm">0</span>
+                            <span id="circle-percent" class="text-4xl font-black text-emerald-400">--%</span>
+                            <span class="text-[8px] text-slate-500 font-bold uppercase tracking-tighter">Uptime Score</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="card p-6">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">AI Market Sentiment</h4>
-                    <div class="flex justify-between items-end mb-2">
-                        <span id="sentiment-value" class="text-xl font-black uppercase italic">Neutral</span>
-                        <span class="text-[10px] text-slate-500 font-mono">Bias: 0.00</span>
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">AI Market Sentiment</h4>
+                    <div class="flex justify-between items-end mb-3">
+                        <span id="sentiment-value" class="text-2xl font-black uppercase italic">Scanning...</span>
+                        <div class="price-ticker border border-blue-500/30">
+                            <span id="sentiment-bias" class="text-sm font-mono text-blue-400">0.000</span>
+                        </div>
                     </div>
-                    <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
-                        <div id="sentiment-bar" class="h-full bg-blue-500 transition-all duration-1000" style="width: 50%"></div>
+                    <div class="h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                        <div id="sentiment-bar" class="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" style="width: 50%"></div>
                     </div>
-                    <div class="flex justify-between text-[9px] font-bold text-slate-600 mt-2 uppercase tracking-tighter">
-                        <span>Bearish Zone</span>
-                        <span>Bullish Zone</span>
+                    <div class="flex justify-between text-[9px] font-bold text-slate-600 mt-2 uppercase tracking-tight">
+                        <span><i class="fas fa-angle-left mr-1"></i>Short Bias</span>
+                        <span>Long Bias <i class="fas fa-angle-right ml-1"></i></span>
                     </div>
                 </div>
 
-                <div class="card p-5">
-                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 text-center italic">Network Latency History</h4>
+                <div class="card p-6">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 text-center italic">Gateway Latency (ms)</h4>
                     <div class="h-24">
                         <canvas id="latencyChart"></canvas>
                     </div>
@@ -171,35 +203,35 @@
         let currentTimeframe = 24;
 
         function initCharts() {
-            // Price Chart
-            priceChart = new Chart(document.getElementById('mainPriceChart'), {
+            const ctx = document.getElementById('mainPriceChart').getContext('2d');
+            priceChart = new Chart(ctx, {
                 type: 'line',
                 data: { datasets: [] },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false } },
                     scales: {
                         x: { type: 'time', time: { unit: 'hour' }, grid: { display: false }, ticks: { color: '#475569', font: { size: 10 } } },
                         y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#475569', font: { size: 10 } } }
-                    },
-                    plugins: { legend: { display: false } }
+                    }
                 }
             });
 
-            // Reliability
             reliabilityChart = new Chart(document.getElementById('reliabilityChart'), {
                 type: 'doughnut',
                 data: { labels: ['OK', 'ERR'], datasets: [{ data: [100, 0], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0, cutout: '85%' }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
             });
 
-            // Latency
             latencyChart = new Chart(document.getElementById('latencyChart'), {
                 type: 'line',
                 data: { labels: [], datasets: [{ data: [], borderColor: '#3b82f6', backgroundColor: 'rgba(59, 130, 246, 0.1)', fill: true, tension: 0.4, pointRadius: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
             });
+
+            document.getElementById('main-container').classList.remove('opacity-0');
         }
 
         async function refresh() {
@@ -208,19 +240,17 @@
                 const data = await res.json();
                 cachedData = data;
 
-                // Stats Update
+                // Basic Stats
                 document.getElementById('stat-symbols').innerText = data.stats.total_symbols;
                 document.getElementById('stat-calls').innerText = data.stats.total_api_calls;
                 document.getElementById('stat-success').innerText = data.stats.success_rate + '%';
                 document.getElementById('circle-percent').innerText = data.stats.success_rate + '%';
-                document.getElementById('success-count-label').innerText = data.stats.total_api_calls - (data.stats.error_count || 0);
-                document.getElementById('error-count-label').innerText = data.stats.error_count || 0;
 
-                // Reliability Chart
+                // Reliability update
                 reliabilityChart.data.datasets[0].data = [data.stats.success_rate, 100 - data.stats.success_rate];
                 reliabilityChart.update();
 
-                // Latency Update
+                // Latency update
                 if (data.latency_history?.length) {
                     const last = data.latency_history.slice(-15);
                     latencyChart.data.labels = last.map((_, i) => i);
@@ -229,52 +259,17 @@
                     document.getElementById('stat-latency').innerText = Math.round(last[last.length-1].ms) + 'ms';
                 }
 
-                // Price Chart
+                // UI Elements
                 updatePriceDisplay();
-
-                // Live Feed
-                document.getElementById('quoteTable').innerHTML = data.quotes.map(q => `
-                    <div class="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5">
-                        <span class="font-bold text-[11px]">${q.symbol}</span>
-                        <div class="text-right">
-                            <span class="font-mono text-[11px] block">$${q.price.toFixed(2)}</span>
-                            <span class="text-[9px] ${q.change >= 0 ? 'text-emerald-400' : 'text-red-400'} font-bold">
-                                ${q.change >= 0 ? '↑' : '↓'} ${Math.abs(q.change).toFixed(2)}%
-                            </span>
-                        </div>
-                    </div>
-                `).join('');
-
-                // Volatility calculation (simplified)
-                const volHtml = Object.keys(data.history).slice(0, 4).map(sym => {
-                    const prices = data.history[sym];
-                    const v = prices.length > 2 ? Math.abs((prices[prices.length-1].y - prices[0].y) / prices[0].y * 10).toFixed(2) : "0.00";
-                    return `
-                        <div class="flex justify-between items-center border-b border-white/5 pb-2">
-                            <span class="text-xs font-mono">${sym}</span>
-                            <div class="w-24 bg-slate-800 h-1 rounded-full overflow-hidden">
-                                <div class="bg-blue-500 h-full" style="width: ${Math.min(parseFloat(v)*10, 100)}%"></div>
-                            </div>
-                            <span class="text-[10px] text-blue-400 font-bold">${v}%</span>
-                        </div>
-                    `;
-                }).join('');
-                document.getElementById('volatility-list').innerHTML = volHtml;
-
-                // Sentiment
-                const avgChange = data.quotes.reduce((a, b) => a + b.change, 0) / data.quotes.length;
-                const sentiment = avgChange > 0.1 ? "Bullish" : (avgChange < -0.1 ? "Bearish" : "Neutral");
-                const barWidth = Math.max(10, Math.min(90, 50 + (avgChange * 20)));
-                document.getElementById('sentiment-value').innerText = sentiment;
-                document.getElementById('sentiment-value').className = `text-xl font-black italic ${avgChange > 0.1 ? 'text-emerald-400' : (avgChange < -0.1 ? 'text-red-400' : 'text-blue-400')}`;
-                document.getElementById('sentiment-bar').style.width = barWidth + '%';
-                document.getElementById('sentiment-bar').className = `h-full transition-all duration-1000 ${avgChange > 0.1 ? 'bg-emerald-500' : (avgChange < -0.1 ? 'bg-red-500' : 'bg-blue-500')}`;
+                updateLiveFeed(data.quotes);
+                updateVolatility(data.history);
+                updateSentiment(data.quotes);
 
                 document.getElementById('last-update-time').innerText = new Date().toLocaleTimeString();
             } catch (e) {
-                console.error("Fetch error", e);
-                document.getElementById('sync-status').innerText = "Retry...";
-                document.getElementById('sync-status').className = "text-orange-500";
+                console.error("Refresh Error", e);
+                document.getElementById('sync-status').innerText = "DISCONNECTED";
+                document.getElementById('sync-status').classList.replace('text-emerald-400', 'text-red-500');
             }
         }
 
@@ -287,7 +282,7 @@
                 const color = colors[i % colors.length];
                 const ctx = document.getElementById('mainPriceChart').getContext('2d');
                 const grad = ctx.createLinearGradient(0, 0, 0, 400);
-                grad.addColorStop(0, color + '22');
+                grad.addColorStop(0, color + '33');
                 grad.addColorStop(1, color + '00');
 
                 return {
@@ -296,7 +291,7 @@
                     borderColor: color,
                     backgroundColor: grad,
                     fill: true,
-                    borderWidth: 2,
+                    borderWidth: 2.5,
                     pointRadius: 0,
                     tension: 0.3
                 };
@@ -304,17 +299,68 @@
             priceChart.update();
 
             document.getElementById('legend-container').innerHTML = priceChart.data.datasets.map(ds => `
-                <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-1.5 px-3 py-1 bg-white/5 rounded-full border border-white/5">
                     <span class="w-2 h-2 rounded-full" style="background:${ds.borderColor}"></span>
-                    <span class="text-[10px] font-bold uppercase text-slate-400">${ds.label}</span>
+                    <span class="text-[10px] font-black uppercase text-slate-300">${ds.label}</span>
                 </div>
             `).join('');
         }
 
+        function updateLiveFeed(quotes) {
+            document.getElementById('quoteTable').innerHTML = quotes.map(q => `
+                <div class="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5 hover:border-blue-500/30 transition-all">
+                    <div class="flex flex-col">
+                        <span class="font-black text-xs">${q.symbol}</span>
+                        <span class="text-[8px] text-slate-500 uppercase">${q.exchange || 'Market'}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-mono text-xs block font-bold">$${q.price.toFixed(2)}</span>
+                        <span class="text-[10px] ${q.change >= 0 ? 'text-emerald-400' : 'text-red-400'} font-black">
+                            ${q.change >= 0 ? '▲' : '▼'} ${Math.abs(q.change).toFixed(2)}%
+                        </span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateVolatility(history) {
+            const volHtml = Object.keys(history).slice(0, 4).map(sym => {
+                const prices = history[sym];
+                if (prices.length < 2) return '';
+                const v = Math.abs((prices[prices.length-1].y - prices[0].y) / prices[0].y * 10).toFixed(2);
+                const color = v > 3 ? 'bg-red-500' : (v > 1.5 ? 'bg-yellow-500' : 'bg-blue-500');
+                return `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[10px] font-bold">
+                            <span class="text-slate-400 font-mono">${sym}</span>
+                            <span class="text-blue-400">${v}%</span>
+                        </div>
+                        <div class="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div class="${color} h-full" style="width: ${Math.min(parseFloat(v)*10, 100)}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            document.getElementById('volatility-list').innerHTML = volHtml;
+        }
+
+        function updateSentiment(quotes) {
+            const avgChange = quotes.reduce((a, b) => a + b.change, 0) / quotes.length;
+            const sentiment = avgChange > 0.15 ? "Bullish" : (avgChange < -0.15 ? "Bearish" : "Neutral");
+            const barWidth = Math.max(10, Math.min(90, 50 + (avgChange * 30)));
+            
+            const el = document.getElementById('sentiment-value');
+            el.innerText = sentiment;
+            el.className = `text-2xl font-black uppercase italic ${avgChange > 0.1 ? 'text-emerald-400' : (avgChange < -0.1 ? 'text-red-400' : 'text-blue-400')}`;
+            
+            document.getElementById('sentiment-bar').style.width = barWidth + '%';
+            document.getElementById('sentiment-bias').innerText = avgChange.toFixed(3);
+        }
+
         document.querySelectorAll('.tf-btn').forEach(btn => {
             btn.onclick = () => {
-                document.querySelectorAll('.tf-btn').forEach(b => b.classList.replace('bg-blue-600', 'bg-slate-800'));
-                btn.classList.replace('bg-slate-800', 'bg-blue-600');
+                document.querySelectorAll('.tf-btn').forEach(b => b.classList.remove('bg-blue-600', 'shadow-lg', 'shadow-blue-500/20'));
+                btn.classList.add('bg-blue-600', 'shadow-lg', 'shadow-blue-500/20');
                 currentTimeframe = parseInt(btn.dataset.tf);
                 updatePriceDisplay();
             };
@@ -322,7 +368,7 @@
 
         initCharts();
         refresh();
-        setInterval(refresh, 30000);
+        setInterval(refresh, 25000);
     </script>
 </body>
 </html>

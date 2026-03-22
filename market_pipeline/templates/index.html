@@ -14,6 +14,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: #fff;
+            overflow-x: hidden;
         }
         .header {
             background: rgba(0,0,0,0.3);
@@ -49,71 +50,324 @@
             text-align: center;
             font-size: 0.9em;
         }
-        .dashboard-container {
-            width: 100%;
-            height: calc(100vh - 120px);
-            padding: 0;
+        .dashboard {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .dashboard-container iframe {
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        .section {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .section h2 {
+            margin-bottom: 15px;
+            font-size: 1.3em;
+            border-bottom: 2px solid rgba(255,255,255,0.3);
+            padding-bottom: 10px;
+        }
+        table {
             width: 100%;
-            height: 100%;
-            border: none;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        th {
+            background: rgba(0,0,0,0.2);
+            font-weight: 600;
+        }
+        tr:hover {
+            background: rgba(255,255,255,0.05);
+        }
+        .positive {
+            color: #4caf50;
+        }
+        .negative {
+            color: #f44336;
         }
         .loading {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            font-size: 1.5em;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2em;
+        }
+        .last-update {
+            text-align: right;
+            font-size: 0.85em;
+            opacity: 0.7;
+            margin-top: 10px;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f44336;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
     <div class="header">
         <h1>📊 Live Market Data Dashboard</h1>
-        <div class="status-badge running">
+        <div class="status-badge running" id="statusBadge">
             Pipeline Active
         </div>
     </div>
-
-    <div class="info-bar">
-        🔄 Auto-updating every hour | 📈 Live data from Finnhub, Alpha Vantage & Twelve Data | 💾 PostgreSQL Database
+    <div class="info-bar" id="infoBar">
+        🔄 Auto-updating every 30 seconds | 📈 Live data from Finnhub, Alpha Vantage & Twelve Data
     </div>
-
-    <div class="dashboard-container">
-        <!-- فعلاً یک پیام Loading، بعداً Power BI Embed اضافه می‌کنیم -->
-        <div class="loading">
-            <div>
-                <h2>🚀 Dashboard Loading...</h2>
-                <p style="margin-top: 20px; font-size: 0.8em; opacity: 0.8;">
-                    Pipeline is collecting data in background
-                </p>
-                <p style="margin-top: 10px; font-size: 0.7em; opacity: 0.6;">
-                    Power BI dashboard will be embedded here
-                </p>
+    
+    <div class="dashboard">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Symbols</h3>
+                <div class="value" id="totalSymbols">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total API Calls</h3>
+                <div class="value" id="totalAPICalls">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Success Rate</h3>
+                <div class="value positive" id="successRate">-</div>
+            </div>
+            <div class="stat-card">
+                <h3>Last Update</h3>
+                <div class="value" id="lastUpdate" style="font-size: 1.2em;">-</div>
             </div>
         </div>
-        
-        <!-- بعداً این رو uncomment کن و URL رو عوض کن:
-        <iframe 
-            src="YOUR_POWER_BI_EMBED_URL_HERE"
-            frameborder="0" 
-            allowFullScreen="true">
-        </iframe>
-        -->
+
+        <!-- Latest Quotes -->
+        <div class="section">
+            <h2>📈 Latest Stock Quotes</h2>
+            <div id="quotesContent">
+                <div class="loading">Loading quotes...</div>
+            </div>
+        </div>
+
+        <!-- Latest Candles -->
+        <div class="section">
+            <h2>📊 Latest Candle Data</h2>
+            <div id="candlesContent">
+                <div class="loading">Loading candles...</div>
+            </div>
+        </div>
+
+        <!-- API Logs -->
+        <div class="section">
+            <h2>🔧 Recent API Calls</h2>
+            <div id="apiLogsContent">
+                <div class="loading">Loading API logs...</div>
+            </div>
+        </div>
+
+        <!-- Fundamentals -->
+        <div class="section">
+            <h2>💰 Fundamentals</h2>
+            <div id="fundamentalsContent">
+                <div class="loading">Loading fundamentals...</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // هر 30 ثانیه status رو چک کن
-        setInterval(async () => {
+        // Globale Variablen
+        let updateInterval;
+        let lastUpdateTime;
+
+        // Daten von Flask Backend laden
+        async function fetchDashboardData() {
+            try {
+                const response = await fetch('/api/dashboard');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                updateDashboard(data);
+                lastUpdateTime = new Date();
+                updateLastUpdateDisplay();
+            } catch (error) {
+                console.error('Failed to fetch dashboard data:', error);
+                showError('Failed to load data. Retrying...');
+            }
+        }
+
+        // Dashboard aktualisieren
+        function updateDashboard(data) {
+            // Stats Cards
+            document.getElementById('totalSymbols').textContent = data.stats.total_symbols || '-';
+            document.getElementById('totalAPICalls').textContent = data.stats.total_api_calls || '-';
+            
+            const successRate = data.stats.success_rate || 0;
+            const successRateElem = document.getElementById('successRate');
+            successRateElem.textContent = successRate.toFixed(1) + '%';
+            successRateElem.className = successRate >= 95 ? 'value positive' : 'value negative';
+
+            // Quotes Table
+            if (data.quotes && data.quotes.length > 0) {
+                let quotesHTML = '<table><thead><tr><th>Symbol</th><th>Company</th><th>Price</th><th>Change %</th><th>Time (Berlin)</th></tr></thead><tbody>';
+                data.quotes.forEach(q => {
+                    const changeClass = q.change_pct >= 0 ? 'positive' : 'negative';
+                    const changeSign = q.change_pct >= 0 ? '+' : '';
+                    quotesHTML += `
+                        <tr>
+                            <td><strong>${q.symbol_code}</strong></td>
+                            <td>${q.company_name || '-'}</td>
+                            <td>$${q.price ? q.price.toFixed(2) : '-'}</td>
+                            <td class="${changeClass}">${changeSign}${q.change_pct ? q.change_pct.toFixed(2) : '0.00'}%</td>
+                            <td>${q.time_berlin || '-'}</td>
+                        </tr>
+                    `;
+                });
+                quotesHTML += '</tbody></table>';
+                document.getElementById('quotesContent').innerHTML = quotesHTML;
+            } else {
+                document.getElementById('quotesContent').innerHTML = '<div class="loading">No quote data available yet</div>';
+            }
+
+            // Candles Table
+            if (data.candles && data.candles.length > 0) {
+                let candlesHTML = '<table><thead><tr><th>Symbol</th><th>Open</th><th>High</th><th>Low</th><th>Close</th><th>Volume</th><th>Time</th></tr></thead><tbody>';
+                data.candles.forEach(c => {
+                    candlesHTML += `
+                        <tr>
+                            <td><strong>${c.symbol_code}</strong></td>
+                            <td>$${c.open ? c.open.toFixed(2) : '-'}</td>
+                            <td>$${c.high ? c.high.toFixed(2) : '-'}</td>
+                            <td>$${c.low ? c.low.toFixed(2) : '-'}</td>
+                            <td>$${c.close ? c.close.toFixed(2) : '-'}</td>
+                            <td>${c.volume ? c.volume.toLocaleString() : '-'}</td>
+                            <td>${c.time_berlin || '-'}</td>
+                        </tr>
+                    `;
+                });
+                candlesHTML += '</tbody></table>';
+                document.getElementById('candlesContent').innerHTML = candlesHTML;
+            } else {
+                document.getElementById('candlesContent').innerHTML = '<div class="loading">No candle data available yet</div>';
+            }
+
+            // API Logs
+            if (data.api_logs && data.api_logs.length > 0) {
+                let logsHTML = '<table><thead><tr><th>Source</th><th>Endpoint</th><th>Status</th><th>Response (ms)</th><th>Time</th></tr></thead><tbody>';
+                data.api_logs.forEach(log => {
+                    const statusClass = log.http_status === 200 ? 'positive' : 'negative';
+                    logsHTML += `
+                        <tr>
+                            <td>${log.source_name || '-'}</td>
+                            <td>${log.endpoint || '-'}</td>
+                            <td class="${statusClass}">${log.http_status || '-'}</td>
+                            <td>${log.response_ms || '-'}</td>
+                            <td>${log.time_berlin || '-'}</td>
+                        </tr>
+                    `;
+                });
+                logsHTML += '</tbody></table>';
+                document.getElementById('apiLogsContent').innerHTML = logsHTML;
+            } else {
+                document.getElementById('apiLogsContent').innerHTML = '<div class="loading">No API logs available yet</div>';
+            }
+
+            // Fundamentals
+            if (data.fundamentals && data.fundamentals.length > 0) {
+                let fundHTML = '<table><thead><tr><th>Symbol</th><th>Company</th><th>Market Cap</th><th>P/E Ratio</th><th>EPS</th></tr></thead><tbody>';
+                data.fundamentals.forEach(f => {
+                    const marketCapB = f.market_cap ? (f.market_cap / 1000).toFixed(1) + 'B' : '-';
+                    fundHTML += `
+                        <tr>
+                            <td><strong>${f.symbol_code}</strong></td>
+                            <td>${f.company_name || '-'}</td>
+                            <td>$${marketCapB}</td>
+                            <td>${f.pe_ratio ? f.pe_ratio.toFixed(2) : '-'}</td>
+                            <td>${f.eps_ttm ? f.eps_ttm.toFixed(2) : '-'}</td>
+                        </tr>
+                    `;
+                });
+                fundHTML += '</tbody></table>';
+                document.getElementById('fundamentalsContent').innerHTML = fundHTML;
+            } else {
+                document.getElementById('fundamentalsContent').innerHTML = '<div class="loading">No fundamental data available yet</div>';
+            }
+        }
+
+        // Letzte Aktualisierung anzeigen
+        function updateLastUpdateDisplay() {
+            if (lastUpdateTime) {
+                const timeStr = lastUpdateTime.toLocaleTimeString('de-DE');
+                document.getElementById('lastUpdate').textContent = timeStr;
+            }
+        }
+
+        // Fehler anzeigen
+        function showError(message) {
+            const errorHTML = `<div class="error">⚠️ ${message}</div>`;
+            document.querySelectorAll('.section').forEach(section => {
+                const content = section.querySelector('[id$="Content"]');
+                if (content && content.innerHTML.includes('Loading')) {
+                    content.innerHTML = errorHTML;
+                }
+            });
+        }
+
+        // Status prüfen
+        async function checkStatus() {
             try {
                 const response = await fetch('/status');
                 const data = await response.json();
-                console.log('Pipeline status:', data);
+                const badge = document.getElementById('statusBadge');
+                if (data.running) {
+                    badge.className = 'status-badge running';
+                    badge.textContent = 'Pipeline Active';
+                } else {
+                    badge.className = 'status-badge';
+                    badge.style.background = '#f44336';
+                    badge.textContent = 'Pipeline Stopped';
+                }
             } catch (error) {
                 console.error('Status check failed:', error);
             }
+        }
+
+        // Initial load
+        fetchDashboardData();
+        checkStatus();
+
+        // Auto-update alle 30 Sekunden
+        updateInterval = setInterval(() => {
+            fetchDashboardData();
+            checkStatus();
         }, 30000);
+
+        // Update display timer
+        setInterval(updateLastUpdateDisplay, 1000);
     </script>
 </body>
 </html>

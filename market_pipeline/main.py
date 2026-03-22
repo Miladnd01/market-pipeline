@@ -24,7 +24,9 @@ DEFAULT_SYMBOLS = [
     for s in os.getenv("SYMBOLS", "AAPL,MSFT").split(",")
     if s.strip()
 ]
-POLL_INTERVAL = int(os.getenv("POLL_INTERVAL_SECONDS", "60"))
+
+# Geändert auf 600 Sekunden (10 Minuten)
+POLL_INTERVAL = int(os.getenv("POLL_INTERVAL_SECONDS", "600"))
 ALPHA_MAX     = int(os.getenv("ALPHA_MAX_RECORDS", "10"))
 TWELVE_SIZE   = int(os.getenv("TWELVE_OUTPUTSIZE", "30"))
 
@@ -84,7 +86,7 @@ def print_live_dashboard():
         """
     }
 
-    # Terminal leeren (funktioniert auf Linux/Mac, auf Windows optional)
+    # Terminal leeren
     os.system('clear' if os.name != 'nt' else 'cls')
     
     print("\n" + "="*80)
@@ -215,7 +217,7 @@ def run_cycle(symbols: list[str], cycle_num: int):
     # Daten-Konsistenz prüfen
     fix_null_symbol_info()
     
-    # ✅ NEU: Live Dashboard anzeigen
+    # Live Dashboard anzeigen
     print_live_dashboard()
     
     print(f"\n  ✅ Cycle #{cycle_num} complete.\n")

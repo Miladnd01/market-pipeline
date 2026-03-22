@@ -8,7 +8,7 @@ load_dotenv()
 def get_connection():
     """
     Erstellt eine Verbindung zur PostgreSQL-Datenbank.
-    Setzt die Session auf Europe/Berlin.
+    Setzt die Session-Zeitzone auf Berlin.
     """
     conn = psycopg2.connect(
         host=os.getenv("PGHOST", "dpg-d6v9lh94tr6s73dgj93g-a.frankfurt-postgres.render.com"),
@@ -17,16 +17,14 @@ def get_connection():
         user=os.getenv("PGUSER", "marketdb_6mxq_user"),
         password=os.getenv("PGPASSWORD", "gSbpVTiDKKo7YCrgLg3dHSipcpJpR9JF"),
     )
-    # Stellt sicher, dass die Datenbank-Verbindung im Berlin-Modus arbeitet
+    # WICHTIG: Erzwingt Berliner Zeit für diese Verbindung
     with conn.cursor() as cur:
         cur.execute("SET TIME ZONE 'Europe/Berlin';")
     return conn
 
-
 # ============================================================
 # DDL - DATA DEFINITION LANGUAGE (BERLIN OPTIMIERT)
 # ============================================================
-# Wir nutzen TIMESTAMP statt TIMESTAMPTZ, um das "+00" zu entfernen.
 DDL = """
 -- 1. DIMENSION TABLES
 CREATE TABLE IF NOT EXISTS dim_source (
@@ -60,12 +58,11 @@ CREATE TABLE IF NOT EXISTS dim_indicator (
     category       TEXT
 );
 
--- 2. FACT TABLES (Zeitstempel ohne Zeitzonen-Anhang)
+-- 2. FACT TABLES (TIMESTAMP ohne Zeitzonen-Anhang für korrekte Anzeige)
 CREATE TABLE IF NOT EXISTS fact_market_quote (
     quote_id        BIGSERIAL PRIMARY KEY,
     symbol_id       INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id       INT NOT NULL REFERENCES dim_source(source_id),
-    -- Nutzt lokale Berliner Zeit ohne Zone
     fetched_at_utc  TIMESTAMP NOT NULL DEFAULT (timezone('Europe/Berlin', now())),
     quote_time_utc  TIMESTAMP,
     price           NUMERIC(18,6),
@@ -127,7 +124,7 @@ CREATE TABLE IF NOT EXISTS log_api_call (
     error_msg     TEXT
 );
 
--- 3. SEED DATA (Standardwerte)
+-- 3. SEED DATA
 INSERT INTO dim_source (source_name, base_url, notes) VALUES
     ('finnhub',      'https://finnhub.io/api/v1',         '60 req/min free'),
     ('alphavantage', 'https://www.alphavantage.co/query', '25 req/day free'),
@@ -142,76 +139,60 @@ INSERT INTO dim_indicator (indicator_name, description, category) VALUES
 ON CONFLICT (indicator_name) DO NOTHING;
 
 INSERT INTO dim_interval (interval_code, interval_type) VALUES
-    ('1min', 'intraday'), ('5min', 'intraday'), ('15min', 'intraday'), 
-    ('30min', 'intraday'), ('1h', 'intraday'), ('1day', 'daily'), 
-    ('1week', 'weekly'), ('daily', 'daily')
+    ('1min',  'intraday'), ('5min',  'intraday'), ('15min', 'intraday'),
+    ('30min', 'intraday'), ('1h',    'intraday'), ('1day',  'daily'),
+    ('1week', 'weekly'),   ('daily', 'daily')
 ON CONFLICT (interval_code) DO NOTHING;
 """
 
 def create_schema():
-    """Erstellt das Star-Schema und bereinigt alte Views."""
+    """Schema erstellen und alte Strukturen bereinigen."""
     with get_connection() as conn:
         with conn.cursor() as cur:
-            # Lösche alle alten Views, falls diese noch existieren
+            print("[DB] Cleaning up for Berlin Timezone Migration...")
+            # Lösche alte Views und Tabellen, damit der Typ-Wechsel (TIMESTAMP) klappt
             cur.execute("DROP VIEW IF EXISTS vw_api_log CASCADE;")
             cur.execute("DROP VIEW IF EXISTS log_api_call_berlin CASCADE;")
             cur.execute("DROP VIEW IF EXISTS vw_latest_quotes CASCADE;")
             
-            # Tabellen erstellen
+            # Tabellen-Reset (Einmalig für die Migration auf Berlin Zeit)
+            cur.execute("DROP TABLE IF EXISTS log_api_call CASCADE;")
+            cur.execute("DROP TABLE IF EXISTS fact_market_quote CASCADE;")
+            cur.execute("DROP TABLE IF EXISTS fact_company_fundamental CASCADE;")
+            
+            # Tabellen neu erstellen
             cur.execute(DDL)
             
-            # Neue View erstellen, die direkt die Berliner Zeit anzeigt
-            cur.execute(\"\"\"
+            # Standard View für die Kontrolle
+            cur.execute("""
                 CREATE OR REPLACE VIEW vw_api_log AS
                 SELECT log_id, called_at_utc AS zeit_berlin, endpoint, http_status, response_ms
                 FROM log_api_call
                 ORDER BY log_id DESC;
-            \"\"\")
-            
+            """)
         conn.commit()
-    print("[DB] Berlin-Zeit-Schema (TIMESTAMP) erfolgreich erstellt.")
-
+    print("[DB] Schema created successfully with Berlin Time (TIMESTAMP).")
 
 # ============================================================
-# DIMENSION HELPERS (In-Memory Cache)
+# DIMENSION HELPERS
 # ============================================================
-_cache: dict = {}
+_cache = {}
 
-def _upsert_dim(conn, table: str, uk_col: str, uk_val: str,
-                pk_col: str, extra: dict | None = None) -> int:
+def _upsert_dim(conn, table, uk_col, uk_val, pk_col, extra=None):
     cache_key = f"{table}:{uk_val}"
-    if cache_key in _cache:
-        return _cache[cache_key]
-
+    if cache_key in _cache: return _cache[cache_key]
     cols = [uk_col] + list((extra or {}).keys())
     vals = [uk_val] + list((extra or {}).values())
-    ph   = ", ".join(["%s"] * len(vals))
-    cn   = ", ".join(cols)
-
-    non_uk = [c for c in cols if c != uk_col]
-    if non_uk:
-        upd = ", ".join(f"{c} = COALESCE(EXCLUDED.{c}, {table}.{c})" for c in non_uk)
-    else:
-        upd = f"{uk_col} = EXCLUDED.{uk_col}"
-
+    ph, cn = ", ".join(["%s"] * len(vals)), ", ".join(cols)
+    upd = ", ".join(f"{c}=EXCLUDED.{c}" for c in cols if c != uk_col) or f"{uk_col}=EXCLUDED.{uk_col}"
     sql = f"INSERT INTO {table} ({cn}) VALUES ({ph}) ON CONFLICT ({uk_col}) DO UPDATE SET {upd} RETURNING {pk_col};"
     with conn.cursor() as cur:
         cur.execute(sql, vals)
         row_id = cur.fetchone()[0]
-
     _cache[cache_key] = row_id
     return row_id
 
-def get_source_id(conn, name: str) -> int:
-    return _upsert_dim(conn, "dim_source", "source_name", name, "source_id")
-
-def get_symbol_id(conn, code: str, **kwargs) -> int:
-    allowed = {"company_name", "exchange", "country", "currency", "sector", "industry"}
-    extra   = {k: v for k, v in kwargs.items() if k in allowed and v}
-    return _upsert_dim(conn, "dim_symbol", "symbol_code", code, "symbol_id", extra or None)
-
-def get_interval_id(conn, code: str) -> int:
-    return _upsert_dim(conn, "dim_interval", "interval_code", code, "interval_id")
-
-def get_indicator_id(conn, name: str) -> int:
-    return _upsert_dim(conn, "dim_indicator", "indicator_name", name, "indicator_id")
+def get_source_id(conn, name): return _upsert_dim(conn, "dim_source", "source_name", name, "source_id")
+def get_symbol_id(conn, code, **kwargs): return _upsert_dim(conn, "dim_symbol", "symbol_code", code, "symbol_id", kwargs)
+def get_interval_id(conn, code): return _upsert_dim(conn, "dim_interval", "interval_code", code, "interval_id")
+def get_indicator_id(conn, name): return _upsert_dim(conn, "dim_indicator", "indicator_name", name, "indicator_id")

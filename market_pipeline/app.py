@@ -67,8 +67,8 @@ def run_pipeline_loop():
     )
 
     try:
-        # pipeline_main() enthält bereits die while-True-Schleife
-        pipeline_main()
+        # pipeline_main (status_callback=update_pipeline_status) enthält bereits die while-True-Schleife
+  pipeline_main(status_callback=update_pipeline_status)
 
     except Exception as e:
         logger.exception("Pipeline crashed with exception.")

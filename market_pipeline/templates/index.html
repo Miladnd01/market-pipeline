@@ -2,8 +2,8 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Market Terminal | Pro Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Market Terminal | Mobile App</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -14,1076 +14,1697 @@
 
     <style>
         * { box-sizing: border-box; }
+
         :root {
-            --bg: #0a0d14;
-            --bg-2: #0f131b;
-            --panel: #111723;
-            --panel-2: #161d2b;
-            --panel-3: #0d121c;
-            --border: #232c3d;
-            --border-soft: #1b2433;
-            --text: #e5ebf5;
-            --text-soft: #b6c0d2;
-            --text-muted: #7e8aa3;
-            --text-faint: #556177;
+            --bg: #09101a;
+            --bg-soft: #0d1522;
+            --panel: #101826;
+            --panel-2: #131d2d;
+            --panel-3: #0c1320;
+            --border: #223048;
+            --border-soft: #1a2639;
+            --text: #e7edf8;
+            --text-soft: #b7c2d7;
+            --text-muted: #7f8ca5;
+            --text-faint: #5f6b81;
             --blue: #3b82f6;
             --cyan: #22d3ee;
             --green: #22c55e;
             --red: #ef4444;
             --amber: #f59e0b;
             --purple: #a855f7;
-            --grid: rgba(255, 255, 255, 0.045);
-            --shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+            --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+            --radius: 18px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
         html, body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(180deg, #090c13 0%, #0a0d14 100%);
+            background:
+                radial-gradient(circle at top, rgba(59,130,246,0.08), transparent 35%),
+                linear-gradient(180deg, #09101a 0%, #0a0f18 100%);
             color: var(--text);
             min-height: 100vh;
             font-family: "Inter", sans-serif;
         }
 
-        .mono { font-family: "JetBrains Mono", monospace; }
-        .terminal-shell { max-width: 1900px; margin: 0 auto; padding: 14px; }
-        .terminal-topbar {
-            display: flex; align-items: center; justify-content: space-between; gap: 16px;
-            padding: 10px 14px; border: 1px solid var(--border);
-            background: linear-gradient(180deg, #121827 0%, #0d121c 100%);
-            border-radius: 14px; box-shadow: var(--shadow); margin-bottom: 12px;
+        body {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
         }
-        .terminal-brand { display: flex; align-items: center; gap: 12px; }
-        .terminal-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 5px 10px; border-radius: 999px;
-            background: rgba(59, 130, 246, 0.12);
-            border: 1px solid rgba(59, 130, 246, 0.22);
-            color: #9fc3ff; font-size: 11px; font-weight: 700;
-            letter-spacing: 0.08em; text-transform: uppercase;
-        }
-        .topbar-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .meta-chip {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 7px 10px; border-radius: 10px;
-            border: 1px solid var(--border); background: #0c111b;
-            color: var(--text-soft); font-size: 12px; font-weight: 600;
-        }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
 
-        .grid-main {
+        .mono { font-family: "JetBrains Mono", monospace; }
+
+        .app-shell {
+            width: 100%;
+            max-width: 520px;
+            min-height: 100vh;
+            margin: 0 auto;
+            position: relative;
+            padding-bottom: calc(88px + var(--safe-bottom));
+            background: transparent;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 40;
+            backdrop-filter: blur(18px);
+            background: rgba(9, 16, 26, 0.88);
+            border-bottom: 1px solid rgba(34, 48, 72, 0.9);
+            padding: 12px 14px 10px;
+        }
+
+        .topbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .brand-wrap {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .brand-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: rgba(59,130,246,0.12);
+            border: 1px solid rgba(59,130,246,0.3);
+            color: #9fc3ff;
+            flex: 0 0 auto;
+        }
+
+        .brand-copy {
+            min-width: 0;
+        }
+
+        .brand-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #f8fbff;
+            letter-spacing: 0.06em;
+            line-height: 1.15;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 230px;
+        }
+
+        .icon-btn {
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, #111a29, #0d1522);
+            color: var(--text-soft);
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.98);
+        }
+
+        .chip-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            margin-top: 10px;
+            padding-bottom: 2px;
+            scrollbar-width: none;
+        }
+
+        .chip-row::-webkit-scrollbar { display: none; }
+
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            white-space: nowrap;
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #0d1522;
+            color: var(--text-soft);
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .content {
+            padding: 12px;
             display: grid;
-            grid-template-columns: 290px 1fr 390px;
             gap: 12px;
         }
 
-        .panel {
+        .screen {
+            display: none;
+            gap: 12px;
+        }
+
+        .screen.active {
+            display: grid;
+        }
+
+        .card {
             background: linear-gradient(180deg, var(--panel) 0%, var(--panel-3) 100%);
             border: 1px solid var(--border);
-            border-radius: 14px;
+            border-radius: var(--radius);
             box-shadow: var(--shadow);
             overflow: hidden;
         }
 
-        .panel-header {
-            display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        .card-body {
+            padding: 14px;
+        }
+
+        .card-header {
             padding: 12px 14px;
             border-bottom: 1px solid var(--border-soft);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
             background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
         }
 
-        .panel-title {
-            font-size: 12px; font-weight: 800; text-transform: uppercase;
-            letter-spacing: 0.14em; color: var(--text-muted);
+        .section-kicker {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-weight: 800;
         }
 
-        .panel-subtitle { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
-
-        .sidebar-section { padding: 12px; border-bottom: 1px solid var(--border-soft); }
-        .sidebar-section:last-child { border-bottom: none; }
-
-        .small-label {
-            font-size: 11px; color: var(--text-muted); text-transform: uppercase;
-            letter-spacing: 0.08em; font-weight: 700;
+        .section-title {
+            margin-top: 4px;
+            font-size: 18px;
+            font-weight: 800;
+            line-height: 1.15;
         }
 
-        .watchlist-row, .data-row {
-            display: grid; grid-template-columns: 1fr auto; gap: 10px;
-            align-items: center; padding: 10px 10px; border-radius: 10px;
-            border: 1px solid transparent; transition: 0.18s ease; cursor: pointer;
-            background: #0d131d;
+        .hero-head {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
-        .watchlist-row:hover, .data-row:hover {
-            background: #101724;
-            border-color: #314056;
+        .hero-main {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 14px;
         }
 
-        .watchlist-row.active {
-            background: rgba(59,130,246,0.10);
-            border-color: rgba(59,130,246,0.30);
+        .hero-symbol {
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1;
         }
 
-        .ticker-symbol { font-size: 14px; font-weight: 800; color: var(--text); }
-        .ticker-exchange {
-            font-size: 11px; color: var(--text-faint); margin-top: 3px;
-            text-transform: uppercase; letter-spacing: 0.08em;
-        }
-        .ticker-price { font-size: 13px; font-weight: 700; color: var(--text); text-align: right; }
-        .ticker-change { font-size: 11px; font-weight: 700; text-align: right; margin-top: 4px; }
-
-        .terminal-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-        .terminal-tab {
-            padding: 8px 11px; border-radius: 9px; border: 1px solid var(--border);
-            background: #0c111a; color: var(--text-muted);
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.1em; transition: 0.2s ease;
-        }
-        .terminal-tab.active {
-            background: rgba(59,130,246,0.14);
-            color: #bfd7ff;
-            border-color: rgba(59,130,246,0.30);
+        .hero-name {
+            margin-top: 6px;
+            color: var(--text-muted);
+            font-size: 13px;
+            line-height: 1.35;
         }
 
-        .main-chart-wrap { padding: 12px; }
-        .hero-strip {
-            display: grid; grid-template-columns: 1.35fr 1fr; gap: 10px; margin-bottom: 10px;
+        .hero-price {
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1;
+            text-align: right;
         }
-        .hero-box {
+
+        .hero-change {
+            margin-top: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mini-stat,
+        .metric-item,
+        .kpi-item {
             border: 1px solid var(--border-soft);
-            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
-            border-radius: 12px; padding: 14px;
+            background: #0d1522;
+            border-radius: 14px;
+            padding: 12px;
+            min-width: 0;
         }
 
-        .asset-head { display: flex; align-items: start; justify-content: space-between; gap: 12px; }
-        .asset-symbol { font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -0.02em; color: #f8fbff; }
-        .asset-name { font-size: 13px; color: var(--text-muted); margin-top: 5px; }
-        .asset-price { font-size: 32px; font-weight: 800; text-align: right; line-height: 1; }
-        .asset-change { font-size: 13px; font-weight: 700; text-align: right; margin-top: 7px; }
+        .mini-stat-label,
+        .metric-label,
+        .kpi-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .12em;
+            font-weight: 800;
+        }
 
-        .mini-stats {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px;
+        .mini-stat-value,
+        .metric-value,
+        .kpi-value {
+            margin-top: 8px;
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.2;
+            word-break: break-word;
         }
-        .mini-stat {
-            padding: 10px 12px; border-radius: 10px; background: #0d1420;
-            border: 1px solid var(--border-soft);
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
-        .mini-stat .label {
-            font-size: 10px; color: var(--text-muted); text-transform: uppercase;
-            letter-spacing: 0.11em; font-weight: 700; margin-bottom: 6px;
+
+        .chart-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
         }
-        .mini-stat .value { font-size: 14px; font-weight: 800; color: var(--text); }
 
         .timeframe-group {
-            display: inline-flex; gap: 4px; padding: 4px; border-radius: 11px;
-            background: #0b1019; border: 1px solid var(--border);
+            display: inline-flex;
+            gap: 4px;
+            padding: 4px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: #0b1018;
+            overflow-x: auto;
+            max-width: 100%;
+            scrollbar-width: none;
         }
+
+        .timeframe-group::-webkit-scrollbar { display: none; }
+
         .tf-btn {
-            padding: 7px 11px; border-radius: 8px; color: var(--text-muted);
-            background: transparent; border: none; font-size: 11px; font-weight: 800;
-            text-transform: uppercase; letter-spacing: 0.08em; transition: 0.18s ease; cursor: pointer;
+            padding: 8px 10px;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            cursor: pointer;
+            white-space: nowrap;
         }
-        .tf-btn:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+
         .tf-btn.active {
             background: rgba(59,130,246,0.18);
             color: #dbeafe;
             box-shadow: inset 0 0 0 1px rgba(59,130,246,0.25);
         }
 
-        .chart-container {
-            height: 470px; border: 1px solid var(--border-soft); border-radius: 12px;
-            padding: 10px;
+        .chart-box {
+            height: 290px;
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 8px;
             background:
                 linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)),
                 linear-gradient(90deg, transparent 24px, rgba(255,255,255,0.015) 25px, transparent 26px);
-            background-size: auto, 48px 48px;
+            background-size: auto, 42px 42px;
         }
 
-        .legend-wrap { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+        .legend-wrap {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
         .legend-item {
-            display: inline-flex; align-items: center; gap: 8px;
-            padding: 7px 10px; border-radius: 999px; border: 1px solid var(--border);
-            background: #0d131d; font-size: 11px; font-weight: 700;
-            color: var(--text-soft); text-transform: uppercase; letter-spacing: 0.08em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: #0d1522;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--text-soft);
         }
 
-        .vol-row { padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
-        .vol-row:last-child { border-bottom: none; }
-
-        .vol-track, .bias-bar {
-            width: 100%; height: 8px; border-radius: 999px; overflow: hidden;
-            background: #182130; border: 1px solid var(--border-soft);
+        .list {
+            display: grid;
+            gap: 8px;
         }
 
-        .vol-fill, .bias-fill { height: 100%; transition: width 0.28s ease, background 0.28s ease; }
+        .row-item {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            align-items: center;
+            padding: 11px 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            background: #0d1522;
+            cursor: pointer;
+        }
 
-        .right-stack { display: grid; gap: 12px; }
+        .row-item.active {
+            background: rgba(59,130,246,0.10);
+            border-color: rgba(59,130,246,0.30);
+        }
 
-        .ring-wrap { width: 220px; height: 220px; margin: 8px auto 4px; position: relative; }
+        .row-item-title {
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .row-item-sub {
+            margin-top: 4px;
+            font-size: 10px;
+            color: var(--text-faint);
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            line-height: 1.35;
+        }
+
+        .row-item-price {
+            font-size: 13px;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .row-item-change {
+            margin-top: 4px;
+            font-size: 11px;
+            font-weight: 700;
+            text-align: right;
+        }
+
+        .vol-row {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .vol-row:last-child {
+            border-bottom: none;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            overflow: hidden;
+            background: #182130;
+            border: 1px solid var(--border-soft);
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width .28s ease, background .28s ease;
+        }
+
+        .ring-wrap {
+            width: 180px;
+            height: 180px;
+            margin: 10px auto 0;
+            position: relative;
+        }
+
         .ring-center {
-            position: absolute; inset: 0; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; pointer-events: none;
-        }
-        .ring-center .big { font-size: 38px; font-weight: 800; color: #dcfce7; }
-        .ring-center .small {
-            font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
-            text-transform: uppercase; color: var(--text-muted); margin-top: 5px;
-        }
-
-        .latency-wrap {
-            height: 140px; border: 1px solid var(--border-soft); border-radius: 12px;
-            padding: 10px; background: #0c111a;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
         }
 
-        .kpi-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .kpi-card {
-            border: 1px solid var(--border-soft); background: #0c111a; border-radius: 12px; padding: 12px;
-        }
-        .kpi-card .value { font-size: 22px; font-weight: 800; margin-top: 6px; color: var(--text); }
-
-        .footer-note { margin-top: 12px; font-size: 11px; color: var(--text-faint); line-height: 1.7; }
-
-        .scrollbar::-webkit-scrollbar { width: 6px; }
-        .scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .scrollbar::-webkit-scrollbar-thumb { background: #2b364b; border-radius: 999px; }
-        .scrollbar::-webkit-scrollbar-thumb:hover { background: #3b82f6; }
-
-        .table-dark { display: flex; flex-direction: column; gap: 7px; }
-        .metric-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
-        .metric-item {
-            padding: 10px; border-radius: 10px; border: 1px solid var(--border-soft); background: #0c111a;
-        }
-        .metric-item .m-label { font-size: 10px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.1em; }
-        .metric-item .m-value { margin-top: 6px; font-size: 14px; font-weight: 800; color: var(--text); }
-
-        @media (max-width: 1500px) {
-            .grid-main { grid-template-columns: 260px 1fr 350px; }
-            .hero-strip { grid-template-columns: 1fr; }
-            .mini-stats { grid-template-columns: repeat(2, 1fr); }
+        .ring-value {
+            font-size: 34px;
+            font-weight: 800;
+            color: #dcfce7;
         }
 
-        @media (max-width: 1180px) {
-            .grid-main { grid-template-columns: 1fr; }
-            .right-stack { grid-template-columns: 1fr 1fr; }
+        .ring-label {
+            margin-top: 4px;
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: .14em;
+            font-weight: 800;
         }
 
-        @media (max-width: 760px) {
-            .terminal-shell { padding: 10px; }
-            .terminal-topbar { flex-direction: column; align-items: stretch; }
-            .right-stack { grid-template-columns: 1fr; }
-            .mini-stats { grid-template-columns: 1fr 1fr; }
-            .chart-container { height: 340px; }
-            .asset-symbol { font-size: 22px; }
-            .asset-price { font-size: 26px; }
-            .metric-list { grid-template-columns: 1fr; }
+        .latency-box {
+            height: 140px;
+            border: 1px solid var(--border-soft);
+            border-radius: 14px;
+            padding: 8px;
+            background: #0c111a;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 60;
+            padding: 8px 10px calc(8px + var(--safe-bottom));
+            background: rgba(9, 16, 26, 0.94);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(34, 48, 72, 0.95);
+        }
+
+        .bottom-nav-inner {
+            max-width: 520px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .nav-btn {
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, #0f1725, #0b121d);
+            color: var(--text-muted);
+            border-radius: 16px;
+            min-height: 58px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+
+        .nav-btn.active {
+            color: #dbeafe;
+            border-color: rgba(59,130,246,0.30);
+            background: linear-gradient(180deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08));
+        }
+
+        .watchlist-sheet {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 80;
+            transform: translateY(105%);
+            transition: transform .28s ease;
+            padding: 10px 10px calc(16px + var(--safe-bottom));
+            pointer-events: none;
+        }
+
+        .watchlist-sheet.open {
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .watchlist-sheet-card {
+            max-width: 520px;
+            margin: 0 auto;
+            border: 1px solid var(--border);
+            background: linear-gradient(180deg, #111826, #0c1320);
+            border-radius: 22px 22px 0 0;
+            box-shadow: 0 -20px 40px rgba(0,0,0,0.45);
+            overflow: hidden;
+            max-height: 76vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sheet-handle {
+            width: 46px;
+            height: 5px;
+            border-radius: 999px;
+            background: #32435f;
+            margin: 10px auto 0;
+        }
+
+        .sheet-header {
+            padding: 10px 14px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-soft);
+        }
+
+        .sheet-list {
+            padding: 12px;
+            overflow-y: auto;
+            display: grid;
+            gap: 8px;
+        }
+
+        .sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(4px);
+            z-index: 70;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity .25s ease, visibility .25s ease;
+        }
+
+        .sheet-overlay.open {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .desktop-watchlist {
+            display: none;
+        }
+
+        .empty-text {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        @media (min-width: 900px) {
+            .app-shell {
+                max-width: 1600px;
+                padding-bottom: 20px;
+            }
+
+            .topbar {
+                position: static;
+                border-bottom: none;
+                padding: 14px 14px 0;
+                background: transparent;
+                backdrop-filter: none;
+            }
+
+            .topbar-card {
+                border: 1px solid var(--border);
+                background: linear-gradient(180deg, #121827 0%, #0d121c 100%);
+                border-radius: 18px;
+                box-shadow: var(--shadow);
+                padding: 12px 14px;
+            }
+
+            .brand-subtitle {
+                max-width: none;
+            }
+
+            .content {
+                padding: 14px;
+            }
+
+            .desktop-layout {
+                display: grid;
+                grid-template-columns: 290px 1fr 360px;
+                gap: 12px;
+            }
+
+            .desktop-watchlist {
+                display: block;
+            }
+
+            .mobile-watchlist-trigger {
+                display: none;
+            }
+
+            .bottom-nav,
+            .watchlist-sheet,
+            .sheet-overlay {
+                display: none;
+            }
+
+            .screen {
+                display: grid !important;
+            }
+
+            #screen-home {
+                grid-column: 2;
+            }
+
+            #screen-insights {
+                grid-column: 3;
+                align-content: start;
+            }
+
+            #screen-watchlist {
+                grid-column: 1;
+            }
+
+            #screen-pipeline {
+                grid-column: 3;
+                align-content: start;
+            }
+
+            .ring-wrap {
+                width: 220px;
+                height: 220px;
+            }
+
+            .chart-box {
+                height: 420px;
+            }
         }
     </style>
 </head>
 <body>
-<div class="terminal-shell">
-    <div class="terminal-topbar">
-        <div class="terminal-brand">
-            <div class="terminal-badge mono">
-                <i class="fa-solid fa-chart-column"></i>
-                MKT TERMINAL
-            </div>
-            <div>
-                <div class="mono" style="font-size:13px;font-weight:800;color:#f8fbff;letter-spacing:.06em;">MULTI-ASSET / FUNDAMENTALS / PIPELINE</div>
-                <div style="font-size:12px;color:var(--text-muted);margin-top:3px;">Market, indicators, earnings and collector-health in one screen</div>
+    <div class="app-shell">
+        <div class="topbar">
+            <div class="topbar-card">
+                <div class="topbar-row">
+                    <div class="brand-wrap">
+                        <div class="brand-badge">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </div>
+                        <div class="brand-copy">
+                            <div class="brand-title mono">MKT TERMINAL</div>
+                            <div class="brand-subtitle">Mobile app view for market, pipeline and earnings</div>
+                        </div>
+                    </div>
+
+                    <button class="icon-btn mobile-watchlist-trigger" id="openWatchlistBtn" aria-label="Watchlist öffnen">
+                        <i class="fa-solid fa-list"></i>
+                    </button>
+                </div>
+
+                <div class="chip-row">
+                    <div class="meta-chip mono">
+                        <span class="status-dot" id="sync-dot" style="background:var(--green);"></span>
+                        <span id="sync-status">ONLINE</span>
+                    </div>
+                    <div class="meta-chip mono">
+                        <i class="fa-regular fa-clock"></i>
+                        <span id="last-update-time">--:--:--</span>
+                    </div>
+                    <div class="meta-chip mono">
+                        <i class="fa-solid fa-layer-group"></i>
+                        <span id="stat-symbols-top">--</span> SYMBOLS
+                    </div>
+                    <div class="meta-chip mono">
+                        <i class="fa-solid fa-gear"></i>
+                        <span id="pipeline-phase-top">IDLE</span>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="topbar-meta">
-            <div class="meta-chip mono">
-                <span class="status-dot" id="sync-dot" style="background:var(--green);"></span>
-                <span id="sync-status">ONLINE</span>
-            </div>
-            <div class="meta-chip mono">
-                <i class="fa-regular fa-clock"></i>
-                <span id="last-update-time">--:--:--</span>
-            </div>
-            <div class="meta-chip mono">
-                <i class="fa-solid fa-server"></i>
-                /api/dashboard
-            </div>
-            <div class="meta-chip mono">
-                <i class="fa-solid fa-layer-group"></i>
-                <span id="stat-symbols-top">--</span> SYMBOLS
-            </div>
-            <div class="meta-chip mono">
-                <i class="fa-solid fa-gear"></i>
-                <span id="pipeline-phase-top">IDLE</span>
-            </div>
-        </div>
-    </div>
-
-    <div class="grid-main">
-        <!-- LEFT -->
-        <aside class="panel">
-            <div class="panel-header">
-                <div>
-                    <div class="panel-title mono">Watchlist</div>
-                    <div class="panel-subtitle mono">Dashboard Main</div>
-                </div>
-                <div class="small-label mono">live</div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="small-label mono" style="margin-bottom:10px;">Market Groups</div>
-                <div class="terminal-tabs">
-                    <button class="terminal-tab active">All</button>
-                    <button class="terminal-tab">Equity</button>
-                    <button class="terminal-tab">Value</button>
-                    <button class="terminal-tab">Growth</button>
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <div class="small-label mono" style="margin-bottom:10px;">Selected Instrument</div>
-                <div class="watchlist-row active">
-                    <div>
-                        <div class="ticker-symbol mono" id="selected-symbol-sidebar">--</div>
-                        <div class="ticker-exchange mono" id="selected-exchange-sidebar">MARKET</div>
+        <div class="content desktop-layout">
+            <!-- DESKTOP WATCHLIST -->
+            <section class="screen active desktop-watchlist" id="screen-watchlist">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Watchlist</div>
+                            <div class="section-title mono">Dashboard Main</div>
+                        </div>
+                        <div class="section-kicker mono">live</div>
                     </div>
-                    <div>
-                        <div class="ticker-price mono" id="selected-price-sidebar">$0.00</div>
-                        <div class="ticker-change mono" id="selected-change-sidebar">0.00%</div>
-                    </div>
-                </div>
-            </div>
 
-            <div class="sidebar-section">
-                <div class="small-label mono" style="margin-bottom:10px;">Symbols</div>
-                <div id="watchlist-container" class="table-dark scrollbar" style="max-height:640px; overflow-y:auto;"></div>
-            </div>
-        </aside>
-
-        <!-- CENTER -->
-        <main class="panel">
-            <div class="panel-header">
-                <div>
-                    <div class="panel-title mono">Terminal View</div>
-                    <div class="panel-subtitle mono">Price Engine + Fundamentals</div>
-                </div>
-
-                <div class="timeframe-group">
-                    <button class="tf-btn active mono" data-tf="24">24H</button>
-                    <button class="tf-btn mono" data-tf="12">12H</button>
-                    <button class="tf-btn mono" data-tf="6">6H</button>
-                    <button class="tf-btn mono" data-tf="3">3H</button>
-                    <button class="tf-btn mono" data-tf="1">1H</button>
-                </div>
-            </div>
-
-            <div class="main-chart-wrap">
-                <div class="hero-strip">
-                    <div class="hero-box">
-                        <div class="asset-head">
+                    <div class="card-body">
+                        <div class="section-kicker mono" style="margin-bottom:10px;">Selected Instrument</div>
+                        <div class="row-item active" style="cursor:default;">
                             <div>
-                                <div class="small-label mono">Primary Instrument</div>
-                                <div class="asset-symbol mono" id="hero-symbol">--</div>
-                                <div class="asset-name mono" id="hero-name">--</div>
-                                <div class="asset-name mono" id="hero-exchange">MARKET</div>
+                                <div class="row-item-title mono" id="selected-symbol-sidebar">--</div>
+                                <div class="row-item-sub mono" id="selected-exchange-sidebar">MARKET</div>
                             </div>
                             <div>
-                                <div class="small-label mono" style="text-align:right;">Last Price</div>
-                                <div class="asset-price mono" id="hero-price">$0.00</div>
-                                <div class="asset-change mono" id="hero-change">0.00%</div>
+                                <div class="row-item-price mono" id="selected-price-sidebar">$0.00</div>
+                                <div class="row-item-change mono" id="selected-change-sidebar">0.00%</div>
                             </div>
                         </div>
 
-                        <div class="mini-stats">
-                            <div class="mini-stat">
-                                <div class="label mono">Assets</div>
-                                <div class="value mono" id="stat-symbols">--</div>
-                            </div>
-                            <div class="mini-stat">
-                                <div class="label mono">Calls</div>
-                                <div class="value mono" id="stat-calls">--</div>
-                            </div>
-                            <div class="mini-stat">
-                                <div class="label mono">Success</div>
-                                <div class="value mono" id="stat-success">--%</div>
-                            </div>
-                            <div class="mini-stat">
-                                <div class="label mono">Latency</div>
-                                <div class="value mono" id="stat-latency">--ms</div>
-                            </div>
-                        </div>
+                        <div class="section-kicker mono" style="margin-top:14px;margin-bottom:10px;">Symbols</div>
+                        <div id="watchlist-container" class="list scrollbar" style="max-height:65vh; overflow-y:auto;"></div>
                     </div>
+                </div>
+            </section>
 
-                    <div class="hero-box">
-                        <div class="small-label mono" style="margin-bottom:10px;">Selected Snapshot</div>
-                        <div class="metric-list">
-                            <div class="metric-item">
-                                <div class="m-label mono">RSI 14</div>
-                                <div class="m-value mono" id="metric-rsi">--</div>
+            <!-- HOME -->
+            <section class="screen active" id="screen-home">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="hero-head">
+                            <div class="hero-main">
+                                <div>
+                                    <div class="section-kicker mono">Primary Instrument</div>
+                                    <div class="hero-symbol mono" id="hero-symbol">--</div>
+                                    <div class="hero-name mono" id="hero-name">--</div>
+                                    <div class="hero-name mono" id="hero-exchange">MARKET</div>
+                                </div>
+                                <div>
+                                    <div class="section-kicker mono" style="text-align:right;">Last Price</div>
+                                    <div class="hero-price mono" id="hero-price">$0.00</div>
+                                    <div class="hero-change mono" id="hero-change">0.00%</div>
+                                </div>
                             </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">RSI Signal</div>
-                                <div class="m-value mono" id="metric-rsi-signal">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">MACD Signal</div>
-                                <div class="m-value mono" id="metric-macd-signal">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">P/E</div>
-                                <div class="m-value mono" id="metric-pe">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">EPS TTM</div>
-                                <div class="m-value mono" id="metric-eps">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">Beta</div>
-                                <div class="m-value mono" id="metric-beta">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">Market Cap</div>
-                                <div class="m-value mono" id="metric-marketcap">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="m-label mono">52W Range</div>
-                                <div class="m-value mono" id="metric-range52">--</div>
+
+                            <div class="grid-2">
+                                <div class="mini-stat">
+                                    <div class="mini-stat-label mono">Assets</div>
+                                    <div class="mini-stat-value mono" id="stat-symbols">--</div>
+                                </div>
+                                <div class="mini-stat">
+                                    <div class="mini-stat-label mono">Calls</div>
+                                    <div class="mini-stat-value mono" id="stat-calls">--</div>
+                                </div>
+                                <div class="mini-stat">
+                                    <div class="mini-stat-label mono">Success</div>
+                                    <div class="mini-stat-value mono" id="stat-success">--%</div>
+                                </div>
+                                <div class="mini-stat">
+                                    <div class="mini-stat-label mono">Latency</div>
+                                    <div class="mini-stat-value mono" id="stat-latency">--ms</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="chart-container">
-                    <canvas id="mainPriceChart"></canvas>
+                <div class="card">
+                    <div class="card-body">
+                        <div class="chart-toolbar">
+                            <div>
+                                <div class="section-kicker mono">Chart</div>
+                                <div class="section-title mono" style="font-size:16px;">Price Engine</div>
+                            </div>
+
+                            <div class="timeframe-group">
+                                <button class="tf-btn active mono" data-tf="24">24H</button>
+                                <button class="tf-btn mono" data-tf="12">12H</button>
+                                <button class="tf-btn mono" data-tf="6">6H</button>
+                                <button class="tf-btn mono" data-tf="3">3H</button>
+                                <button class="tf-btn mono" data-tf="1">1H</button>
+                            </div>
+                        </div>
+
+                        <div class="chart-box">
+                            <canvas id="mainPriceChart"></canvas>
+                        </div>
+
+                        <div id="legend-container" class="legend-wrap"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- INSIGHTS -->
+            <section class="screen" id="screen-insights">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Selected Snapshot</div>
+                            <div class="section-title mono">Fundamentals</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="metric-grid">
+                            <div class="metric-item">
+                                <div class="metric-label mono">RSI 14</div>
+                                <div class="metric-value mono" id="metric-rsi">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">RSI Signal</div>
+                                <div class="metric-value mono" id="metric-rsi-signal">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">MACD Signal</div>
+                                <div class="metric-value mono" id="metric-macd-signal">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">P/E</div>
+                                <div class="metric-value mono" id="metric-pe">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">EPS TTM</div>
+                                <div class="metric-value mono" id="metric-eps">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">Beta</div>
+                                <div class="metric-value mono" id="metric-beta">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">Market Cap</div>
+                                <div class="metric-value mono" id="metric-marketcap">--</div>
+                            </div>
+                            <div class="metric-item">
+                                <div class="metric-label mono">52W Range</div>
+                                <div class="metric-value mono" id="metric-range52">--</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div id="legend-container" class="legend-wrap"></div>
-
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px;">
-                    <div class="hero-box">
-                        <div class="small-label mono" style="margin-bottom:10px;">Volatility Matrix</div>
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Volatility</div>
+                            <div class="section-title mono">Matrix</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
                         <div id="volatility-list"></div>
                     </div>
-                    <div class="hero-box">
-                        <div class="small-label mono" style="margin-bottom:10px;">Latest Quotes Feed</div>
-                        <div id="quoteTable" class="table-dark scrollbar" style="max-height:250px; overflow-y:auto;"></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Quotes</div>
+                            <div class="section-title mono">Latest Feed</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="quoteTable" class="list scrollbar" style="max-height:320px; overflow-y:auto;"></div>
                     </div>
                 </div>
+            </section>
+
+            <!-- PIPELINE -->
+            <section class="screen" id="screen-pipeline">
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Reliability</div>
+                            <div class="section-title mono">API Success</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="ring-wrap">
+                            <canvas id="reliabilityChart"></canvas>
+                            <div class="ring-center">
+                                <div class="ring-value mono" id="circle-percent">--%</div>
+                                <div class="ring-label mono">Integrity</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Sentiment</div>
+                            <div class="section-title mono">Bias Engine</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;">
+                            <div id="sentiment-value" class="mono" style="font-size:28px;font-weight:800;color:#93c5fd;">Scanning</div>
+                            <div class="meta-chip mono" style="padding:6px 10px;">
+                                <span id="sentiment-bias">0.000</span>
+                            </div>
+                        </div>
+
+                        <div class="progress-track" style="margin-top:14px;">
+                            <div id="sentiment-bar" class="progress-fill" style="width:50%;background:#3b82f6;"></div>
+                        </div>
+
+                        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.12em;font-weight:700;">
+                            <span class="mono">Short</span>
+                            <span class="mono">Long</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Performance</div>
+                            <div class="section-title mono">Gateway Latency</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="latency-box">
+                            <canvas id="latencyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Pipeline Monitor</div>
+                            <div class="section-title mono">Collector State</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-2">
+                            <div class="kpi-item">
+                                <div class="kpi-label mono">Phase</div>
+                                <div class="kpi-value mono" id="pipeline-phase">--</div>
+                            </div>
+                            <div class="kpi-item">
+                                <div class="kpi-label mono">Cycle</div>
+                                <div class="kpi-value mono" id="pipeline-cycle">--</div>
+                            </div>
+                            <div class="kpi-item">
+                                <div class="kpi-label mono">Current</div>
+                                <div class="kpi-value mono" id="pipeline-current-symbol">--</div>
+                            </div>
+                            <div class="kpi-item">
+                                <div class="kpi-label mono">Success</div>
+                                <div class="kpi-value mono" id="pipeline-success-ratio">--</div>
+                            </div>
+                        </div>
+
+                        <div class="footer-note mono" id="pipeline-extra-note">
+                            Waiting for pipeline data...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="section-kicker mono">Upcoming Earnings</div>
+                            <div class="section-title mono">Calendar</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div id="earnings-list" class="list scrollbar" style="max-height:260px; overflow-y:auto;"></div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <div class="bottom-nav-inner">
+                <button class="nav-btn active" data-screen="screen-home">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Home</span>
+                </button>
+                <button class="nav-btn" data-screen="screen-insights">
+                    <i class="fa-solid fa-wave-square"></i>
+                    <span>Insights</span>
+                </button>
+                <button class="nav-btn" data-screen="screen-watchlist-sheet">
+                    <i class="fa-solid fa-list-ul"></i>
+                    <span>Watchlist</span>
+                </button>
+                <button class="nav-btn" data-screen="screen-pipeline">
+                    <i class="fa-solid fa-microchip"></i>
+                    <span>Pipeline</span>
+                </button>
             </div>
-        </main>
+        </nav>
 
-        <!-- RIGHT -->
-        <section class="right-stack">
-            <div class="panel" style="padding:14px;">
-                <div class="small-label mono">Reliability</div>
-                <div class="panel-subtitle mono" style="font-size:20px;">API Success</div>
+        <!-- Watchlist Sheet -->
+        <div class="sheet-overlay" id="sheetOverlay"></div>
 
-                <div class="ring-wrap">
-                    <canvas id="reliabilityChart"></canvas>
-                    <div class="ring-center">
-                        <div class="big mono" id="circle-percent">--%</div>
-                        <div class="small mono">Integrity</div>
+        <div class="watchlist-sheet" id="watchlistSheet">
+            <div class="watchlist-sheet-card">
+                <div class="sheet-handle"></div>
+
+                <div class="sheet-header">
+                    <div>
+                        <div class="section-kicker mono">Watchlist</div>
+                        <div class="section-title mono" style="font-size:18px;">Dashboard Main</div>
+                    </div>
+                    <button class="icon-btn" id="closeWatchlistBtn" aria-label="Watchlist schließen">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
+                <div class="card-body" style="padding-bottom:0;">
+                    <div class="section-kicker mono" style="margin-bottom:10px;">Selected Instrument</div>
+                    <div class="row-item active" style="cursor:default;">
+                        <div>
+                            <div class="row-item-title mono" id="sheet-selected-symbol">--</div>
+                            <div class="row-item-sub mono" id="sheet-selected-exchange">MARKET</div>
+                        </div>
+                        <div>
+                            <div class="row-item-price mono" id="sheet-selected-price">$0.00</div>
+                            <div class="row-item-change mono" id="sheet-selected-change">0.00%</div>
+                        </div>
                     </div>
                 </div>
+
+                <div class="sheet-list scrollbar" id="watchlist-sheet-container"></div>
             </div>
-
-            <div class="panel" style="padding:14px;">
-                <div class="small-label mono">Sentiment</div>
-                <div class="panel-subtitle mono" style="font-size:20px;">Bias Engine</div>
-
-                <div style="display:flex;justify-content:space-between;align-items:end;margin-top:14px;gap:12px;">
-                    <div id="sentiment-value" class="mono" style="font-size:28px;font-weight:800;color:#93c5fd;">Scanning</div>
-                    <div class="meta-chip mono" style="padding:6px 10px;">
-                        <span id="sentiment-bias">0.000</span>
-                    </div>
-                </div>
-
-                <div class="bias-bar" style="margin-top:14px;">
-                    <div id="sentiment-bar" class="bias-fill" style="width:50%;background:#3b82f6;"></div>
-                </div>
-
-                <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.1em;font-weight:700;">
-                    <span class="mono">Short</span>
-                    <span class="mono">Long</span>
-                </div>
-            </div>
-
-            <div class="panel" style="padding:14px;">
-                <div class="small-label mono">Performance</div>
-                <div class="panel-subtitle mono" style="font-size:20px;">Gateway Latency</div>
-
-                <div class="latency-wrap" style="margin-top:14px;">
-                    <canvas id="latencyChart"></canvas>
-                </div>
-            </div>
-
-            <div class="panel" style="padding:14px;">
-                <div class="small-label mono">Pipeline Monitor</div>
-                <div class="panel-subtitle mono" style="font-size:20px;">Collector State</div>
-
-                <div class="kpi-grid" style="margin-top:14px;">
-                    <div class="kpi-card">
-                        <div class="small-label mono">Phase</div>
-                        <div class="value mono" id="pipeline-phase">--</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="small-label mono">Cycle</div>
-                        <div class="value mono" id="pipeline-cycle">--</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="small-label mono">Current</div>
-                        <div class="value mono" id="pipeline-current-symbol">--</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="small-label mono">Success</div>
-                        <div class="value mono" id="pipeline-success-ratio">--</div>
-                    </div>
-                </div>
-
-                <div class="footer-note mono" id="pipeline-extra-note">
-                    Waiting for pipeline data...
-                </div>
-            </div>
-
-            <div class="panel" style="padding:14px;">
-                <div class="small-label mono">Upcoming Earnings</div>
-                <div class="panel-subtitle mono" style="font-size:20px;">Calendar</div>
-                <div id="earnings-list" class="table-dark scrollbar" style="max-height:220px; overflow-y:auto; margin-top:14px;"></div>
-            </div>
-        </section>
+        </div>
     </div>
-</div>
 
-<script>
-    let priceChart = null;
-    let latencyChart = null;
-    let reliabilityChart = null;
-    let cachedData = null;
-    let currentTimeframe = 24;
-    let selectedSymbol = null;
+    <script>
+        let priceChart = null;
+        let latencyChart = null;
+        let reliabilityChart = null;
+        let cachedData = null;
+        let currentTimeframe = 24;
+        let selectedSymbol = null;
 
-    const palette = ["#3b82f6", "#22d3ee", "#22c55e", "#f59e0b", "#a855f7", "#ef4444"];
+        const palette = ["#3b82f6", "#22d3ee", "#22c55e", "#f59e0b", "#a855f7", "#ef4444"];
 
-    function safeArray(value) { return Array.isArray(value) ? value : []; }
-    function safeObject(value) { return value && typeof value === "object" ? value : {}; }
+        function safeArray(value) { return Array.isArray(value) ? value : []; }
+        function safeObject(value) { return value && typeof value === "object" ? value : {}; }
 
-    function formatNumber(value) {
-        if (value === null || value === undefined || Number.isNaN(value)) return "--";
-        return new Intl.NumberFormat("de-DE").format(value);
-    }
-
-    function formatPercent(value, digits = 2) {
-        if (value === null || value === undefined || Number.isNaN(value)) return "--%";
-        return `${Number(value).toFixed(digits)}%`;
-    }
-
-    function formatPrice(value) {
-        if (value === null || value === undefined || Number.isNaN(value)) return "--";
-        return `$${Number(value).toFixed(2)}`;
-    }
-
-    function formatCompactNumber(value) {
-        if (value === null || value === undefined || Number.isNaN(value)) return "--";
-        const num = Number(value);
-        if (Math.abs(num) >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2)}B`;
-        if (Math.abs(num) >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
-        if (Math.abs(num) >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
-        return num.toFixed(2);
-    }
-
-    function createGradient(ctx, color, height = 470) {
-        const gradient = ctx.createLinearGradient(0, 0, 0, height);
-        gradient.addColorStop(0, `${color}33`);
-        gradient.addColorStop(0.5, `${color}12`);
-        gradient.addColorStop(1, `${color}00`);
-        return gradient;
-    }
-
-    function getSelectedRow() {
-        const rows = safeArray(cachedData?.dashboard_rows);
-        if (!rows.length) return null;
-        if (selectedSymbol) {
-            const row = rows.find(r => r.symbol === selectedSymbol);
-            if (row) return row;
+        function formatNumber(value) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "--";
+            return new Intl.NumberFormat("de-DE").format(value);
         }
-        return rows[0];
-    }
 
-    function getPrimaryQuote() {
-        const rows = safeArray(cachedData?.dashboard_rows);
-        if (!rows.length) return null;
-        return getSelectedRow() || rows[0];
-    }
+        function formatPercent(value, digits = 2) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "--%";
+            return `${Number(value).toFixed(digits)}%`;
+        }
 
-    function initCharts() {
-        const ctx = document.getElementById("mainPriceChart").getContext("2d");
+        function formatPrice(value) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "--";
+            return `$${Number(value).toFixed(2)}`;
+        }
 
-        priceChart = new Chart(ctx, {
-            type: "line",
-            data: { datasets: [] },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: { mode: "index", intersect: false },
-                animation: { duration: 400 },
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: "rgba(10, 13, 20, 0.96)",
-                        borderColor: "rgba(59,130,246,0.25)",
-                        borderWidth: 1,
-                        titleColor: "#f8fbff",
-                        bodyColor: "#dbe4f3",
-                        padding: 12,
-                        displayColors: true
-                    }
-                },
-                scales: {
-                    x: {
-                        type: "time",
-                        time: { unit: "hour", tooltipFormat: "dd.MM.yyyy HH:mm" },
-                        grid: { color: "rgba(255,255,255,0.045)", drawBorder: false },
-                        ticks: {
-                            color: "#7e8aa3",
-                            maxRotation: 0,
-                            font: { family: "JetBrains Mono", size: 11, weight: "700" }
+        function formatCompactNumber(value) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "--";
+            const num = Number(value);
+            if (Math.abs(num) >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2)}B`;
+            if (Math.abs(num) >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
+            if (Math.abs(num) >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
+            return num.toFixed(2);
+        }
+
+        function createGradient(ctx, color, height = 290) {
+            const gradient = ctx.createLinearGradient(0, 0, 0, height);
+            gradient.addColorStop(0, `${color}33`);
+            gradient.addColorStop(0.5, `${color}12`);
+            gradient.addColorStop(1, `${color}00`);
+            return gradient;
+        }
+
+        function getSelectedRow() {
+            const rows = safeArray(cachedData?.dashboard_rows);
+            if (!rows.length) return null;
+            if (selectedSymbol) {
+                const row = rows.find(r => r.symbol === selectedSymbol);
+                if (row) return row;
+            }
+            return rows[0];
+        }
+
+        function getPrimaryQuote() {
+            const rows = safeArray(cachedData?.dashboard_rows);
+            if (!rows.length) return null;
+            return getSelectedRow() || rows[0];
+        }
+
+        function initCharts() {
+            const chartHeight = window.innerWidth >= 900 ? 420 : 290;
+            const ctx = document.getElementById("mainPriceChart").getContext("2d");
+
+            priceChart = new Chart(ctx, {
+                type: "line",
+                data: { datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: "index", intersect: false },
+                    animation: { duration: 350 },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "rgba(10, 13, 20, 0.96)",
+                            borderColor: "rgba(59,130,246,0.25)",
+                            borderWidth: 1,
+                            titleColor: "#f8fbff",
+                            bodyColor: "#dbe4f3",
+                            padding: 12,
+                            displayColors: true
                         }
                     },
-                    y: {
-                        grid: { color: "rgba(255,255,255,0.045)", drawBorder: false },
-                        ticks: {
-                            color: "#7e8aa3",
-                            font: { family: "JetBrains Mono", size: 11, weight: "700" }
-                        }
-                    }
-                }
-            }
-        });
-
-        reliabilityChart = new Chart(document.getElementById("reliabilityChart"), {
-            type: "doughnut",
-            data: {
-                labels: ["OK", "ERR"],
-                datasets: [{
-                    data: [100, 0],
-                    backgroundColor: ["#22c55e", "rgba(239,68,68,0.18)"],
-                    borderWidth: 0,
-                    cutout: "84%",
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } }
-            }
-        });
-
-        latencyChart = new Chart(document.getElementById("latencyChart"), {
-            type: "line",
-            data: {
-                labels: [],
-                datasets: [{
-                    data: [],
-                    borderColor: "#22d3ee",
-                    backgroundColor: "rgba(34,211,238,0.12)",
-                    fill: true,
-                    tension: 0.36,
-                    pointRadius: 0,
-                    borderWidth: 2.2
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        backgroundColor: "rgba(10,13,20,0.96)",
-                        borderColor: "rgba(34,211,238,0.20)",
-                        borderWidth: 1,
-                        titleColor: "#f8fbff",
-                        bodyColor: "#dbe4f3",
-                        callbacks: {
-                            label: function(context) {
-                                return `${context.parsed.y} ms`;
+                    scales: {
+                        x: {
+                            type: "time",
+                            time: { unit: "hour", tooltipFormat: "dd.MM.yyyy HH:mm" },
+                            grid: { color: "rgba(255,255,255,0.045)", drawBorder: false },
+                            ticks: {
+                                color: "#7e8aa3",
+                                maxRotation: 0,
+                                autoSkip: true,
+                                font: {
+                                    family: "JetBrains Mono",
+                                    size: window.innerWidth <= 480 ? 9 : 11,
+                                    weight: "700"
+                                }
+                            }
+                        },
+                        y: {
+                            grid: { color: "rgba(255,255,255,0.045)", drawBorder: false },
+                            ticks: {
+                                color: "#7e8aa3",
+                                font: {
+                                    family: "JetBrains Mono",
+                                    size: window.innerWidth <= 480 ? 9 : 11,
+                                    weight: "700"
+                                }
                             }
                         }
                     }
-                },
-                scales: {
-                    x: { display: false },
-                    y: { display: false }
                 }
-            }
-        });
-    }
-
-    function setStatus(online) {
-        const sync = document.getElementById("sync-status");
-        const dot = document.getElementById("sync-dot");
-        sync.textContent = online ? "ONLINE" : "OFFLINE";
-        sync.style.color = online ? "#86efac" : "#fca5a5";
-        dot.style.background = online ? "#22c55e" : "#ef4444";
-    }
-
-    function updateTopStats(data) {
-        const stats = data?.stats || {};
-        const successRate = Number(stats.success_rate ?? 0);
-
-        document.getElementById("stat-symbols").textContent = formatNumber(stats.total_symbols);
-        document.getElementById("stat-calls").textContent = formatNumber(stats.total_api_calls);
-        document.getElementById("stat-success").textContent = formatPercent(successRate, 1);
-        document.getElementById("stat-latency").textContent = "--ms";
-        document.getElementById("circle-percent").textContent = formatPercent(successRate, 1);
-        document.getElementById("stat-symbols-top").textContent = formatNumber(stats.total_symbols);
-
-        reliabilityChart.data.datasets[0].data = [
-            Math.max(0, Math.min(100, successRate)),
-            Math.max(0, 100 - Math.max(0, Math.min(100, successRate)))
-        ];
-        reliabilityChart.update();
-    }
-
-    function updateLatency(latencyHistory) {
-        const list = safeArray(latencyHistory).slice(-20);
-
-        if (!list.length) {
-            document.getElementById("stat-latency").textContent = "--ms";
-            latencyChart.data.labels = [];
-            latencyChart.data.datasets[0].data = [];
-            latencyChart.update();
-            return;
-        }
-
-        latencyChart.data.labels = list.map((_, i) => i + 1);
-        latencyChart.data.datasets[0].data = list.map(item => Number(item.ms ?? 0));
-        latencyChart.update();
-
-        const latest = Number(list[list.length - 1]?.ms ?? 0);
-        document.getElementById("stat-latency").textContent = `${Math.round(latest)}ms`;
-    }
-
-    function updateHero(row) {
-        const q = row || {};
-
-        document.getElementById("hero-symbol").textContent = q.symbol || "--";
-        document.getElementById("hero-name").textContent = q.company_name || "--";
-        document.getElementById("hero-exchange").textContent = (q.exchange || "Market").toUpperCase();
-        document.getElementById("hero-price").textContent = formatPrice(q.current_price);
-
-        const change = Number(q.change_pct ?? 0);
-        document.getElementById("hero-change").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
-        document.getElementById("hero-change").style.color = change >= 0 ? "#4ade80" : "#f87171";
-
-        document.getElementById("selected-symbol-sidebar").textContent = q.symbol || "--";
-        document.getElementById("selected-exchange-sidebar").textContent = (q.exchange || "Market").toUpperCase();
-        document.getElementById("selected-price-sidebar").textContent = formatPrice(q.current_price);
-        document.getElementById("selected-change-sidebar").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
-        document.getElementById("selected-change-sidebar").style.color = change >= 0 ? "#4ade80" : "#f87171";
-    }
-
-    function updateMetrics(row) {
-        const q = row || {};
-        document.getElementById("metric-rsi").textContent = q.rsi_14 != null ? Number(q.rsi_14).toFixed(2) : "--";
-        document.getElementById("metric-rsi-signal").textContent = q.rsi_signal || "--";
-        document.getElementById("metric-macd-signal").textContent = q.macd_signal_text || "--";
-        document.getElementById("metric-pe").textContent = q.pe_ratio != null ? Number(q.pe_ratio).toFixed(2) : "--";
-        document.getElementById("metric-eps").textContent = q.eps_ttm != null ? Number(q.eps_ttm).toFixed(2) : "--";
-        document.getElementById("metric-beta").textContent = q.beta != null ? Number(q.beta).toFixed(2) : "--";
-        document.getElementById("metric-marketcap").textContent = formatCompactNumber(q.market_cap);
-
-        const low52 = q.week_52_low != null ? Number(q.week_52_low).toFixed(2) : "--";
-        const high52 = q.week_52_high != null ? Number(q.week_52_high).toFixed(2) : "--";
-        document.getElementById("metric-range52").textContent = `${low52} - ${high52}`;
-    }
-
-    function updatePriceDisplay() {
-        if (!cachedData) return;
-
-        const history = safeObject(cachedData.history);
-        const cutoff = Date.now() - currentTimeframe * 60 * 60 * 1000;
-        const ctx = document.getElementById("mainPriceChart").getContext("2d");
-
-        const symbols = Object.keys(history);
-        const orderedSymbols = selectedSymbol && symbols.includes(selectedSymbol)
-            ? [selectedSymbol, ...symbols.filter(s => s !== selectedSymbol)]
-            : symbols;
-
-        const datasets = orderedSymbols.map((symbol, index) => {
-            const color = index === 0 ? "#3b82f6" : palette[index % palette.length];
-            const series = safeArray(history[symbol])
-                .filter(point => point.x && Number(new Date(point.x).getTime()) >= cutoff)
-                .map(point => ({ x: point.x, y: point.y }));
-
-            return {
-                label: symbol,
-                data: series,
-                borderColor: color,
-                backgroundColor: createGradient(ctx, color),
-                fill: true,
-                tension: 0.24,
-                pointRadius: 0,
-                pointHoverRadius: 3,
-                borderWidth: index === 0 ? 2.6 : 1.9,
-                hidden: false
-            };
-        });
-
-        priceChart.data.datasets = datasets;
-        priceChart.update();
-
-        document.getElementById("legend-container").innerHTML = datasets.map(ds => `
-            <div class="legend-item mono">
-                <span style="width:9px;height:9px;border-radius:999px;background:${ds.borderColor};display:inline-block;"></span>
-                <span>${ds.label}</span>
-            </div>
-        `).join("");
-    }
-
-    function updateWatchlist(rows) {
-        const list = safeArray(rows);
-        const container = document.getElementById("watchlist-container");
-
-        if (!list.length) {
-            container.innerHTML = `<div class="small-label mono">No symbol data</div>`;
-            return;
-        }
-
-        container.innerHTML = list.map(q => {
-            const active = q.symbol === selectedSymbol || (!selectedSymbol && list[0].symbol === q.symbol);
-            const change = Number(q.change_pct ?? 0);
-            return `
-                <div class="watchlist-row ${active ? "active" : ""}" data-symbol="${q.symbol}">
-                    <div>
-                        <div class="ticker-symbol mono">${q.symbol}</div>
-                        <div class="ticker-exchange mono">${(q.exchange || "Market").toUpperCase()}</div>
-                    </div>
-                    <div>
-                        <div class="ticker-price mono">${formatPrice(q.current_price)}</div>
-                        <div class="ticker-change mono" style="color:${change >= 0 ? "#4ade80" : "#f87171"};">
-                            ${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join("");
-
-        container.querySelectorAll("[data-symbol]").forEach(el => {
-            el.addEventListener("click", () => {
-                selectedSymbol = el.dataset.symbol;
-                updateWatchlist(cachedData?.dashboard_rows || []);
-                updateHero(getSelectedRow());
-                updateMetrics(getSelectedRow());
-                updatePriceDisplay();
             });
-        });
-    }
 
-    function updateLiveFeed(quotes) {
-        const list = safeArray(quotes);
-        const container = document.getElementById("quoteTable");
+            reliabilityChart = new Chart(document.getElementById("reliabilityChart"), {
+                type: "doughnut",
+                data: {
+                    labels: ["OK", "ERR"],
+                    datasets: [{
+                        data: [100, 0],
+                        backgroundColor: ["#22c55e", "rgba(239,68,68,0.18)"],
+                        borderWidth: 0,
+                        cutout: "84%",
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } }
+                }
+            });
 
-        if (!list.length) {
-            container.innerHTML = `<div class="small-label mono">No quote feed</div>`;
-            return;
+            latencyChart = new Chart(document.getElementById("latencyChart"), {
+                type: "line",
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        borderColor: "#22d3ee",
+                        backgroundColor: "rgba(34,211,238,0.12)",
+                        fill: true,
+                        tension: 0.36,
+                        pointRadius: 0,
+                        borderWidth: 2.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: "rgba(10,13,20,0.96)",
+                            borderColor: "rgba(34,211,238,0.20)",
+                            borderWidth: 1,
+                            titleColor: "#f8fbff",
+                            bodyColor: "#dbe4f3",
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y} ms`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { display: false },
+                        y: { display: false }
+                    }
+                }
+            });
+
+            window.__chartGradientHeight = chartHeight;
         }
 
-        container.innerHTML = list.map(q => {
+        function setStatus(online) {
+            const sync = document.getElementById("sync-status");
+            const dot = document.getElementById("sync-dot");
+            sync.textContent = online ? "ONLINE" : "OFFLINE";
+            sync.style.color = online ? "#86efac" : "#fca5a5";
+            dot.style.background = online ? "#22c55e" : "#ef4444";
+        }
+
+        function updateTopStats(data) {
+            const stats = data?.stats || {};
+            const successRate = Number(stats.success_rate ?? 0);
+
+            document.getElementById("stat-symbols").textContent = formatNumber(stats.total_symbols);
+            document.getElementById("stat-calls").textContent = formatNumber(stats.total_api_calls);
+            document.getElementById("stat-success").textContent = formatPercent(successRate, 1);
+            document.getElementById("stat-latency").textContent = "--ms";
+            document.getElementById("circle-percent").textContent = formatPercent(successRate, 1);
+            document.getElementById("stat-symbols-top").textContent = formatNumber(stats.total_symbols);
+
+            reliabilityChart.data.datasets[0].data = [
+                Math.max(0, Math.min(100, successRate)),
+                Math.max(0, 100 - Math.max(0, Math.min(100, successRate)))
+            ];
+            reliabilityChart.update();
+        }
+
+        function updateLatency(latencyHistory) {
+            const list = safeArray(latencyHistory).slice(-20);
+
+            if (!list.length) {
+                document.getElementById("stat-latency").textContent = "--ms";
+                latencyChart.data.labels = [];
+                latencyChart.data.datasets[0].data = [];
+                latencyChart.update();
+                return;
+            }
+
+            latencyChart.data.labels = list.map((_, i) => i + 1);
+            latencyChart.data.datasets[0].data = list.map(item => Number(item.ms ?? 0));
+            latencyChart.update();
+
+            const latest = Number(list[list.length - 1]?.ms ?? 0);
+            document.getElementById("stat-latency").textContent = `${Math.round(latest)}ms`;
+        }
+
+        function updateHero(row) {
+            const q = row || {};
             const change = Number(q.change_pct ?? 0);
-            return `
-                <div class="data-row">
-                    <div>
-                        <div class="ticker-symbol mono">${q.symbol || "--"}</div>
-                        <div class="ticker-exchange mono">${(q.exchange || "Market").toUpperCase()}</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div class="ticker-price mono">${formatPrice(q.price)}</div>
-                        <div class="ticker-change mono" style="color:${change >= 0 ? "#4ade80" : "#f87171"};">
-                            ${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
 
-    function updateVolatility(history) {
-        const source = safeObject(history);
-        const symbols = Object.keys(source).slice(0, 6);
-        const container = document.getElementById("volatility-list");
+            document.getElementById("hero-symbol").textContent = q.symbol || "--";
+            document.getElementById("hero-name").textContent = q.company_name || "--";
+            document.getElementById("hero-exchange").textContent = (q.exchange || "Market").toUpperCase();
+            document.getElementById("hero-price").textContent = formatPrice(q.current_price);
+            document.getElementById("hero-change").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
+            document.getElementById("hero-change").style.color = change >= 0 ? "#4ade80" : "#f87171";
 
-        if (!symbols.length) {
-            container.innerHTML = `<div class="small-label mono">No volatility data</div>`;
-            return;
+            document.getElementById("selected-symbol-sidebar").textContent = q.symbol || "--";
+            document.getElementById("selected-exchange-sidebar").textContent = (q.exchange || "Market").toUpperCase();
+            document.getElementById("selected-price-sidebar").textContent = formatPrice(q.current_price);
+            document.getElementById("selected-change-sidebar").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
+            document.getElementById("selected-change-sidebar").style.color = change >= 0 ? "#4ade80" : "#f87171";
+
+            document.getElementById("sheet-selected-symbol").textContent = q.symbol || "--";
+            document.getElementById("sheet-selected-exchange").textContent = (q.exchange || "Market").toUpperCase();
+            document.getElementById("sheet-selected-price").textContent = formatPrice(q.current_price);
+            document.getElementById("sheet-selected-change").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
+            document.getElementById("sheet-selected-change").style.color = change >= 0 ? "#4ade80" : "#f87171";
         }
 
-        container.innerHTML = symbols.map(symbol => {
-            const series = safeArray(source[symbol]);
-            if (series.length < 2) {
+        function updateMetrics(row) {
+            const q = row || {};
+            document.getElementById("metric-rsi").textContent = q.rsi_14 != null ? Number(q.rsi_14).toFixed(2) : "--";
+            document.getElementById("metric-rsi-signal").textContent = q.rsi_signal || "--";
+            document.getElementById("metric-macd-signal").textContent = q.macd_signal_text || "--";
+            document.getElementById("metric-pe").textContent = q.pe_ratio != null ? Number(q.pe_ratio).toFixed(2) : "--";
+            document.getElementById("metric-eps").textContent = q.eps_ttm != null ? Number(q.eps_ttm).toFixed(2) : "--";
+            document.getElementById("metric-beta").textContent = q.beta != null ? Number(q.beta).toFixed(2) : "--";
+            document.getElementById("metric-marketcap").textContent = formatCompactNumber(q.market_cap);
+
+            const low52 = q.week_52_low != null ? Number(q.week_52_low).toFixed(2) : "--";
+            const high52 = q.week_52_high != null ? Number(q.week_52_high).toFixed(2) : "--";
+            document.getElementById("metric-range52").textContent = `${low52} - ${high52}`;
+        }
+
+        function updatePriceDisplay() {
+            if (!cachedData) return;
+
+            const history = safeObject(cachedData.history);
+            const cutoff = Date.now() - currentTimeframe * 60 * 60 * 1000;
+            const ctx = document.getElementById("mainPriceChart").getContext("2d");
+
+            const symbols = Object.keys(history);
+            const orderedSymbols = selectedSymbol && symbols.includes(selectedSymbol)
+                ? [selectedSymbol, ...symbols.filter(s => s !== selectedSymbol)]
+                : symbols;
+
+            const datasets = orderedSymbols.map((symbol, index) => {
+                const color = index === 0 ? "#3b82f6" : palette[index % palette.length];
+                const series = safeArray(history[symbol])
+                    .filter(point => point.x && Number(new Date(point.x).getTime()) >= cutoff)
+                    .map(point => ({ x: point.x, y: point.y }));
+
+                return {
+                    label: symbol,
+                    data: series,
+                    borderColor: color,
+                    backgroundColor: createGradient(ctx, color, window.__chartGradientHeight || 290),
+                    fill: true,
+                    tension: 0.24,
+                    pointRadius: 0,
+                    pointHoverRadius: 3,
+                    borderWidth: index === 0 ? 2.6 : 1.9
+                };
+            });
+
+            priceChart.data.datasets = datasets;
+            priceChart.update();
+
+            document.getElementById("legend-container").innerHTML = datasets.map(ds => `
+                <div class="legend-item mono">
+                    <span style="width:9px;height:9px;border-radius:999px;background:${ds.borderColor};display:inline-block;"></span>
+                    <span>${ds.label}</span>
+                </div>
+            `).join("");
+        }
+
+        function renderWatchlist(targetId, rows, closeOnSelect = false) {
+            const list = safeArray(rows);
+            const container = document.getElementById(targetId);
+
+            if (!list.length) {
+                container.innerHTML = `<div class="empty-text mono">No symbol data</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(q => {
+                const active = q.symbol === selectedSymbol || (!selectedSymbol && list[0].symbol === q.symbol);
+                const change = Number(q.change_pct ?? 0);
+
                 return `
-                    <div class="vol-row">
-                        <div style="display:flex;justify-content:space-between;gap:12px;">
-                            <span class="ticker-symbol mono" style="font-size:13px;">${symbol}</span>
-                            <span class="small-label mono">n/a</span>
+                    <div class="row-item ${active ? "active" : ""}" data-symbol="${q.symbol}">
+                        <div>
+                            <div class="row-item-title mono">${q.symbol}</div>
+                            <div class="row-item-sub mono">${(q.exchange || "Market").toUpperCase()}</div>
                         </div>
-                        <div class="vol-track"><div class="vol-fill" style="width:0%;background:#334155;"></div></div>
+                        <div>
+                            <div class="row-item-price mono">${formatPrice(q.current_price)}</div>
+                            <div class="row-item-change mono" style="color:${change >= 0 ? "#4ade80" : "#f87171"};">
+                                ${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%
+                            </div>
+                        </div>
                     </div>
                 `;
-            }
+            }).join("");
 
-            const first = Number(series[0]?.y ?? 0);
-            const last = Number(series[series.length - 1]?.y ?? 0);
-            const v = first !== 0 ? Math.abs(((last - first) / first) * 100) : 0;
+            container.querySelectorAll("[data-symbol]").forEach(el => {
+                el.addEventListener("click", () => {
+                    selectedSymbol = el.dataset.symbol;
+                    renderWatchlist("watchlist-container", cachedData?.dashboard_rows || [], false);
+                    renderWatchlist("watchlist-sheet-container", cachedData?.dashboard_rows || [], true);
+                    updateHero(getSelectedRow());
+                    updateMetrics(getSelectedRow());
+                    updatePriceDisplay();
 
-            let color = "#3b82f6";
-            if (v > 8) color = "#ef4444";
-            else if (v > 4) color = "#f59e0b";
-            else if (v > 1.5) color = "#22c55e";
-
-            return `
-                <div class="vol-row">
-                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
-                        <span class="ticker-symbol mono" style="font-size:13px;">${symbol}</span>
-                        <span class="small-label mono" style="color:#cbd5e1;">${v.toFixed(2)}%</span>
-                    </div>
-                    <div class="vol-track">
-                        <div class="vol-fill" style="width:${Math.min(v * 6, 100)}%;background:${color};"></div>
-                    </div>
-                </div>
-            `;
-        }).join("");
-    }
-
-    function updateSentiment(rows) {
-        const list = safeArray(rows);
-        const valueEl = document.getElementById("sentiment-value");
-        const biasEl = document.getElementById("sentiment-bias");
-        const barEl = document.getElementById("sentiment-bar");
-
-        if (!list.length) {
-            valueEl.textContent = "NO SIGNAL";
-            valueEl.style.color = "#94a3b8";
-            biasEl.textContent = "0.000";
-            barEl.style.width = "50%";
-            barEl.style.background = "#475569";
-            return;
-        }
-
-        const avg = list.reduce((acc, item) => acc + Number(item.change_pct ?? 0), 0) / list.length;
-
-        let label = "NEUTRAL";
-        let color = "#60a5fa";
-
-        if (avg > 0.15) {
-            label = "BULLISH";
-            color = "#22c55e";
-        } else if (avg < -0.15) {
-            label = "BEARISH";
-            color = "#ef4444";
-        }
-
-        valueEl.textContent = label;
-        valueEl.style.color = color;
-        biasEl.textContent = avg.toFixed(3);
-        barEl.style.width = `${Math.max(8, Math.min(92, 50 + avg * 30))}%`;
-        barEl.style.background = color;
-    }
-
-    function updatePipeline(pipeline) {
-        const p = pipeline || {};
-        document.getElementById("pipeline-phase").textContent = (p.phase || "--").toUpperCase();
-        document.getElementById("pipeline-phase-top").textContent = (p.phase || "--").toUpperCase();
-        document.getElementById("pipeline-cycle").textContent = p.cycle_num ?? "--";
-        document.getElementById("pipeline-current-symbol").textContent = p.current_symbol || "--";
-        document.getElementById("pipeline-success-ratio").textContent = `${p.symbols_ok ?? 0}/${p.symbols_total ?? 0}`;
-
-        const extra = [
-            `event=${p.event || "--"}`,
-            `next=${p.next_cycle_num ?? "--"}`,
-            `sleep=${p.sleep_seconds ?? "--"}`,
-            `thread=${p.thread_alive ? "alive" : "down"}`
-        ].join(" | ");
-
-        document.getElementById("pipeline-extra-note").textContent = extra;
-    }
-
-    function updateEarnings(earnings) {
-        const list = safeArray(earnings);
-        const container = document.getElementById("earnings-list");
-
-        if (!list.length) {
-            container.innerHTML = `<div class="small-label mono">No upcoming earnings</div>`;
-            return;
-        }
-
-        container.innerHTML = list.map(item => `
-            <div class="data-row" style="cursor:default;">
-                <div>
-                    <div class="ticker-symbol mono">${item.symbol || "--"}</div>
-                    <div class="ticker-exchange mono">${item.report_date || "--"} | ${(item.hour || "N/A").toUpperCase()}</div>
-                </div>
-                <div style="text-align:right;">
-                    <div class="ticker-price mono">${item.eps_estimate != null ? item.eps_estimate.toFixed(2) : "--"}</div>
-                    <div class="ticker-change mono" style="color:#b6c0d2;">EPS EST</div>
-                </div>
-            </div>
-        `).join("");
-    }
-
-    function updateLastTime() {
-        document.getElementById("last-update-time").textContent = new Date().toLocaleTimeString("de-DE", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-        });
-    }
-
-    async function refresh() {
-        try {
-            const res = await fetch("/api/dashboard", { cache: "no-store" });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-            const data = await res.json();
-            cachedData = data;
-
-            const rows = safeArray(data.dashboard_rows);
-            if (!selectedSymbol && rows.length) {
-                selectedSymbol = rows[0].symbol;
-            }
-
-            setStatus(true);
-            updateTopStats(data);
-            updateLatency(data.latency_history);
-            updateWatchlist(rows);
-            updateLiveFeed(data.quotes);
-            updateVolatility(data.history);
-            updateSentiment(rows);
-            updatePipeline(data.pipeline);
-            updateEarnings(data.earnings);
-            updateHero(getPrimaryQuote());
-            updateMetrics(getSelectedRow());
-            updatePriceDisplay();
-            updateLastTime();
-        } catch (err) {
-            console.error("Refresh error:", err);
-            setStatus(false);
-        }
-    }
-
-    function bindTimeframes() {
-        document.querySelectorAll(".tf-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                document.querySelectorAll(".tf-btn").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                currentTimeframe = Number(btn.dataset.tf || 24);
-                updatePriceDisplay();
+                    if (closeOnSelect) closeWatchlistSheet();
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                });
             });
-        });
-    }
+        }
 
-    initCharts();
-    bindTimeframes();
-    refresh();
-    setInterval(refresh, 25000);
-</script>
+        function updateLiveFeed(quotes) {
+            const list = safeArray(quotes);
+            const container = document.getElementById("quoteTable");
+
+            if (!list.length) {
+                container.innerHTML = `<div class="empty-text mono">No quote feed</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(q => {
+                const change = Number(q.change_pct ?? 0);
+                return `
+                    <div class="row-item" style="cursor:default;">
+                        <div>
+                            <div class="row-item-title mono">${q.symbol || "--"}</div>
+                            <div class="row-item-sub mono">${(q.exchange || "Market").toUpperCase()}</div>
+                        </div>
+                        <div>
+                            <div class="row-item-price mono">${formatPrice(q.price)}</div>
+                            <div class="row-item-change mono" style="color:${change >= 0 ? "#4ade80" : "#f87171"};">
+                                ${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function updateVolatility(history) {
+            const source = safeObject(history);
+            const symbols = Object.keys(source).slice(0, 6);
+            const container = document.getElementById("volatility-list");
+
+            if (!symbols.length) {
+                container.innerHTML = `<div class="empty-text mono">No volatility data</div>`;
+                return;
+            }
+
+            container.innerHTML = symbols.map(symbol => {
+                const series = safeArray(source[symbol]);
+                if (series.length < 2) {
+                    return `
+                        <div class="vol-row">
+                            <div style="display:flex;justify-content:space-between;gap:12px;">
+                                <span class="row-item-title mono" style="font-size:13px;">${symbol}</span>
+                                <span class="section-kicker mono">n/a</span>
+                            </div>
+                            <div class="progress-track"><div class="progress-fill" style="width:0%;background:#334155;"></div></div>
+                        </div>
+                    `;
+                }
+
+                const first = Number(series[0]?.y ?? 0);
+                const last = Number(series[series.length - 1]?.y ?? 0);
+                const v = first !== 0 ? Math.abs(((last - first) / first) * 100) : 0;
+
+                let color = "#3b82f6";
+                if (v > 8) color = "#ef4444";
+                else if (v > 4) color = "#f59e0b";
+                else if (v > 1.5) color = "#22c55e";
+
+                return `
+                    <div class="vol-row">
+                        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
+                            <span class="row-item-title mono" style="font-size:13px;">${symbol}</span>
+                            <span class="section-kicker mono" style="color:#cbd5e1;">${v.toFixed(2)}%</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-fill" style="width:${Math.min(v * 6, 100)}%;background:${color};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function updateSentiment(rows) {
+            const list = safeArray(rows);
+            const valueEl = document.getElementById("sentiment-value");
+            const biasEl = document.getElementById("sentiment-bias");
+            const barEl = document.getElementById("sentiment-bar");
+
+            if (!list.length) {
+                valueEl.textContent = "NO SIGNAL";
+                valueEl.style.color = "#94a3b8";
+                biasEl.textContent = "0.000";
+                barEl.style.width = "50%";
+                barEl.style.background = "#475569";
+                return;
+            }
+
+            const avg = list.reduce((acc, item) => acc + Number(item.change_pct ?? 0), 0) / list.length;
+
+            let label = "NEUTRAL";
+            let color = "#60a5fa";
+
+            if (avg > 0.15) {
+                label = "BULLISH";
+                color = "#22c55e";
+            } else if (avg < -0.15) {
+                label = "BEARISH";
+                color = "#ef4444";
+            }
+
+            valueEl.textContent = label;
+            valueEl.style.color = color;
+            biasEl.textContent = avg.toFixed(3);
+            barEl.style.width = `${Math.max(8, Math.min(92, 50 + avg * 30))}%`;
+            barEl.style.background = color;
+        }
+
+        function updatePipeline(pipeline) {
+            const p = pipeline || {};
+            document.getElementById("pipeline-phase").textContent = (p.phase || "--").toUpperCase();
+            document.getElementById("pipeline-phase-top").textContent = (p.phase || "--").toUpperCase();
+            document.getElementById("pipeline-cycle").textContent = p.cycle_num ?? "--";
+            document.getElementById("pipeline-current-symbol").textContent = p.current_symbol || "--";
+            document.getElementById("pipeline-success-ratio").textContent = `${p.symbols_ok ?? 0}/${p.symbols_total ?? 0}`;
+
+            const extra = [
+                `event=${p.event || "--"}`,
+                `next=${p.next_cycle_num ?? "--"}`,
+                `sleep=${p.sleep_seconds ?? "--"}`,
+                `thread=${p.thread_alive ? "alive" : "down"}`
+            ].join(" | ");
+
+            document.getElementById("pipeline-extra-note").textContent = extra;
+        }
+
+        function updateEarnings(earnings) {
+            const list = safeArray(earnings);
+            const container = document.getElementById("earnings-list");
+
+            if (!list.length) {
+                container.innerHTML = `<div class="empty-text mono">No upcoming earnings</div>`;
+                return;
+            }
+
+            container.innerHTML = list.map(item => `
+                <div class="row-item" style="cursor:default;">
+                    <div>
+                        <div class="row-item-title mono">${item.symbol || "--"}</div>
+                        <div class="row-item-sub mono">${item.report_date || "--"} | ${(item.hour || "N/A").toUpperCase()}</div>
+                    </div>
+                    <div>
+                        <div class="row-item-price mono">${item.eps_estimate != null ? item.eps_estimate.toFixed(2) : "--"}</div>
+                        <div class="row-item-change mono" style="color:#b6c0d2;">EPS EST</div>
+                    </div>
+                </div>
+            `).join("");
+        }
+
+        function updateLastTime() {
+            document.getElementById("last-update-time").textContent = new Date().toLocaleTimeString("de-DE", {
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit"
+            });
+        }
+
+        function setActiveScreen(screenId) {
+            const isDesktop = window.innerWidth >= 900;
+            if (isDesktop) return;
+
+            document.querySelectorAll(".screen").forEach(screen => {
+                screen.classList.remove("active");
+            });
+
+            if (screenId === "screen-watchlist-sheet") {
+                openWatchlistSheet();
+                return;
+            }
+
+            const target = document.getElementById(screenId);
+            if (target) target.classList.add("active");
+
+            document.querySelectorAll(".nav-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.screen === screenId);
+            });
+        }
+
+        function openWatchlistSheet() {
+            document.getElementById("watchlistSheet").classList.add("open");
+            document.getElementById("sheetOverlay").classList.add("open");
+            document.body.style.overflow = "hidden";
+            document.querySelectorAll(".nav-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.screen === "screen-watchlist-sheet");
+            });
+        }
+
+        function closeWatchlistSheet() {
+            document.getElementById("watchlistSheet").classList.remove("open");
+            document.getElementById("sheetOverlay").classList.remove("open");
+            document.body.style.overflow = "";
+            document.querySelectorAll(".nav-btn").forEach(btn => {
+                btn.classList.toggle("active", btn.dataset.screen === "screen-home");
+            });
+        }
+
+        async function refresh() {
+            try {
+                const res = await fetch("/api/dashboard", { cache: "no-store" });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const data = await res.json();
+                cachedData = data;
+
+                const rows = safeArray(data.dashboard_rows);
+                if (!selectedSymbol && rows.length) {
+                    selectedSymbol = rows[0].symbol;
+                }
+
+                setStatus(true);
+                updateTopStats(data);
+                updateLatency(data.latency_history);
+                renderWatchlist("watchlist-container", rows, false);
+                renderWatchlist("watchlist-sheet-container", rows, true);
+                updateLiveFeed(data.quotes);
+                updateVolatility(data.history);
+                updateSentiment(rows);
+                updatePipeline(data.pipeline);
+                updateEarnings(data.earnings);
+                updateHero(getPrimaryQuote());
+                updateMetrics(getSelectedRow());
+                updatePriceDisplay();
+                updateLastTime();
+            } catch (err) {
+                console.error("Refresh error:", err);
+                setStatus(false);
+            }
+        }
+
+        function bindTimeframes() {
+            document.querySelectorAll(".tf-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    document.querySelectorAll(".tf-btn").forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    currentTimeframe = Number(btn.dataset.tf || 24);
+                    updatePriceDisplay();
+                });
+            });
+        }
+
+        function bindNavigation() {
+            document.querySelectorAll(".nav-btn").forEach(btn => {
+                btn.addEventListener("click", () => {
+                    setActiveScreen(btn.dataset.screen);
+                });
+            });
+
+            document.getElementById("openWatchlistBtn").addEventListener("click", openWatchlistSheet);
+            document.getElementById("closeWatchlistBtn").addEventListener("click", closeWatchlistSheet);
+            document.getElementById("sheetOverlay").addEventListener("click", closeWatchlistSheet);
+        }
+
+        function applyResponsiveDefaultScreen() {
+            if (window.innerWidth >= 900) {
+                document.querySelectorAll(".screen").forEach(screen => screen.classList.add("active"));
+                document.body.style.overflow = "";
+            } else {
+                document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
+                document.getElementById("screen-home").classList.add("active");
+                document.querySelectorAll(".nav-btn").forEach(btn => {
+                    btn.classList.toggle("active", btn.dataset.screen === "screen-home");
+                });
+            }
+        }
+
+        initCharts();
+        bindTimeframes();
+        bindNavigation();
+        applyResponsiveDefaultScreen();
+        refresh();
+        setInterval(refresh, 25000);
+
+        window.addEventListener("resize", () => {
+            applyResponsiveDefaultScreen();
+        });
+    </script>
 </body>
 </html>

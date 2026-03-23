@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Market Terminal | Mobile App</title>
+    <title>Market Terminal | Mobile App Pro</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -65,6 +65,8 @@
             position: relative;
             padding-bottom: calc(88px + var(--safe-bottom));
             background: transparent;
+            transition: transform 0.18s ease;
+            will-change: transform;
         }
 
         .topbar {
@@ -104,9 +106,7 @@
             flex: 0 0 auto;
         }
 
-        .brand-copy {
-            min-width: 0;
-        }
+        .brand-copy { min-width: 0; }
 
         .brand-title {
             font-size: 13px;
@@ -141,9 +141,7 @@
             box-shadow: var(--shadow);
         }
 
-        .icon-btn:active {
-            transform: scale(0.98);
-        }
+        .icon-btn:active { transform: scale(0.98); }
 
         .chip-row {
             display: flex;
@@ -188,9 +186,7 @@
             gap: 12px;
         }
 
-        .screen.active {
-            display: grid;
-        }
+        .screen.active { display: grid; }
 
         .card {
             background: linear-gradient(180deg, var(--panel) 0%, var(--panel-3) 100%);
@@ -200,9 +196,7 @@
             overflow: hidden;
         }
 
-        .card-body {
-            padding: 14px;
-        }
+        .card-body { padding: 14px; }
 
         .card-header {
             padding: 12px 14px;
@@ -440,9 +434,7 @@
             border-bottom: 1px solid var(--border-soft);
         }
 
-        .vol-row:last-child {
-            border-bottom: none;
-        }
+        .vol-row:last-child { border-bottom: none; }
 
         .progress-track {
             width: 100%;
@@ -622,10 +614,57 @@
             color: var(--text-muted);
         }
 
+        /* Pull to refresh */
+        #pull-indicator {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%) translateY(-80px);
+            z-index: 120;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .pull-indicator-inner {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: rgba(13, 21, 34, 0.94);
+            backdrop-filter: blur(14px);
+            color: var(--text-soft);
+            box-shadow: var(--shadow);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        #pull-icon {
+            transition: transform 0.18s ease;
+        }
+
+        #pull-indicator.ready #pull-icon {
+            transform: rotate(180deg);
+            color: #86efac;
+        }
+
+        #pull-indicator.loading #pull-icon {
+            animation: pullSpin 0.9s linear infinite;
+            color: #22d3ee;
+        }
+
+        @keyframes pullSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         @media (min-width: 900px) {
             .app-shell {
                 max-width: 1600px;
                 padding-bottom: 20px;
+                transform: none !important;
             }
 
             .topbar {
@@ -668,7 +707,8 @@
 
             .bottom-nav,
             .watchlist-sheet,
-            .sheet-overlay {
+            .sheet-overlay,
+            #pull-indicator {
                 display: none;
             }
 
@@ -706,7 +746,14 @@
     </style>
 </head>
 <body>
-    <div class="app-shell">
+    <div id="pull-indicator">
+        <div class="pull-indicator-inner">
+            <i id="pull-icon" class="fa-solid fa-arrow-down"></i>
+            <span id="pull-text">Pull to refresh</span>
+        </div>
+    </div>
+
+    <div class="app-shell" id="appShell">
         <div class="topbar">
             <div class="topbar-card">
                 <div class="topbar-row">
@@ -747,7 +794,6 @@
         </div>
 
         <div class="content desktop-layout">
-            <!-- DESKTOP WATCHLIST -->
             <section class="screen active desktop-watchlist" id="screen-watchlist">
                 <div class="card">
                     <div class="card-header">
@@ -777,7 +823,6 @@
                 </div>
             </section>
 
-            <!-- HOME -->
             <section class="screen active" id="screen-home">
                 <div class="card">
                     <div class="card-body">
@@ -844,7 +889,6 @@
                 </div>
             </section>
 
-            <!-- INSIGHTS -->
             <section class="screen" id="screen-insights">
                 <div class="card">
                     <div class="card-header">
@@ -916,7 +960,6 @@
                 </div>
             </section>
 
-            <!-- PIPELINE -->
             <section class="screen" id="screen-pipeline">
                 <div class="card">
                     <div class="card-header">
@@ -1023,7 +1066,6 @@
             </section>
         </div>
 
-        <!-- Bottom Navigation -->
         <nav class="bottom-nav">
             <div class="bottom-nav-inner">
                 <button class="nav-btn active" data-screen="screen-home">
@@ -1045,7 +1087,6 @@
             </div>
         </nav>
 
-        <!-- Watchlist Sheet -->
         <div class="sheet-overlay" id="sheetOverlay"></div>
 
         <div class="watchlist-sheet" id="watchlistSheet">
@@ -1088,6 +1129,14 @@
         let cachedData = null;
         let currentTimeframe = 24;
         let selectedSymbol = null;
+
+        let pullStartY = 0;
+        let pullCurrentY = 0;
+        let isPulling = false;
+        let isRefreshing = false;
+        let pullReady = false;
+        const PULL_THRESHOLD = 90;
+        const MAX_PULL = 140;
 
         const palette = ["#3b82f6", "#22d3ee", "#22c55e", "#f59e0b", "#a855f7", "#ef4444"];
 
@@ -1626,6 +1675,57 @@
             });
         }
 
+        function setPullIndicator(offset, ready = false, loading = false) {
+            const indicator = document.getElementById("pull-indicator");
+            const text = document.getElementById("pull-text");
+            const appShell = document.getElementById("appShell");
+
+            const visibleOffset = Math.max(-80, Math.min(30, offset - 80));
+            indicator.style.transform = `translateX(-50%) translateY(${visibleOffset}px)`;
+            indicator.style.opacity = offset > 5 ? "1" : "0";
+
+            indicator.classList.toggle("ready", ready);
+            indicator.classList.toggle("loading", loading);
+
+            if (loading) {
+                text.textContent = "Refreshing...";
+            } else if (ready) {
+                text.textContent = "Release to refresh";
+            } else {
+                text.textContent = "Pull to refresh";
+            }
+
+            if (window.innerWidth < 900) {
+                appShell.style.transform = `translateY(${Math.min(offset * 0.35, 26)}px)`;
+            }
+        }
+
+        function resetPullIndicator() {
+            pullStartY = 0;
+            pullCurrentY = 0;
+            isPulling = false;
+            pullReady = false;
+            setPullIndicator(0, false, false);
+        }
+
+        async function triggerPullRefresh() {
+            if (isRefreshing) return;
+
+            isRefreshing = true;
+            setPullIndicator(PULL_THRESHOLD, true, true);
+
+            try {
+                await refresh();
+            } catch (e) {
+                console.error("Pull refresh failed:", e);
+            } finally {
+                setTimeout(() => {
+                    isRefreshing = false;
+                    resetPullIndicator();
+                }, 400);
+            }
+        }
+
         async function refresh() {
             try {
                 const res = await fetch("/api/dashboard", { cache: "no-store" });
@@ -1656,6 +1756,7 @@
             } catch (err) {
                 console.error("Refresh error:", err);
                 setStatus(false);
+                throw err;
             }
         }
 
@@ -1682,10 +1783,55 @@
             document.getElementById("sheetOverlay").addEventListener("click", closeWatchlistSheet);
         }
 
+        function bindPullToRefresh() {
+            const appShell = document.getElementById("appShell");
+
+            appShell.addEventListener("touchstart", (e) => {
+                if (window.innerWidth >= 900) return;
+                if (isRefreshing) return;
+                if (document.getElementById("watchlistSheet").classList.contains("open")) return;
+                if (window.scrollY > 0) return;
+
+                pullStartY = e.touches[0].clientY;
+                pullCurrentY = pullStartY;
+                isPulling = true;
+                pullReady = false;
+            }, { passive: true });
+
+            appShell.addEventListener("touchmove", (e) => {
+                if (!isPulling || isRefreshing) return;
+                if (window.scrollY > 0) return;
+
+                pullCurrentY = e.touches[0].clientY;
+                let distance = pullCurrentY - pullStartY;
+
+                if (distance <= 0) {
+                    setPullIndicator(0, false, false);
+                    return;
+                }
+
+                distance = Math.min(distance * 0.65, MAX_PULL);
+                pullReady = distance >= PULL_THRESHOLD;
+
+                setPullIndicator(distance, pullReady, false);
+            }, { passive: true });
+
+            appShell.addEventListener("touchend", async () => {
+                if (!isPulling || isRefreshing) return;
+
+                if (pullReady) {
+                    await triggerPullRefresh();
+                } else {
+                    resetPullIndicator();
+                }
+            }, { passive: true });
+        }
+
         function applyResponsiveDefaultScreen() {
             if (window.innerWidth >= 900) {
                 document.querySelectorAll(".screen").forEach(screen => screen.classList.add("active"));
                 document.body.style.overflow = "";
+                document.getElementById("appShell").style.transform = "none";
             } else {
                 document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
                 document.getElementById("screen-home").classList.add("active");
@@ -1698,6 +1844,7 @@
         initCharts();
         bindTimeframes();
         bindNavigation();
+        bindPullToRefresh();
         applyResponsiveDefaultScreen();
         refresh();
         setInterval(refresh, 25000);

@@ -2,1854 +2,381 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Market Terminal | Mobile App Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+    <title>Market Terminal Pro</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet" />
 
     <style>
-        * { box-sizing: border-box; }
-
         :root {
             --bg: #09101a;
-            --bg-soft: #0d1522;
             --panel: #101826;
-            --panel-2: #131d2d;
-            --panel-3: #0c1320;
             --border: #223048;
-            --border-soft: #1a2639;
-            --text: #e7edf8;
-            --text-soft: #b7c2d7;
-            --text-muted: #7f8ca5;
-            --text-faint: #5f6b81;
             --blue: #3b82f6;
-            --cyan: #22d3ee;
-            --green: #22c55e;
-            --red: #ef4444;
-            --amber: #f59e0b;
-            --purple: #a855f7;
-            --shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
-            --radius: 18px;
+            --text: #e7edf8;
+            --text-muted: #7f8ca5;
+            --safe-top: env(safe-area-inset-top, 0px);
             --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        html, body {
-            margin: 0;
-            padding: 0;
-            background:
-                radial-gradient(circle at top, rgba(59,130,246,0.08), transparent 35%),
-                linear-gradient(180deg, #09101a 0%, #0a0f18 100%);
-            color: var(--text);
-            min-height: 100vh;
-            font-family: "Inter", sans-serif;
+        * { 
+            box-sizing: border-box; 
+            -webkit-tap-highlight-color: transparent; 
+            user-select: none;
         }
 
         body {
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
-            overflow-x: hidden;
+            margin: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: "Inter", sans-serif;
+            overflow: hidden; /* Verhindert Standard-Scroll für saubere Swipes */
+            height: 100vh;
         }
 
         .mono { font-family: "JetBrains Mono", monospace; }
 
+        /* App Layout */
         .app-shell {
-            width: 100%;
-            max-width: 520px;
-            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 500px;
             margin: 0 auto;
             position: relative;
-            padding-bottom: calc(88px + var(--safe-bottom));
-            background: transparent;
-            transition: transform 0.18s ease;
-            will-change: transform;
         }
 
+        /* Topbar */
         .topbar {
-            position: sticky;
-            top: 0;
-            z-index: 40;
-            backdrop-filter: blur(18px);
-            background: rgba(9, 16, 26, 0.88);
-            border-bottom: 1px solid rgba(34, 48, 72, 0.9);
-            padding: 12px 14px 10px;
+            padding-top: calc(12px + var(--safe-top));
+            padding-left: 16px;
+            padding-right: 16px;
+            padding-bottom: 12px;
+            background: rgba(9, 16, 26, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            z-index: 50;
         }
 
-        .topbar-row {
+        /* Swipe Container */
+        .view-pager {
+            flex: 1;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        .brand-wrap {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .brand-badge {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            background: rgba(59,130,246,0.12);
-            border: 1px solid rgba(59,130,246,0.3);
-            color: #9fc3ff;
-            flex: 0 0 auto;
-        }
-
-        .brand-copy { min-width: 0; }
-
-        .brand-title {
-            font-size: 13px;
-            font-weight: 800;
-            color: #f8fbff;
-            letter-spacing: 0.06em;
-            line-height: 1.15;
-        }
-
-        .brand-subtitle {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 4px;
-            line-height: 1.2;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 230px;
-        }
-
-        .icon-btn {
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg, #111a29, #0d1522);
-            color: var(--text-soft);
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: var(--shadow);
-        }
-
-        .icon-btn:active { transform: scale(0.98); }
-
-        .chip-row {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            margin-top: 10px;
-            padding-bottom: 2px;
-            scrollbar-width: none;
-        }
-
-        .chip-row::-webkit-scrollbar { display: none; }
-
-        .meta-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            white-space: nowrap;
-            padding: 7px 10px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: #0d1522;
-            color: var(--text-soft);
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .content {
-            padding: 12px;
-            display: grid;
-            gap: 12px;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+            height: 100%;
         }
 
         .screen {
-            display: none;
-            gap: 12px;
-        }
-
-        .screen.active { display: grid; }
-
-        .card {
-            background: linear-gradient(180deg, var(--panel) 0%, var(--panel-3) 100%);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-        }
-
-        .card-body { padding: 14px; }
-
-        .card-header {
-            padding: 12px 14px;
-            border-bottom: 1px solid var(--border-soft);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0));
-        }
-
-        .section-kicker {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: .14em;
-            font-weight: 800;
-        }
-
-        .section-title {
-            margin-top: 4px;
-            font-size: 18px;
-            font-weight: 800;
-            line-height: 1.15;
-        }
-
-        .hero-head {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .hero-main {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 14px;
-        }
-
-        .hero-symbol {
-            font-size: 30px;
-            font-weight: 800;
-            line-height: 1;
-        }
-
-        .hero-name {
-            margin-top: 6px;
-            color: var(--text-muted);
-            font-size: 13px;
-            line-height: 1.35;
-        }
-
-        .hero-price {
-            font-size: 34px;
-            font-weight: 800;
-            line-height: 1;
-            text-align: right;
-        }
-
-        .hero-change {
-            margin-top: 6px;
-            font-size: 14px;
-            font-weight: 700;
-            text-align: right;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .mini-stat,
-        .metric-item,
-        .kpi-item {
-            border: 1px solid var(--border-soft);
-            background: #0d1522;
-            border-radius: 14px;
-            padding: 12px;
-            min-width: 0;
-        }
-
-        .mini-stat-label,
-        .metric-label,
-        .kpi-label {
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: .12em;
-            font-weight: 800;
-        }
-
-        .mini-stat-value,
-        .metric-value,
-        .kpi-value {
-            margin-top: 8px;
-            font-size: 16px;
-            font-weight: 800;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-
-        .metric-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-        }
-
-        .chart-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .timeframe-group {
-            display: inline-flex;
-            gap: 4px;
-            padding: 4px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: #0b1018;
-            overflow-x: auto;
-            max-width: 100%;
-            scrollbar-width: none;
-        }
-
-        .timeframe-group::-webkit-scrollbar { display: none; }
-
-        .tf-btn {
-            padding: 8px 10px;
-            border-radius: 9px;
-            border: none;
-            background: transparent;
-            color: var(--text-muted);
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            cursor: pointer;
-            white-space: nowrap;
-        }
-
-        .tf-btn.active {
-            background: rgba(59,130,246,0.18);
-            color: #dbeafe;
-            box-shadow: inset 0 0 0 1px rgba(59,130,246,0.25);
-        }
-
-        .chart-box {
-            height: 290px;
-            border: 1px solid var(--border-soft);
-            border-radius: 14px;
-            padding: 8px;
-            background:
-                linear-gradient(180deg, rgba(255,255,255,0.018), rgba(255,255,255,0)),
-                linear-gradient(90deg, transparent 24px, rgba(255,255,255,0.015) 25px, transparent 26px);
-            background-size: auto, 42px 42px;
-        }
-
-        .legend-wrap {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .legend-item {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 10px;
-            border-radius: 999px;
-            border: 1px solid var(--border);
-            background: #0d1522;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .08em;
-            color: var(--text-soft);
-        }
-
-        .list {
-            display: grid;
-            gap: 8px;
-        }
-
-        .row-item {
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 10px;
-            align-items: center;
-            padding: 11px 12px;
-            border-radius: 12px;
-            border: 1px solid transparent;
-            background: #0d1522;
-            cursor: pointer;
-        }
-
-        .row-item.active {
-            background: rgba(59,130,246,0.10);
-            border-color: rgba(59,130,246,0.30);
-        }
-
-        .row-item-title {
-            font-size: 14px;
-            font-weight: 800;
-        }
-
-        .row-item-sub {
-            margin-top: 4px;
-            font-size: 10px;
-            color: var(--text-faint);
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            line-height: 1.35;
-        }
-
-        .row-item-price {
-            font-size: 13px;
-            font-weight: 700;
-            text-align: right;
-        }
-
-        .row-item-change {
-            margin-top: 4px;
-            font-size: 11px;
-            font-weight: 700;
-            text-align: right;
-        }
-
-        .vol-row {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-soft);
-        }
-
-        .vol-row:last-child { border-bottom: none; }
-
-        .progress-track {
-            width: 100%;
-            height: 8px;
-            border-radius: 999px;
-            overflow: hidden;
-            background: #182130;
-            border: 1px solid var(--border-soft);
-            margin-top: 8px;
-        }
-
-        .progress-fill {
+            min-width: 100%;
             height: 100%;
-            transition: width .28s ease, background .28s ease;
-        }
-
-        .ring-wrap {
-            width: 180px;
-            height: 180px;
-            margin: 10px auto 0;
-            position: relative;
-        }
-
-        .ring-center {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            pointer-events: none;
-        }
-
-        .ring-value {
-            font-size: 34px;
-            font-weight: 800;
-            color: #dcfce7;
-        }
-
-        .ring-label {
-            margin-top: 4px;
-            font-size: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: .14em;
-            font-weight: 800;
-        }
-
-        .latency-box {
-            height: 140px;
-            border: 1px solid var(--border-soft);
-            border-radius: 14px;
-            padding: 8px;
-            background: #0c111a;
-        }
-
-        .bottom-nav {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 60;
-            padding: 8px 10px calc(8px + var(--safe-bottom));
-            background: rgba(9, 16, 26, 0.94);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(34, 48, 72, 0.95);
-        }
-
-        .bottom-nav-inner {
-            max-width: 520px;
-            margin: 0 auto;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 8px;
-        }
-
-        .nav-btn {
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg, #0f1725, #0b121d);
-            color: var(--text-muted);
-            border-radius: 16px;
-            min-height: 58px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            cursor: pointer;
-        }
-
-        .nav-btn.active {
-            color: #dbeafe;
-            border-color: rgba(59,130,246,0.30);
-            background: linear-gradient(180deg, rgba(59,130,246,0.18), rgba(59,130,246,0.08));
-        }
-
-        .watchlist-sheet {
-            position: fixed;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: 80;
-            transform: translateY(105%);
-            transition: transform .28s ease;
-            padding: 10px 10px calc(16px + var(--safe-bottom));
-            pointer-events: none;
-        }
-
-        .watchlist-sheet.open {
-            transform: translateY(0);
-            pointer-events: auto;
-        }
-
-        .watchlist-sheet-card {
-            max-width: 520px;
-            margin: 0 auto;
-            border: 1px solid var(--border);
-            background: linear-gradient(180deg, #111826, #0c1320);
-            border-radius: 22px 22px 0 0;
-            box-shadow: 0 -20px 40px rgba(0,0,0,0.45);
-            overflow: hidden;
-            max-height: 76vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sheet-handle {
-            width: 46px;
-            height: 5px;
-            border-radius: 999px;
-            background: #32435f;
-            margin: 10px auto 0;
-        }
-
-        .sheet-header {
-            padding: 10px 14px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            border-bottom: 1px solid var(--border-soft);
-        }
-
-        .sheet-list {
-            padding: 12px;
             overflow-y: auto;
-            display: grid;
-            gap: 8px;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
         }
 
+        /* Pull to Refresh Indicator */
+        #pull-indicator {
+            position: absolute;
+            top: calc(60px + var(--safe-top));
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        /* Watchlist Bottom Sheet */
         .sheet-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(0,0,0,0.6);
             backdrop-filter: blur(4px);
-            z-index: 70;
             opacity: 0;
             visibility: hidden;
-            transition: opacity .25s ease, visibility .25s ease;
+            transition: all 0.3s;
+            z-index: 100;
         }
+        .sheet-overlay.active { opacity: 1; visibility: visible; }
 
-        .sheet-overlay.open {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .desktop-watchlist {
-            display: none;
-        }
-
-        .empty-text {
-            font-size: 12px;
-            color: var(--text-muted);
-        }
-
-        #pull-indicator {
+        .bottom-sheet {
             position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%) translateY(-80px);
-            z-index: 120;
-            transition: transform 0.18s ease, opacity 0.18s ease;
-            opacity: 0;
-            pointer-events: none;
+            bottom: 0; left: 0; right: 0;
+            background: #111826;
+            border-top: 1px solid var(--border);
+            border-radius: 20px 20px 0 0;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 101;
+            max-height: 80vh;
+            padding-bottom: var(--safe-bottom);
+        }
+        .bottom-sheet.active { transform: translateY(0); }
+
+        .sheet-handle {
+            width: 40px; height: 4px;
+            background: #334155;
+            border-radius: 2px;
+            margin: 12px auto;
         }
 
-        .pull-indicator-inner {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 999px;
+        /* Cards */
+        .card {
+            background: var(--panel);
             border: 1px solid var(--border);
-            background: rgba(13, 21, 34, 0.94);
-            backdrop-filter: blur(14px);
-            color: var(--text-soft);
-            box-shadow: var(--shadow);
-            font-size: 12px;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        /* Navigation */
+        .nav-bar {
+            background: rgba(13, 21, 34, 0.9);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid var(--border);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            padding-bottom: var(--safe-bottom);
+            z-index: 50;
+        }
+
+        .nav-item {
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            color: var(--text-muted);
+            font-size: 10px;
             font-weight: 700;
+            text-transform: uppercase;
         }
 
-        #pull-icon {
-            transition: transform 0.18s ease;
-        }
+        .nav-item.active { color: var(--blue); }
 
-        #pull-indicator.ready #pull-icon {
-            transform: rotate(180deg);
-            color: #86efac;
-        }
-
-        #pull-indicator.loading #pull-icon {
-            animation: pullSpin 0.9s linear infinite;
-            color: #22d3ee;
-        }
-
-        @keyframes pullSpin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        @media (min-width: 900px) {
-            .app-shell {
-                max-width: 1600px;
-                padding-bottom: 20px;
-                transform: none !important;
-            }
-
-            .topbar {
-                position: static;
-                border-bottom: none;
-                padding: 14px 14px 0;
-                background: transparent;
-                backdrop-filter: none;
-            }
-
-            .topbar-card {
-                border: 1px solid var(--border);
-                background: linear-gradient(180deg, #121827 0%, #0d121c 100%);
-                border-radius: 18px;
-                box-shadow: var(--shadow);
-                padding: 12px 14px;
-            }
-
-            .brand-subtitle {
-                max-width: none;
-            }
-
-            .content {
-                padding: 14px;
-            }
-
-            .desktop-layout {
-                display: grid;
-                grid-template-columns: 290px 1fr 360px;
-                gap: 12px;
-            }
-
-            .desktop-watchlist {
-                display: block;
-            }
-
-            .mobile-watchlist-trigger {
-                display: none;
-            }
-
-            .bottom-nav,
-            .watchlist-sheet,
-            .sheet-overlay,
-            #pull-indicator {
-                display: none;
-            }
-
-            .screen {
-                display: grid !important;
-            }
-
-            #screen-home {
-                grid-column: 2;
-            }
-
-            #screen-insights {
-                grid-column: 3;
-                align-content: start;
-            }
-
-            #screen-watchlist {
-                grid-column: 1;
-            }
-
-            #screen-pipeline {
-                grid-column: 3;
-                align-content: start;
-            }
-
-            .ring-wrap {
-                width: 220px;
-                height: 220px;
-            }
-
-            .chart-box {
-                height: 420px;
-            }
-        }
+        /* Animation Classes */
+        .btn-active:active { transform: scale(0.95); transition: 0.1s; }
     </style>
 </head>
 <body>
-    <div id="pull-indicator">
-        <div class="pull-indicator-inner">
-            <i id="pull-icon" class="fa-solid fa-arrow-down"></i>
-            <span id="pull-text">Pull to refresh</span>
-        </div>
-    </div>
 
-    <div class="app-shell" id="appShell">
-        <div class="topbar">
-            <div class="topbar-card">
-                <div class="topbar-row">
-                    <div class="brand-wrap">
-                        <div class="brand-badge">
-                            <i class="fa-solid fa-chart-column"></i>
-                        </div>
-                        <div class="brand-copy">
-                            <div class="brand-title mono">MKT TERMINAL</div>
-                            <div class="brand-subtitle">Mobile app view for market, pipeline and earnings</div>
-                        </div>
-                    </div>
-
-                    <button class="icon-btn mobile-watchlist-trigger" id="openWatchlistBtn" aria-label="Watchlist öffnen">
-                        <i class="fa-solid fa-list"></i>
-                    </button>
-                </div>
-
-                <div class="chip-row">
-                    <div class="meta-chip mono">
-                        <span class="status-dot" id="sync-dot" style="background:var(--green);"></span>
-                        <span id="sync-status">ONLINE</span>
-                    </div>
-                    <div class="meta-chip mono">
-                        <i class="fa-regular fa-clock"></i>
-                        <span id="last-update-time">--:--:--</span>
-                    </div>
-                    <div class="meta-chip mono">
-                        <i class="fa-solid fa-layer-group"></i>
-                        <span id="stat-symbols-top">--</span> SYMBOLS
-                    </div>
-                    <div class="meta-chip mono">
-                        <i class="fa-solid fa-gear"></i>
-                        <span id="pipeline-phase-top">IDLE</span>
-                    </div>
-                </div>
+    <div class="app-shell" id="app">
+        <div id="pull-indicator">
+            <div class="bg-blue-600/20 border border-blue-500/30 px-4 py-1 rounded-full text-blue-400 text-xs font-bold flex items-center gap-2">
+                <i class="fa-solid fa-arrows-rotate animate-spin" id="refresh-icon"></i>
+                <span id="refresh-text">Update...</span>
             </div>
         </div>
 
-        <div class="content desktop-layout">
-            <section class="screen active desktop-watchlist" id="screen-watchlist">
+        <header class="topbar">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="mono text-sm font-extrabold tracking-wider">MKT TERMINAL</h1>
+                    <p class="text-[10px] text-slate-500 uppercase tracking-tight">System Online • v3.0.1</p>
+                </div>
+                <button onclick="toggleWatchlist()" class="w-10 h-10 rounded-xl bg-slate-800/50 border border-slate-700 flex items-center justify-center btn-active">
+                    <i class="fa-solid fa-list-ul text-blue-400"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="view-pager" id="pager">
+            <section class="screen" id="sc-home">
                 <div class="card">
-                    <div class="card-header">
+                    <div class="flex justify-between items-start mb-4">
                         <div>
-                            <div class="section-kicker mono">Watchlist</div>
-                            <div class="section-title mono">Dashboard Main</div>
+                            <span class="text-[10px] font-bold text-blue-500 uppercase">Primary Asset</span>
+                            <div class="text-2xl font-black mono">NVDA</div>
                         </div>
-                        <div class="section-kicker mono">live</div>
+                        <div class="text-right">
+                            <div class="text-2xl font-black mono">$875.20</div>
+                            <div class="text-green-400 text-xs font-bold">+2.45%</div>
+                        </div>
                     </div>
+                    <div class="h-[200px] w-full">
+                        <canvas id="chartHome"></canvas>
+                    </div>
+                </div>
 
-                    <div class="card-body">
-                        <div class="section-kicker mono" style="margin-bottom:10px;">Selected Instrument</div>
-                        <div class="row-item active" style="cursor:default;">
-                            <div>
-                                <div class="row-item-title mono" id="selected-symbol-sidebar">--</div>
-                                <div class="row-item-sub mono" id="selected-exchange-sidebar">MARKET</div>
-                            </div>
-                            <div>
-                                <div class="row-item-price mono" id="selected-price-sidebar">$0.00</div>
-                                <div class="row-item-change mono" id="selected-change-sidebar">0.00%</div>
-                            </div>
-                        </div>
-
-                        <div class="section-kicker mono" style="margin-top:14px;margin-bottom:10px;">Symbols</div>
-                        <div id="watchlist-container" class="list scrollbar" style="max-height:65vh; overflow-y:auto;"></div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="card !mb-0 text-center">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">RSI</div>
+                        <div class="text-lg font-bold mono mt-1">64.2</div>
+                    </div>
+                    <div class="card !mb-0 text-center">
+                        <div class="text-[10px] text-slate-500 font-bold uppercase">Volatilität</div>
+                        <div class="text-lg font-bold mono mt-1 text-amber-400">Medium</div>
                     </div>
                 </div>
             </section>
 
-            <section class="screen active" id="screen-home">
+            <section class="screen" id="sc-insights">
+                <h2 class="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">Market Insights</h2>
                 <div class="card">
-                    <div class="card-body">
-                        <div class="hero-head">
-                            <div class="hero-main">
-                                <div>
-                                    <div class="section-kicker mono">Primary Instrument</div>
-                                    <div class="hero-symbol mono" id="hero-symbol">--</div>
-                                    <div class="hero-name mono" id="hero-name">--</div>
-                                    <div class="hero-name mono" id="hero-exchange">MARKET</div>
-                                </div>
-                                <div>
-                                    <div class="section-kicker mono" style="text-align:right;">Last Price</div>
-                                    <div class="hero-price mono" id="hero-price">$0.00</div>
-                                    <div class="hero-change mono" id="hero-change">0.00%</div>
-                                </div>
-                            </div>
-
-                            <div class="grid-2">
-                                <div class="mini-stat">
-                                    <div class="mini-stat-label mono">Assets</div>
-                                    <div class="mini-stat-value mono" id="stat-symbols">--</div>
-                                </div>
-                                <div class="mini-stat">
-                                    <div class="mini-stat-label mono">Calls</div>
-                                    <div class="mini-stat-value mono" id="stat-calls">--</div>
-                                </div>
-                                <div class="mini-stat">
-                                    <div class="mini-stat-label mono">Success</div>
-                                    <div class="mini-stat-value mono" id="stat-success">--%</div>
-                                </div>
-                                <div class="mini-stat">
-                                    <div class="mini-stat-label mono">Latency</div>
-                                    <div class="mini-stat-value mono" id="stat-latency">--ms</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <div class="text-sm font-bold mb-2">Sentiment Analyse</div>
+                    <p class="text-xs text-slate-400 leading-relaxed">KI-basierte Analyse zeigt starken Kaufdruck im Halbleitersektor.</p>
                 </div>
-
                 <div class="card">
-                    <div class="card-body">
-                        <div class="chart-toolbar">
-                            <div>
-                                <div class="section-kicker mono">Chart</div>
-                                <div class="section-title mono" style="font-size:16px;">Price Engine</div>
-                            </div>
-
-                            <div class="timeframe-group">
-                                <button class="tf-btn active mono" data-tf="24">24H</button>
-                                <button class="tf-btn mono" data-tf="12">12H</button>
-                                <button class="tf-btn mono" data-tf="6">6H</button>
-                                <button class="tf-btn mono" data-tf="3">3H</button>
-                                <button class="tf-btn mono" data-tf="1">1H</button>
-                            </div>
-                        </div>
-
-                        <div class="chart-box">
-                            <canvas id="mainPriceChart"></canvas>
-                        </div>
-
-                        <div id="legend-container" class="legend-wrap"></div>
+                    <div class="text-sm font-bold mb-2">Wichtige Termine</div>
+                    <div class="flex justify-between text-xs py-2 border-b border-slate-700">
+                        <span>Fed Meeting</span>
+                        <span class="mono text-blue-400">Mittwoch</span>
+                    </div>
+                    <div class="flex justify-between text-xs py-2">
+                        <span>NVDA Earnings</span>
+                        <span class="mono text-blue-400">22. Mai</span>
                     </div>
                 </div>
             </section>
 
-            <section class="screen" id="screen-insights">
+            <section class="screen" id="sc-pipeline">
+                <h2 class="text-xs font-bold text-slate-500 uppercase mb-4 tracking-widest">System Pipeline</h2>
                 <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Selected Snapshot</div>
-                            <div class="section-title mono">Fundamentals</div>
-                        </div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-3 h-3 rounded-full bg-green-500 animate-pulse"></div>
+                        <span class="text-sm font-bold uppercase">API Integrity</span>
                     </div>
-                    <div class="card-body">
-                        <div class="metric-grid">
-                            <div class="metric-item">
-                                <div class="metric-label mono">RSI 14</div>
-                                <div class="metric-value mono" id="metric-rsi">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">RSI Signal</div>
-                                <div class="metric-value mono" id="metric-rsi-signal">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">MACD Signal</div>
-                                <div class="metric-value mono" id="metric-macd-signal">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">P/E</div>
-                                <div class="metric-value mono" id="metric-pe">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">EPS TTM</div>
-                                <div class="metric-value mono" id="metric-eps">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">Beta</div>
-                                <div class="metric-value mono" id="metric-beta">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">Market Cap</div>
-                                <div class="metric-value mono" id="metric-marketcap">--</div>
-                            </div>
-                            <div class="metric-item">
-                                <div class="metric-label mono">52W Range</div>
-                                <div class="metric-value mono" id="metric-range52">--</div>
-                            </div>
-                        </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div class="bg-green-500 h-full w-[98%]"></div>
                     </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Volatility</div>
-                            <div class="section-title mono">Matrix</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="volatility-list"></div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Quotes</div>
-                            <div class="section-title mono">Latest Feed</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="quoteTable" class="list scrollbar" style="max-height:320px; overflow-y:auto;"></div>
+                    <div class="flex justify-between mt-2 text-[10px] mono text-slate-500">
+                        <span>SUCCESS RATE: 99.8%</span>
+                        <span>LATENCY: 24ms</span>
                     </div>
                 </div>
             </section>
+        </main>
 
-            <section class="screen" id="screen-pipeline">
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Reliability</div>
-                            <div class="section-title mono">API Success</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="ring-wrap">
-                            <canvas id="reliabilityChart"></canvas>
-                            <div class="ring-center">
-                                <div class="ring-value mono" id="circle-percent">--%</div>
-                                <div class="ring-label mono">Integrity</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Sentiment</div>
-                            <div class="section-title mono">Bias Engine</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div style="display:flex;justify-content:space-between;align-items:end;gap:12px;">
-                            <div id="sentiment-value" class="mono" style="font-size:28px;font-weight:800;color:#93c5fd;">Scanning</div>
-                            <div class="meta-chip mono" style="padding:6px 10px;">
-                                <span id="sentiment-bias">0.000</span>
-                            </div>
-                        </div>
-
-                        <div class="progress-track" style="margin-top:14px;">
-                            <div id="sentiment-bar" class="progress-fill" style="width:50%;background:#3b82f6;"></div>
-                        </div>
-
-                        <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:10px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.12em;font-weight:700;">
-                            <span class="mono">Short</span>
-                            <span class="mono">Long</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Performance</div>
-                            <div class="section-title mono">Gateway Latency</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="latency-box">
-                            <canvas id="latencyChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Pipeline Monitor</div>
-                            <div class="section-title mono">Collector State</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="grid-2">
-                            <div class="kpi-item">
-                                <div class="kpi-label mono">Phase</div>
-                                <div class="kpi-value mono" id="pipeline-phase">--</div>
-                            </div>
-                            <div class="kpi-item">
-                                <div class="kpi-label mono">Cycle</div>
-                                <div class="kpi-value mono" id="pipeline-cycle">--</div>
-                            </div>
-                            <div class="kpi-item">
-                                <div class="kpi-label mono">Current</div>
-                                <div class="kpi-value mono" id="pipeline-current-symbol">--</div>
-                            </div>
-                            <div class="kpi-item">
-                                <div class="kpi-label mono">Success</div>
-                                <div class="kpi-value mono" id="pipeline-success-ratio">--</div>
-                            </div>
-                        </div>
-
-                        <div class="footer-note mono" id="pipeline-extra-note">
-                            Waiting for pipeline data...
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="card-header">
-                        <div>
-                            <div class="section-kicker mono">Upcoming Earnings</div>
-                            <div class="section-title mono">Calendar</div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div id="earnings-list" class="list scrollbar" style="max-height:260px; overflow-y:auto;"></div>
-                    </div>
-                </div>
-            </section>
-        </div>
-
-        <nav class="bottom-nav">
-            <div class="bottom-nav-inner">
-                <button class="nav-btn active" data-screen="screen-home">
-                    <i class="fa-solid fa-chart-line"></i>
-                    <span>Home</span>
-                </button>
-                <button class="nav-btn" data-screen="screen-insights">
-                    <i class="fa-solid fa-wave-square"></i>
-                    <span>Insights</span>
-                </button>
-                <button class="nav-btn" data-screen="screen-watchlist-sheet">
-                    <i class="fa-solid fa-list-ul"></i>
-                    <span>Watchlist</span>
-                </button>
-                <button class="nav-btn" data-screen="screen-pipeline">
-                    <i class="fa-solid fa-microchip"></i>
-                    <span>Pipeline</span>
-                </button>
+        <nav class="nav-bar">
+            <div class="nav-item active" onclick="goToScreen(0)">
+                <i class="fa-solid fa-house text-lg"></i>
+                <span>Home</span>
+            </div>
+            <div class="nav-item" onclick="goToScreen(1)">
+                <i class="fa-solid fa-bolt text-lg"></i>
+                <span>Insights</span>
+            </div>
+            <div class="nav-item" onclick="goToScreen(2)">
+                <i class="fa-solid fa-server text-lg"></i>
+                <span>System</span>
             </div>
         </nav>
 
-        <div class="sheet-overlay" id="sheetOverlay"></div>
-
-        <div class="watchlist-sheet" id="watchlistSheet">
-            <div class="watchlist-sheet-card">
-                <div class="sheet-handle"></div>
-
-                <div class="sheet-header">
-                    <div>
-                        <div class="section-kicker mono">Watchlist</div>
-                        <div class="section-title mono" style="font-size:18px;">Dashboard Main</div>
+        <div class="sheet-overlay" id="overlay" onclick="toggleWatchlist()"></div>
+        <div class="bottom-sheet" id="watchlist">
+            <div class="sheet-handle"></div>
+            <div class="px-6 py-2">
+                <h3 class="text-lg font-black mono mb-4 uppercase">Watchlist</h3>
+                <div class="space-y-3 overflow-y-auto max-h-[50vh]">
+                    <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div class="font-bold">AAPL <span class="text-[10px] text-slate-500 ml-2">Apple Inc.</span></div>
+                        <div class="text-right font-bold mono">$172.45</div>
                     </div>
-                    <button class="icon-btn" id="closeWatchlistBtn" aria-label="Watchlist schließen">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
-
-                <div class="card-body" style="padding-bottom:0;">
-                    <div class="section-kicker mono" style="margin-bottom:10px;">Selected Instrument</div>
-                    <div class="row-item active" style="cursor:default;">
-                        <div>
-                            <div class="row-item-title mono" id="sheet-selected-symbol">--</div>
-                            <div class="row-item-sub mono" id="sheet-selected-exchange">MARKET</div>
-                        </div>
-                        <div>
-                            <div class="row-item-price mono" id="sheet-selected-price">$0.00</div>
-                            <div class="row-item-change mono" id="sheet-selected-change">0.00%</div>
-                        </div>
+                    <div class="flex justify-between items-center p-3 bg-slate-800/50 rounded-xl border border-slate-700">
+                        <div class="font-bold">BTC <span class="text-[10px] text-slate-500 ml-2">Bitcoin</span></div>
+                        <div class="text-right font-bold mono text-green-400">$64,200</div>
                     </div>
                 </div>
-
-                <div class="sheet-list scrollbar" id="watchlist-sheet-container"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let priceChart = null;
-        let latencyChart = null;
-        let reliabilityChart = null;
-        let cachedData = null;
-        let currentTimeframe = 24;
-        let selectedSymbol = null;
+        let currentScreen = 0;
+        const pager = document.getElementById('pager');
+        const navItems = document.querySelectorAll('.nav-item');
+        
+        // Swipe Logik
+        let touchStartX = 0;
+        let touchEndX = 0;
 
-        let pullStartY = 0;
-        let pullCurrentY = 0;
-        let isPulling = false;
-        let isRefreshing = false;
-        let pullReady = false;
-        const PULL_THRESHOLD = 90;
-        const MAX_PULL = 140;
+        pager.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
 
-        const palette = ["#3b82f6", "#22d3ee", "#22c55e", "#f59e0b", "#a855f7", "#ef4444"];
+        pager.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
 
-        function safeArray(value) { return Array.isArray(value) ? value : []; }
-        function safeObject(value) { return value && typeof value === "object" ? value : {}; }
-
-        function formatNumber(value) {
-            if (value === null || value === undefined || Number.isNaN(value)) return "--";
-            return new Intl.NumberFormat("de-DE").format(value);
-        }
-
-        function formatPercent(value, digits = 2) {
-            if (value === null || value === undefined || Number.isNaN(value)) return "--%";
-            return `${Number(value).toFixed(digits)}%`;
-        }
-
-        function formatPrice(value) {
-            if (value === null || value === undefined || Number.isNaN(value)) return "--";
-            return `$${Number(value).toFixed(2)}`;
-        }
-
-        function formatCompactNumber(value) {
-            if (value === null || value === undefined || Number.isNaN(value)) return "--";
-            const num = Number(value);
-            if (Math.abs(num) >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(2)}B`;
-            if (Math.abs(num) >= 1_000_000) return `${(num / 1_000_000).toFixed(2)}M`;
-            if (Math.abs(num) >= 1_000) return `${(num / 1_000).toFixed(2)}K`;
-            return num.toFixed(2);
-        }
-
-        function createGradient(ctx, color, height = 290) {
-            const gradient = ctx.createLinearGradient(0, 0, 0, height);
-            gradient.addColorStop(0, `${color}33`);
-            gradient.addColorStop(0.5, `${color}12`);
-            gradient.addColorStop(1, `${color}00`);
-            return gradient;
-        }
-
-        function getSelectedRow() {
-            const rows = safeArray(cachedData?.dashboard_rows);
-            if (!rows.length) return null;
-            if (selectedSymbol) {
-                const row = rows.find(r => r.symbol === selectedSymbol);
-                if (row) return row;
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0 && currentScreen < 2) goToScreen(currentScreen + 1);
+                if (diff < 0 && currentScreen > 0) goToScreen(currentScreen - 1);
             }
-            return rows[0];
         }
 
-        function getPrimaryQuote() {
-            const rows = safeArray(cachedData?.dashboard_rows);
-            if (!rows.length) return null;
-            return getSelectedRow() || rows[0];
-        }
-
-        function initCharts() {
-            const chartHeight = window.innerWidth >= 900 ? 420 : 290;
-            const ctx = document.getElementById("mainPriceChart").getContext("2d");
-
-            priceChart = new Chart(ctx, {
-                type: "line",
-                data: { datasets: [] },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: "index", intersect: false },
-                    animation: { duration: 350 },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: "rgba(10, 13, 20, 0.96)",
-                            borderColor: "rgba(59,130,246,0.25)",
-                            borderWidth: 1,
-                            titleColor: "#f8fbff",
-                            bodyColor: "#dbe4f3",
-                            padding: 12,
-                            displayColors: true
-                        }
-                    },
-                    scales: {
-                        x: {
-                            type: "time",
-                            time: { unit: "hour", tooltipFormat: "dd.MM.yyyy HH:mm" },
-                            grid: { color: "rgba(255,255,255,0.045)", drawBorder: false },
-                            ticks: {
-                                color: "#7e8aa3",
-                                maxRotation: 0,
-                                autoSkip: true,
-                                font: {
-                                    family: "JetBrains Mono",
-                                    size: window.innerWidth <= 480 ? 9 : 11,
-                                    weight: "700"
-                                }
-                            }
-                        },
-                        y: {
-                            grid: { color: "rgba(255,255,255,0.045)", drawBorder: false },
-                            ticks: {
-                                color: "#7e8aa3",
-                                font: {
-                                    family: "JetBrains Mono",
-                                    size: window.innerWidth <= 480 ? 9 : 11,
-                                    weight: "700"
-                                }
-                            }
-                        }
-                    }
-                }
+        function goToScreen(index) {
+            currentScreen = index;
+            pager.style.transform = `translateX(-${index * 100}%)`;
+            
+            navItems.forEach((nav, i) => {
+                nav.classList.toggle('active', i === index);
             });
-
-            reliabilityChart = new Chart(document.getElementById("reliabilityChart"), {
-                type: "doughnut",
-                data: {
-                    labels: ["OK", "ERR"],
-                    datasets: [{
-                        data: [100, 0],
-                        backgroundColor: ["#22c55e", "rgba(239,68,68,0.18)"],
-                        borderWidth: 0,
-                        cutout: "84%",
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } }
-                }
-            });
-
-            latencyChart = new Chart(document.getElementById("latencyChart"), {
-                type: "line",
-                data: {
-                    labels: [],
-                    datasets: [{
-                        data: [],
-                        borderColor: "#22d3ee",
-                        backgroundColor: "rgba(34,211,238,0.12)",
-                        fill: true,
-                        tension: 0.36,
-                        pointRadius: 0,
-                        borderWidth: 2.2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: "rgba(10,13,20,0.96)",
-                            borderColor: "rgba(34,211,238,0.20)",
-                            borderWidth: 1,
-                            titleColor: "#f8fbff",
-                            bodyColor: "#dbe4f3",
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.parsed.y} ms`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: { display: false },
-                        y: { display: false }
-                    }
-                }
-            });
-
-            window.__chartGradientHeight = chartHeight;
         }
 
-        function setStatus(online) {
-            const sync = document.getElementById("sync-status");
-            const dot = document.getElementById("sync-dot");
-            sync.textContent = online ? "ONLINE" : "OFFLINE";
-            sync.style.color = online ? "#86efac" : "#fca5a5";
-            dot.style.background = online ? "#22c55e" : "#ef4444";
-        }
+        // Pull to Refresh Simulation
+        let startY = 0;
+        const pullIndicator = document.getElementById('pull-indicator');
 
-        function updateTopStats(data) {
-            const stats = data?.stats || {};
-            const successRate = Number(stats.success_rate ?? 0);
-
-            document.getElementById("stat-symbols").textContent = formatNumber(stats.total_symbols);
-            document.getElementById("stat-calls").textContent = formatNumber(stats.total_api_calls);
-            document.getElementById("stat-success").textContent = formatPercent(successRate, 1);
-            document.getElementById("stat-latency").textContent = "--ms";
-            document.getElementById("circle-percent").textContent = formatPercent(successRate, 1);
-            document.getElementById("stat-symbols-top").textContent = formatNumber(stats.total_symbols);
-
-            reliabilityChart.data.datasets[0].data = [
-                Math.max(0, Math.min(100, successRate)),
-                Math.max(0, 100 - Math.max(0, Math.min(100, successRate)))
-            ];
-            reliabilityChart.update();
-        }
-
-        function updateLatency(latencyHistory) {
-            const list = safeArray(latencyHistory).slice(-20);
-
-            if (!list.length) {
-                document.getElementById("stat-latency").textContent = "--ms";
-                latencyChart.data.labels = [];
-                latencyChart.data.datasets[0].data = [];
-                latencyChart.update();
-                return;
+        document.addEventListener('touchstart', e => {
+            if (pager.children[currentScreen].scrollTop === 0) {
+                startY = e.touches[0].pageY;
             }
+        }, {passive: true});
 
-            latencyChart.data.labels = list.map((_, i) => i + 1);
-            latencyChart.data.datasets[0].data = list.map(item => Number(item.ms ?? 0));
-            latencyChart.update();
+        document.addEventListener('touchmove', e => {
+            const y = e.touches[0].pageY;
+            const pullDistance = y - startY;
+            if (pullDistance > 0 && pullDistance < 150 && pager.children[currentScreen].scrollTop === 0) {
+                pullIndicator.style.opacity = pullDistance / 100;
+                pullIndicator.style.transform = `translateY(${pullDistance/2}px)`;
+            }
+        }, {passive: true});
 
-            const latest = Number(list[list.length - 1]?.ms ?? 0);
-            document.getElementById("stat-latency").textContent = `${Math.round(latest)}ms`;
+        document.addEventListener('touchend', e => {
+            pullIndicator.style.opacity = 0;
+            pullIndicator.style.transform = `translateY(-20px)`;
+        });
+
+        // UI Toggles
+        function toggleWatchlist() {
+            document.getElementById('watchlist').classList.toggle('active');
+            document.getElementById('overlay').classList.toggle('active');
         }
 
-        function updateHero(row) {
-            const q = row || {};
-            const change = Number(q.change_pct ?? 0);
-
-            document.getElementById("hero-symbol").textContent = q.symbol || "--";
-            document.getElementById("hero-name").textContent = q.company_name || "--";
-            document.getElementById("hero-exchange").textContent = (q.exchange || "Market").toUpperCase();
-            document.getElementById("hero-price").textContent = formatPrice(q.current_price);
-            document.getElementById("hero-change").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
-            document.getElementById("hero-change").style.color = change >= 0 ? "#4ade80" : "#f87171";
-
-            document.getElementById("selected-symbol-sidebar").textContent = q.symbol || "--";
-            document.getElementById("selected-exchange-sidebar").textContent = (q.exchange || "Market").toUpperCase();
-            document.getElementById("selected-price-sidebar").textContent = formatPrice(q.current_price);
-            document.getElementById("selected-change-sidebar").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
-            document.getElementById("selected-change-sidebar").style.color = change >= 0 ? "#4ade80" : "#f87171";
-
-            document.getElementById("sheet-selected-symbol").textContent = q.symbol || "--";
-            document.getElementById("sheet-selected-exchange").textContent = (q.exchange || "Market").toUpperCase();
-            document.getElementById("sheet-selected-price").textContent = formatPrice(q.current_price);
-            document.getElementById("sheet-selected-change").textContent = `${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%`;
-            document.getElementById("sheet-selected-change").style.color = change >= 0 ? "#4ade80" : "#f87171";
-        }
-
-        function updateMetrics(row) {
-            const q = row || {};
-            document.getElementById("metric-rsi").textContent = q.rsi_14 != null ? Number(q.rsi_14).toFixed(2) : "--";
-            document.getElementById("metric-rsi-signal").textContent = q.rsi_signal || "--";
-            document.getElementById("metric-macd-signal").textContent = q.macd_signal_text || "--";
-            document.getElementById("metric-pe").textContent = q.pe_ratio != null ? Number(q.pe_ratio).toFixed(2) : "--";
-            document.getElementById("metric-eps").textContent = q.eps_ttm != null ? Number(q.eps_ttm).toFixed(2) : "--";
-            document.getElementById("metric-beta").textContent = q.beta != null ? Number(q.beta).toFixed(2) : "--";
-            document.getElementById("metric-marketcap").textContent = formatCompactNumber(q.market_cap);
-
-            const low52 = q.week_52_low != null ? Number(q.week_52_low).toFixed(2) : "--";
-            const high52 = q.week_52_high != null ? Number(q.week_52_high).toFixed(2) : "--";
-            document.getElementById("metric-range52").textContent = `${low52} - ${high52}`;
-        }
-
-        function updatePriceDisplay() {
-            if (!cachedData) return;
-
-            const history = safeObject(cachedData.history);
-            const cutoff = Date.now() - currentTimeframe * 60 * 60 * 1000;
-            const ctx = document.getElementById("mainPriceChart").getContext("2d");
-
-            const symbols = Object.keys(history);
-            const orderedSymbols = selectedSymbol && symbols.includes(selectedSymbol)
-                ? [selectedSymbol, ...symbols.filter(s => s !== selectedSymbol)]
-                : symbols;
-
-            const datasets = orderedSymbols.map((symbol, index) => {
-                const color = index === 0 ? "#3b82f6" : palette[index % palette.length];
-                const series = safeArray(history[symbol])
-                    .filter(point => point.x && Number(new Date(point.x).getTime()) >= cutoff)
-                    .map(point => ({ x: point.x, y: point.y }));
-
-                return {
-                    label: symbol,
-                    data: series,
-                    borderColor: color,
-                    backgroundColor: createGradient(ctx, color, window.__chartGradientHeight || 290),
-                    fill: true,
-                    tension: 0.24,
+        // Mini Chart Initialisierung
+        const ctx = document.getElementById('chartHome').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                datasets: [{
+                    data: [820, 835, 830, 845, 860, 855, 870, 865, 875, 875],
+                    borderColor: '#3b82f6',
+                    borderWidth: 3,
+                    tension: 0.4,
                     pointRadius: 0,
-                    pointHoverRadius: 3,
-                    borderWidth: index === 0 ? 2.6 : 1.9
-                };
-            });
-
-            priceChart.data.datasets = datasets;
-            priceChart.update();
-
-            document.getElementById("legend-container").innerHTML = datasets.map(ds => `
-                <div class="legend-item mono">
-                    <span style="width:9px;height:9px;border-radius:999px;background:${ds.borderColor};display:inline-block;"></span>
-                    <span>${ds.label}</span>
-                </div>
-            `).join("");
-        }
-
-        function renderWatchlist(targetId, rows, closeOnSelect = false) {
-            const list = safeArray(rows);
-            const container = document.getElementById(targetId);
-
-            if (!list.length) {
-                container.innerHTML = `<div class="empty-text mono">No symbol data</div>`;
-                return;
-            }
-
-            container.innerHTML = list.map(q => {
-                const active = q.symbol === selectedSymbol || (!selectedSymbol && list[0].symbol === q.symbol);
-                const change = Number(q.change_pct ?? 0);
-
-                return `
-                    <div class="row-item ${active ? "active" : ""}" data-symbol="${q.symbol}">
-                        <div>
-                            <div class="row-item-title mono">${q.symbol}</div>
-                            <div class="row-item-sub mono">${(q.exchange || "Market").toUpperCase()}</div>
-                        </div>
-                        <div>
-                            <div class="row-item-price mono">${formatPrice(q.current_price)}</div>
-                            <div class="row-item-change mono" style="color:${change >= 0 ? "#4ade80" : "#f87171"};">
-                                ${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-
-            container.querySelectorAll("[data-symbol]").forEach(el => {
-                el.addEventListener("click", () => {
-                    selectedSymbol = el.dataset.symbol;
-                    renderWatchlist("watchlist-container", cachedData?.dashboard_rows || [], false);
-                    renderWatchlist("watchlist-sheet-container", cachedData?.dashboard_rows || [], true);
-                    updateHero(getSelectedRow());
-                    updateMetrics(getSelectedRow());
-                    updatePriceDisplay();
-
-                    if (closeOnSelect) closeWatchlistSheet();
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                });
-            });
-        }
-
-        function updateLiveFeed(quotes) {
-            const list = safeArray(quotes);
-            const container = document.getElementById("quoteTable");
-
-            if (!list.length) {
-                container.innerHTML = `<div class="empty-text mono">No quote feed</div>`;
-                return;
-            }
-
-            container.innerHTML = list.map(q => {
-                const change = Number(q.change_pct ?? 0);
-                return `
-                    <div class="row-item" style="cursor:default;">
-                        <div>
-                            <div class="row-item-title mono">${q.symbol || "--"}</div>
-                            <div class="row-item-sub mono">${(q.exchange || "Market").toUpperCase()}</div>
-                        </div>
-                        <div>
-                            <div class="row-item-price mono">${formatPrice(q.price)}</div>
-                            <div class="row-item-change mono" style="color:${change >= 0 ? "#4ade80" : "#f87171"};">
-                                ${change >= 0 ? "+" : "-"}${Math.abs(change).toFixed(2)}%
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        function updateVolatility(history) {
-            const source = safeObject(history);
-            const symbols = Object.keys(source).slice(0, 6);
-            const container = document.getElementById("volatility-list");
-
-            if (!symbols.length) {
-                container.innerHTML = `<div class="empty-text mono">No volatility data</div>`;
-                return;
-            }
-
-            container.innerHTML = symbols.map(symbol => {
-                const series = safeArray(source[symbol]);
-                if (series.length < 2) {
-                    return `
-                        <div class="vol-row">
-                            <div style="display:flex;justify-content:space-between;gap:12px;">
-                                <span class="row-item-title mono" style="font-size:13px;">${symbol}</span>
-                                <span class="section-kicker mono">n/a</span>
-                            </div>
-                            <div class="progress-track"><div class="progress-fill" style="width:0%;background:#334155;"></div></div>
-                        </div>
-                    `;
+                    fill: true,
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: { 
+                    x: { display: false }, 
+                    y: { display: false } 
                 }
-
-                const first = Number(series[0]?.y ?? 0);
-                const last = Number(series[series.length - 1]?.y ?? 0);
-                const v = first !== 0 ? Math.abs(((last - first) / first) * 100) : 0;
-
-                let color = "#3b82f6";
-                if (v > 8) color = "#ef4444";
-                else if (v > 4) color = "#f59e0b";
-                else if (v > 1.5) color = "#22c55e";
-
-                return `
-                    <div class="vol-row">
-                        <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;">
-                            <span class="row-item-title mono" style="font-size:13px;">${symbol}</span>
-                            <span class="section-kicker mono" style="color:#cbd5e1;">${v.toFixed(2)}%</span>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" style="width:${Math.min(v * 6, 100)}%;background:${color};"></div>
-                        </div>
-                    </div>
-                `;
-            }).join("");
-        }
-
-        function updateSentiment(rows) {
-            const list = safeArray(rows);
-            const valueEl = document.getElementById("sentiment-value");
-            const biasEl = document.getElementById("sentiment-bias");
-            const barEl = document.getElementById("sentiment-bar");
-
-            if (!list.length) {
-                valueEl.textContent = "NO SIGNAL";
-                valueEl.style.color = "#94a3b8";
-                biasEl.textContent = "0.000";
-                barEl.style.width = "50%";
-                barEl.style.background = "#475569";
-                return;
             }
-
-            const avg = list.reduce((acc, item) => acc + Number(item.change_pct ?? 0), 0) / list.length;
-
-            let label = "NEUTRAL";
-            let color = "#60a5fa";
-
-            if (avg > 0.15) {
-                label = "BULLISH";
-                color = "#22c55e";
-            } else if (avg < -0.15) {
-                label = "BEARISH";
-                color = "#ef4444";
-            }
-
-            valueEl.textContent = label;
-            valueEl.style.color = color;
-            biasEl.textContent = avg.toFixed(3);
-            barEl.style.width = `${Math.max(8, Math.min(92, 50 + avg * 30))}%`;
-            barEl.style.background = color;
-        }
-
-        function updatePipeline(pipeline) {
-            const p = pipeline || {};
-            document.getElementById("pipeline-phase").textContent = (p.phase || "--").toUpperCase();
-            document.getElementById("pipeline-phase-top").textContent = (p.phase || "--").toUpperCase();
-            document.getElementById("pipeline-cycle").textContent = p.cycle_num ?? "--";
-            document.getElementById("pipeline-current-symbol").textContent = p.current_symbol || "--";
-            document.getElementById("pipeline-success-ratio").textContent = `${p.symbols_ok ?? 0}/${p.symbols_total ?? 0}`;
-
-            const extra = [
-                `event=${p.event || "--"}`,
-                `next=${p.next_cycle_num ?? "--"}`,
-                `sleep=${p.sleep_seconds ?? "--"}`,
-                `thread=${p.thread_alive ? "alive" : "down"}`
-            ].join(" | ");
-
-            document.getElementById("pipeline-extra-note").textContent = extra;
-        }
-
-        function updateEarnings(earnings) {
-            const list = safeArray(earnings);
-            const container = document.getElementById("earnings-list");
-
-            if (!list.length) {
-                container.innerHTML = `<div class="empty-text mono">No upcoming earnings</div>`;
-                return;
-            }
-
-            container.innerHTML = list.map(item => `
-                <div class="row-item" style="cursor:default;">
-                    <div>
-                        <div class="row-item-title mono">${item.symbol || "--"}</div>
-                        <div class="row-item-sub mono">${item.report_date || "--"} | ${(item.hour || "N/A").toUpperCase()}</div>
-                    </div>
-                    <div>
-                        <div class="row-item-price mono">${item.eps_estimate != null ? item.eps_estimate.toFixed(2) : "--"}</div>
-                        <div class="row-item-change mono" style="color:#b6c0d2;">EPS EST</div>
-                    </div>
-                </div>
-            `).join("");
-        }
-
-        function updateLastTime() {
-            document.getElementById("last-update-time").textContent = new Date().toLocaleTimeString("de-DE", {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
-            });
-        }
-
-        function setActiveScreen(screenId) {
-            const isDesktop = window.innerWidth >= 900;
-            if (isDesktop) return;
-
-            document.querySelectorAll(".screen").forEach(screen => {
-                screen.classList.remove("active");
-            });
-
-            if (screenId === "screen-watchlist-sheet") {
-                openWatchlistSheet();
-                return;
-            }
-
-            const target = document.getElementById(screenId);
-            if (target) target.classList.add("active");
-
-            document.querySelectorAll(".nav-btn").forEach(btn => {
-                btn.classList.toggle("active", btn.dataset.screen === screenId);
-            });
-        }
-
-        function openWatchlistSheet() {
-            document.getElementById("watchlistSheet").classList.add("open");
-            document.getElementById("sheetOverlay").classList.add("open");
-            document.body.style.overflow = "hidden";
-            document.querySelectorAll(".nav-btn").forEach(btn => {
-                btn.classList.toggle("active", btn.dataset.screen === "screen-watchlist-sheet");
-            });
-        }
-
-        function closeWatchlistSheet() {
-            document.getElementById("watchlistSheet").classList.remove("open");
-            document.getElementById("sheetOverlay").classList.remove("open");
-            document.body.style.overflow = "";
-            document.querySelectorAll(".nav-btn").forEach(btn => {
-                btn.classList.toggle("active", btn.dataset.screen === "screen-home");
-            });
-        }
-
-        function setPullIndicator(offset, ready = false, loading = false) {
-            const indicator = document.getElementById("pull-indicator");
-            const text = document.getElementById("pull-text");
-            const appShell = document.getElementById("appShell");
-
-            const visibleOffset = Math.max(-80, Math.min(30, offset - 80));
-            indicator.style.transform = `translateX(-50%) translateY(${visibleOffset}px)`;
-            indicator.style.opacity = offset > 5 ? "1" : "0";
-
-            indicator.classList.toggle("ready", ready);
-            indicator.classList.toggle("loading", loading);
-
-            if (loading) {
-                text.textContent = "Refreshing...";
-            } else if (ready) {
-                text.textContent = "Release to refresh";
-            } else {
-                text.textContent = "Pull to refresh";
-            }
-
-            if (window.innerWidth < 900) {
-                appShell.style.transform = `translateY(${Math.min(offset * 0.35, 26)}px)`;
-            }
-        }
-
-        function resetPullIndicator() {
-            pullStartY = 0;
-            pullCurrentY = 0;
-            isPulling = false;
-            pullReady = false;
-            setPullIndicator(0, false, false);
-        }
-
-        async function triggerPullRefresh() {
-            if (isRefreshing) return;
-
-            isRefreshing = true;
-            setPullIndicator(PULL_THRESHOLD, true, true);
-
-            try {
-                await refresh();
-            } catch (e) {
-                console.error("Pull refresh failed:", e);
-            } finally {
-                setTimeout(() => {
-                    isRefreshing = false;
-                    resetPullIndicator();
-                }, 400);
-            }
-        }
-
-        async function refresh() {
-            try {
-                const res = await fetch("/api/dashboard", { cache: "no-store" });
-                if (!res.ok) throw new Error(`HTTP ${res.status}`);
-
-                const data = await res.json();
-                cachedData = data;
-
-                const rows = safeArray(data.dashboard_rows);
-                if (!selectedSymbol && rows.length) {
-                    selectedSymbol = rows[0].symbol;
-                }
-
-                setStatus(true);
-                updateTopStats(data);
-                updateLatency(data.latency_history);
-                renderWatchlist("watchlist-container", rows, false);
-                renderWatchlist("watchlist-sheet-container", rows, true);
-                updateLiveFeed(data.quotes);
-                updateVolatility(data.history);
-                updateSentiment(rows);
-                updatePipeline(data.pipeline);
-                updateEarnings(data.earnings);
-                updateHero(getPrimaryQuote());
-                updateMetrics(getSelectedRow());
-                updatePriceDisplay();
-                updateLastTime();
-            } catch (err) {
-                console.error("Refresh error:", err);
-                setStatus(false);
-                throw err;
-            }
-        }
-
-        function bindTimeframes() {
-            document.querySelectorAll(".tf-btn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    document.querySelectorAll(".tf-btn").forEach(b => b.classList.remove("active"));
-                    btn.classList.add("active");
-                    currentTimeframe = Number(btn.dataset.tf || 24);
-                    updatePriceDisplay();
-                });
-            });
-        }
-
-        function bindNavigation() {
-            document.querySelectorAll(".nav-btn").forEach(btn => {
-                btn.addEventListener("click", () => {
-                    setActiveScreen(btn.dataset.screen);
-                });
-            });
-
-            document.getElementById("openWatchlistBtn").addEventListener("click", openWatchlistSheet);
-            document.getElementById("closeWatchlistBtn").addEventListener("click", closeWatchlistSheet);
-            document.getElementById("sheetOverlay").addEventListener("click", closeWatchlistSheet);
-        }
-
-        function bindPullToRefresh() {
-            const appShell = document.getElementById("appShell");
-
-            appShell.addEventListener("touchstart", (e) => {
-                if (window.innerWidth >= 900) return;
-                if (isRefreshing) return;
-                if (document.getElementById("watchlistSheet").classList.contains("open")) return;
-                if (window.scrollY > 0) return;
-
-                pullStartY = e.touches[0].clientY;
-                pullCurrentY = pullStartY;
-                isPulling = true;
-                pullReady = false;
-            }, { passive: true });
-
-            appShell.addEventListener("touchmove", (e) => {
-                if (!isPulling || isRefreshing) return;
-                if (window.scrollY > 0) return;
-
-                pullCurrentY = e.touches[0].clientY;
-                let distance = pullCurrentY - pullStartY;
-
-                if (distance <= 0) {
-                    setPullIndicator(0, false, false);
-                    return;
-                }
-
-                distance = Math.min(distance * 0.65, MAX_PULL);
-                pullReady = distance >= PULL_THRESHOLD;
-
-                setPullIndicator(distance, pullReady, false);
-            }, { passive: true });
-
-            appShell.addEventListener("touchend", async () => {
-                if (!isPulling || isRefreshing) return;
-
-                if (pullReady) {
-                    await triggerPullRefresh();
-                } else {
-                    resetPullIndicator();
-                }
-            }, { passive: true });
-        }
-
-        function applyResponsiveDefaultScreen() {
-            if (window.innerWidth >= 900) {
-                document.querySelectorAll(".screen").forEach(screen => screen.classList.add("active"));
-                document.body.style.overflow = "";
-                document.getElementById("appShell").style.transform = "none";
-            } else {
-                document.querySelectorAll(".screen").forEach(screen => screen.classList.remove("active"));
-                document.getElementById("screen-home").classList.add("active");
-                document.querySelectorAll(".nav-btn").forEach(btn => {
-                    btn.classList.toggle("active", btn.dataset.screen === "screen-home");
-                });
-            }
-        }
-
-        initCharts();
-        bindTimeframes();
-        bindNavigation();
-        bindPullToRefresh();
-        applyResponsiveDefaultScreen();
-        refresh();
-        setInterval(refresh, 25000);
-
-        window.addEventListener("resize", () => {
-            applyResponsiveDefaultScreen();
         });
     </script>
 </body>

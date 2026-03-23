@@ -8,9 +8,15 @@ import pytz
 from main import main as pipeline_main
 from db.connection import get_connection
 
+# ---------------------------------------------------
+# Logging
+# ---------------------------------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------
+# Flask App
+# ---------------------------------------------------
 app = Flask(__name__)
 BERLIN_TZ = pytz.timezone("Europe/Berlin")
 
@@ -20,69 +26,139 @@ BERLIN_TZ = pytz.timezone("Europe/Berlin")
 pipeline_status = {
     "started": False,
     "running": False,
+    "thread_alive": False,
+    "phase": "idle",
     "started_at": None,
+    "stopped_at": None,
     "last_cycle_at": None,
+    "last_successful_cycle_at": None,
     "last_error": None,
-    "thread_alive": False
+    "error": None,
+
+    # Meta / Progress
+    "event": None,
+    "cycle_num": 0,
+    "next_cycle_num": None,
+    "sleep_seconds": None,
+    "sleep_started_at": None,
+
+    # Symbols / Processing
+    "symbols": [],
+    "symbols_total": 0,
+    "symbols_ok": 0,
+    "symbols_failed": 0,
+    "current_symbol": None,
+    "current_symbol_index": None,
+    "fetch_indicators": False,
+
+    # Timing / Results
+    "cycle_started_at": None,
+    "cycle_duration_seconds": None,
+    "last_symbol_result": None,
+    "last_cycle_result": None,
+    "poll_interval_seconds": None
 }
 
 pipeline_lock = threading.Lock()
 pipeline_thread = None
 
-
 # ---------------------------------------------------
 # Hilfsfunktionen
 # ---------------------------------------------------
-def now_berlin_iso():
+def now_berlin_iso() -> str:
     return datetime.now(BERLIN_TZ).isoformat()
 
 
 def update_pipeline_status(**kwargs):
+    """
+    Thread-sicheres Update des globalen Pipeline-Status.
+    Diese Funktion wird auch als status_callback an main.py übergeben.
+    """
     with pipeline_lock:
         for key, value in kwargs.items():
             pipeline_status[key] = value
 
+        # Konsistenzregeln
+        if "error" in kwargs and kwargs["error"]:
+            pipeline_status["last_error"] = kwargs["error"]
+
+        if kwargs.get("event") == "pipeline_started":
+            pipeline_status["started"] = True
+            pipeline_status["running"] = True
+            pipeline_status["thread_alive"] = True
+            pipeline_status["stopped_at"] = None
+
+        if kwargs.get("event") == "pipeline_stopped":
+            pipeline_status["running"] = False
+            pipeline_status["thread_alive"] = False
+            pipeline_status["stopped_at"] = kwargs.get("stopped_at", now_berlin_iso())
+
+        if kwargs.get("event") == "pipeline_error" and "running" not in kwargs:
+            pipeline_status["running"] = True
+
+        if kwargs.get("event") == "cycle_finished":
+            pipeline_status["current_symbol"] = None
+            pipeline_status["current_symbol_index"] = None
+
+        if "symbols" in kwargs and kwargs["symbols"] is None:
+            pipeline_status["symbols"] = []
+
+        if "thread_alive" not in kwargs and pipeline_thread is not None:
+            pipeline_status["thread_alive"] = pipeline_thread.is_alive()
+
 
 def get_pipeline_status_copy():
     with pipeline_lock:
-        return dict(pipeline_status)
+        status_copy = dict(pipeline_status)
+
+    # Thread-Status außerhalb des Locks ergänzen
+    status_copy["thread_alive"] = pipeline_thread.is_alive() if pipeline_thread else False
+    return status_copy
 
 
 # ---------------------------------------------------
-# Background Pipeline
+# Pipeline Thread
 # ---------------------------------------------------
 def run_pipeline_loop():
     """
-    Startet die eigentliche Endlosschleife der Pipeline.
-    Läuft in einem Background-Thread.
+    Startet die Pipeline im Background-Thread.
+    main.py übernimmt die eigentliche Schleife und sendet Status-Updates
+    über den status_callback.
     """
-    logger.info("Pipeline thread started.")
+    logger.info("Pipeline thread booting...")
 
     update_pipeline_status(
+        event="thread_boot",
         started=True,
         running=True,
+        thread_alive=True,
+        phase="thread_booting",
         started_at=now_berlin_iso(),
-        last_error=None,
-        thread_alive=True
+        error=None
     )
 
     try:
-        # pipeline_main (status_callback=update_pipeline_status) enthält bereits die while-True-Schleife
-  pipeline_main(status_callback=update_pipeline_status)
+        pipeline_main(status_callback=update_pipeline_status)
 
     except Exception as e:
-        logger.exception("Pipeline crashed with exception.")
+        logger.exception("Pipeline crashed with exception")
         update_pipeline_status(
+            event="pipeline_error",
             running=False,
-            last_error=str(e),
-            thread_alive=False
+            thread_alive=False,
+            phase="crashed",
+            error=str(e),
+            stopped_at=now_berlin_iso()
         )
 
     finally:
-        logger.warning("Pipeline thread stopped.")
+        logger.warning("Pipeline thread stopped")
         update_pipeline_status(
+            event="thread_stopped",
             running=False,
-            thread_alive=False
+            thread_alive=False,
+            phase="stopped",
+            stopped_at=now_berlin_iso()
         )
 
 
@@ -93,13 +169,7 @@ def ensure_pipeline_started():
     global pipeline_thread
 
     with pipeline_lock:
-        already_started = pipeline_status["started"]
-        thread_is_alive = pipeline_thread is not None and pipeline_thread.is_alive()
-
-        if already_started and thread_is_alive:
-            return False
-
-        if thread_is_alive:
+        if pipeline_thread is not None and pipeline_thread.is_alive():
             return False
 
         pipeline_thread = threading.Thread(
@@ -111,11 +181,14 @@ def ensure_pipeline_started():
 
         pipeline_status["started"] = True
         pipeline_status["running"] = True
-        pipeline_status["started_at"] = now_berlin_iso()
-        pipeline_status["last_error"] = None
         pipeline_status["thread_alive"] = True
+        pipeline_status["phase"] = "starting"
+        pipeline_status["started_at"] = now_berlin_iso()
+        pipeline_status["stopped_at"] = None
+        pipeline_status["error"] = None
+        pipeline_status["last_error"] = None
 
-        logger.info("Pipeline started once from web process.")
+        logger.info("Pipeline started from web process")
         return True
 
 
@@ -138,8 +211,8 @@ def index():
 @app.route("/health")
 def health():
     """
-    Leichter Health-Check Endpoint.
-    Ideal für UptimeRobot / Cron / Keep-Alive.
+    Leichter Health-Check.
+    Für UptimeRobot / Cron / Render Keep-Alive geeignet.
     """
     status = get_pipeline_status_copy()
 
@@ -154,10 +227,23 @@ def health():
 @app.route("/api/pipeline-status")
 def pipeline_status_api():
     """
-    Detaillierter Status für Debugging / Frontend.
+    Detaillierter Pipeline-Status für Debugging / Frontend.
     """
-    status = get_pipeline_status_copy()
-    return jsonify(status), 200
+    return jsonify(get_pipeline_status_copy()), 200
+
+
+@app.route("/api/start-pipeline", methods=["GET", "POST"])
+def start_pipeline_api():
+    """
+    Startet Pipeline manuell, falls sie noch nicht läuft.
+    """
+    started_now = ensure_pipeline_started()
+
+    return jsonify({
+        "started_now": started_now,
+        "pipeline": get_pipeline_status_copy(),
+        "timestamp": now_berlin_iso()
+    }), 200
 
 
 @app.route("/api/dashboard")
@@ -278,21 +364,26 @@ def dashboard_data():
         logger.exception("API Error in /api/dashboard")
         return jsonify({
             "error": str(e),
-            "timestamp": now_berlin_iso()
+            "timestamp": now_berlin_iso(),
+            "pipeline": get_pipeline_status_copy()
         }), 500
 
 
 # ---------------------------------------------------
-# Optional: Pipeline manuell triggern / prüfen
+# Optional: einfache Landing-Info
 # ---------------------------------------------------
-@app.route("/api/start-pipeline", methods=["POST", "GET"])
-def start_pipeline_api():
-    started = ensure_pipeline_started()
-    status = get_pipeline_status_copy()
-
+@app.route("/api")
+def api_root():
     return jsonify({
-        "started_now": started,
-        "pipeline": status,
+        "service": "market-dashboard",
+        "available_endpoints": [
+            "/",
+            "/health",
+            "/api",
+            "/api/dashboard",
+            "/api/pipeline-status",
+            "/api/start-pipeline"
+        ],
         "timestamp": now_berlin_iso()
     }), 200
 

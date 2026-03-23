@@ -93,6 +93,34 @@ def get_pipeline_status_copy():
     return status_copy
 
 
+def relation_exists(cur, relation_name: str) -> bool:
+    """
+    Prüft, ob Tabelle/View im public-Schema existiert.
+    Funktioniert für Tabellen, Views, Materialized Views etc.
+    """
+    cur.execute(
+        """
+        SELECT EXISTS (
+            SELECT 1
+            FROM pg_class c
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE c.relname = %s
+              AND n.nspname = 'public'
+        );
+        """,
+        (relation_name,)
+    )
+    return bool(cur.fetchone()[0])
+
+
+def to_float(value):
+    return float(value) if value is not None else None
+
+
+def to_iso(value):
+    return value.isoformat() if value is not None else None
+
+
 # ---------------------------------------------------
 # Pipeline Thread
 # ---------------------------------------------------
@@ -220,9 +248,9 @@ def dashboard_data():
     try:
         with get_connection() as conn:
             with conn.cursor() as cur:
-                # ---------------------------
+                # ---------------------------------------------------
                 # Stats
-                # ---------------------------
+                # ---------------------------------------------------
                 cur.execute("SELECT COUNT(*) FROM dim_symbol;")
                 total_symbols = cur.fetchone()[0] or 0
 
@@ -242,103 +270,243 @@ def dashboard_data():
                 """)
                 success_rate = float(cur.fetchone()[0] or 0)
 
-                # ---------------------------
-                # Dashboard rows (best source)
-                # ---------------------------
-                cur.execute("""
-                    SELECT
-                        symbol_code,
-                        company_name,
-                        exchange,
-                        current_price,
-                        change_pct,
-                        day_high,
-                        day_low,
-                        market_cap,
-                        pe_ratio,
-                        eps_ttm,
-                        beta,
-                        week_52_high,
-                        week_52_low,
-                        rsi_14,
-                        rsi_signal,
-                        macd,
-                        macd_sig,
-                        macd_hist,
-                        macd_signal_text,
-                        last_updated
-                    FROM vw_dashboard_main
-                    WHERE current_price IS NOT NULL
-                    ORDER BY symbol_code;
-                """)
+                # ---------------------------------------------------
+                # dashboard_rows
+                # Preferred: vw_dashboard_main
+                # Fallback: latest quote + fundamentals + indicators
+                # ---------------------------------------------------
                 dashboard_rows = []
-                for row in cur.fetchall():
-                    dashboard_rows.append({
-                        "symbol": row[0],
-                        "company_name": row[1],
-                        "exchange": row[2],
-                        "current_price": float(row[3]) if row[3] is not None else None,
-                        "change_pct": float(row[4]) if row[4] is not None else None,
-                        "day_high": float(row[5]) if row[5] is not None else None,
-                        "day_low": float(row[6]) if row[6] is not None else None,
-                        "market_cap": float(row[7]) if row[7] is not None else None,
-                        "pe_ratio": float(row[8]) if row[8] is not None else None,
-                        "eps_ttm": float(row[9]) if row[9] is not None else None,
-                        "beta": float(row[10]) if row[10] is not None else None,
-                        "week_52_high": float(row[11]) if row[11] is not None else None,
-                        "week_52_low": float(row[12]) if row[12] is not None else None,
-                        "rsi_14": float(row[13]) if row[13] is not None else None,
-                        "rsi_signal": row[14],
-                        "macd": float(row[15]) if row[15] is not None else None,
-                        "macd_sig": float(row[16]) if row[16] is not None else None,
-                        "macd_hist": float(row[17]) if row[17] is not None else None,
-                        "macd_signal_text": row[18],
-                        "last_updated": row[19].isoformat() if row[19] else None
-                    })
 
-                # ---------------------------
-                # Latest quotes
-                # ---------------------------
-                cur.execute("""
-                    SELECT
-                        symbol_code,
-                        company_name,
-                        exchange,
-                        country,
-                        quote_time_utc,
-                        price,
-                        open,
-                        high,
-                        low,
-                        previous_close,
-                        change,
-                        change_pct,
-                        fetched_at_utc
-                    FROM vw_latest_quotes
-                    ORDER BY fetched_at_utc DESC
-                    LIMIT 20;
-                """)
+                if relation_exists(cur, "vw_dashboard_main"):
+                    cur.execute("""
+                        SELECT
+                            symbol_code,
+                            company_name,
+                            exchange,
+                            current_price,
+                            change_pct,
+                            day_high,
+                            day_low,
+                            market_cap,
+                            pe_ratio,
+                            eps_ttm,
+                            beta,
+                            week_52_high,
+                            week_52_low,
+                            rsi_14,
+                            rsi_signal,
+                            macd,
+                            macd_sig,
+                            macd_hist,
+                            macd_signal_text,
+                            last_updated
+                        FROM vw_dashboard_main
+                        WHERE current_price IS NOT NULL
+                        ORDER BY symbol_code;
+                    """)
+                    for row in cur.fetchall():
+                        dashboard_rows.append({
+                            "symbol": row[0],
+                            "company_name": row[1],
+                            "exchange": row[2],
+                            "current_price": to_float(row[3]),
+                            "change_pct": to_float(row[4]),
+                            "day_high": to_float(row[5]),
+                            "day_low": to_float(row[6]),
+                            "market_cap": to_float(row[7]),
+                            "pe_ratio": to_float(row[8]),
+                            "eps_ttm": to_float(row[9]),
+                            "beta": to_float(row[10]),
+                            "week_52_high": to_float(row[11]),
+                            "week_52_low": to_float(row[12]),
+                            "rsi_14": to_float(row[13]),
+                            "rsi_signal": row[14],
+                            "macd": to_float(row[15]),
+                            "macd_sig": to_float(row[16]),
+                            "macd_hist": to_float(row[17]),
+                            "macd_signal_text": row[18],
+                            "last_updated": to_iso(row[19])
+                        })
+                else:
+                    logger.warning("vw_dashboard_main does not exist. Using fallback query for dashboard_rows.")
+                    cur.execute("""
+                        SELECT
+                            s.symbol_code,
+                            s.company_name,
+                            COALESCE(s.exchange, 'Market') AS exchange,
+                            q.price AS current_price,
+                            q.change_pct,
+                            q.high AS day_high,
+                            q.low AS day_low,
+                            f.market_cap,
+                            f.pe_ratio,
+                            f.eps_ttm,
+                            f.beta,
+                            f.week_52_high,
+                            f.week_52_low,
+                            rsi.value AS rsi_14,
+                            CASE
+                                WHEN rsi.value >= 70 THEN 'Overbought'
+                                WHEN rsi.value <= 30 THEN 'Oversold'
+                                WHEN rsi.value IS NULL THEN NULL
+                                ELSE 'Neutral'
+                            END AS rsi_signal,
+                            macd.macd,
+                            macd.macd_signal AS macd_sig,
+                            macd.macd_hist,
+                            CASE
+                                WHEN macd.macd > macd.macd_signal THEN 'Bullish'
+                                WHEN macd.macd < macd.macd_signal THEN 'Bearish'
+                                WHEN macd.macd IS NULL OR macd.macd_signal IS NULL THEN NULL
+                                ELSE 'Neutral'
+                            END AS macd_signal_text,
+                            q.fetched_at_utc AS last_updated
+                        FROM dim_symbol s
+                        LEFT JOIN LATERAL (
+                            SELECT *
+                            FROM fact_market_quote fq
+                            WHERE fq.symbol_id = s.symbol_id
+                            ORDER BY fq.fetched_at_utc DESC
+                            LIMIT 1
+                        ) q ON TRUE
+                        LEFT JOIN LATERAL (
+                            SELECT *
+                            FROM fact_company_fundamental ff
+                            WHERE ff.symbol_id = s.symbol_id
+                            ORDER BY ff.fetched_at_utc DESC
+                            LIMIT 1
+                        ) f ON TRUE
+                        LEFT JOIN LATERAL (
+                            SELECT fi.*
+                            FROM fact_market_indicator fi
+                            JOIN dim_indicator di ON di.indicator_id = fi.indicator_id
+                            WHERE fi.symbol_id = s.symbol_id
+                              AND di.indicator_name = 'RSI'
+                            ORDER BY fi.candle_time_utc DESC
+                            LIMIT 1
+                        ) rsi ON TRUE
+                        LEFT JOIN LATERAL (
+                            SELECT fi.*
+                            FROM fact_market_indicator fi
+                            JOIN dim_indicator di ON di.indicator_id = fi.indicator_id
+                            WHERE fi.symbol_id = s.symbol_id
+                              AND di.indicator_name = 'MACD'
+                            ORDER BY fi.candle_time_utc DESC
+                            LIMIT 1
+                        ) macd ON TRUE
+                        WHERE q.price IS NOT NULL
+                        ORDER BY s.symbol_code;
+                    """)
+                    for row in cur.fetchall():
+                        dashboard_rows.append({
+                            "symbol": row[0],
+                            "company_name": row[1],
+                            "exchange": row[2],
+                            "current_price": to_float(row[3]),
+                            "change_pct": to_float(row[4]),
+                            "day_high": to_float(row[5]),
+                            "day_low": to_float(row[6]),
+                            "market_cap": to_float(row[7]),
+                            "pe_ratio": to_float(row[8]),
+                            "eps_ttm": to_float(row[9]),
+                            "beta": to_float(row[10]),
+                            "week_52_high": to_float(row[11]),
+                            "week_52_low": to_float(row[12]),
+                            "rsi_14": to_float(row[13]),
+                            "rsi_signal": row[14],
+                            "macd": to_float(row[15]),
+                            "macd_sig": to_float(row[16]),
+                            "macd_hist": to_float(row[17]),
+                            "macd_signal_text": row[18],
+                            "last_updated": to_iso(row[19])
+                        })
+
+                # ---------------------------------------------------
+                # quotes
+                # Preferred: vw_latest_quotes
+                # Fallback: fact_market_quote + dim_symbol
+                # ---------------------------------------------------
                 quotes = []
-                for row in cur.fetchall():
-                    quotes.append({
-                        "symbol": row[0],
-                        "company_name": row[1],
-                        "exchange": row[2],
-                        "country": row[3],
-                        "quote_time_utc": row[4].isoformat() if row[4] else None,
-                        "price": float(row[5]) if row[5] is not None else None,
-                        "open": float(row[6]) if row[6] is not None else None,
-                        "high": float(row[7]) if row[7] is not None else None,
-                        "low": float(row[8]) if row[8] is not None else None,
-                        "previous_close": float(row[9]) if row[9] is not None else None,
-                        "change": float(row[10]) if row[10] is not None else None,
-                        "change_pct": float(row[11]) if row[11] is not None else None,
-                        "fetched_at_utc": row[12].isoformat() if row[12] else None
-                    })
 
-                # ---------------------------
-                # Chart history (24h intraday; fallback 30d daily)
-                # ---------------------------
+                if relation_exists(cur, "vw_latest_quotes"):
+                    cur.execute("""
+                        SELECT
+                            symbol_code,
+                            company_name,
+                            exchange,
+                            country,
+                            quote_time_utc,
+                            price,
+                            open,
+                            high,
+                            low,
+                            previous_close,
+                            change,
+                            change_pct,
+                            fetched_at_utc
+                        FROM vw_latest_quotes
+                        ORDER BY fetched_at_utc DESC
+                        LIMIT 20;
+                    """)
+                    for row in cur.fetchall():
+                        quotes.append({
+                            "symbol": row[0],
+                            "company_name": row[1],
+                            "exchange": row[2],
+                            "country": row[3],
+                            "quote_time_utc": to_iso(row[4]),
+                            "price": to_float(row[5]),
+                            "open": to_float(row[6]),
+                            "high": to_float(row[7]),
+                            "low": to_float(row[8]),
+                            "previous_close": to_float(row[9]),
+                            "change": to_float(row[10]),
+                            "change_pct": to_float(row[11]),
+                            "fetched_at_utc": to_iso(row[12])
+                        })
+                else:
+                    logger.warning("vw_latest_quotes does not exist. Using fallback query for quotes.")
+                    cur.execute("""
+                        SELECT DISTINCT ON (s.symbol_code)
+                            s.symbol_code,
+                            s.company_name,
+                            COALESCE(s.exchange, 'Market') AS exchange,
+                            s.country,
+                            q.quote_time_utc,
+                            q.price,
+                            q.open,
+                            q.high,
+                            q.low,
+                            q.previous_close,
+                            q.change,
+                            q.change_pct,
+                            q.fetched_at_utc
+                        FROM fact_market_quote q
+                        JOIN dim_symbol s ON s.symbol_id = q.symbol_id
+                        ORDER BY s.symbol_code, q.fetched_at_utc DESC
+                        LIMIT 20;
+                    """)
+                    for row in cur.fetchall():
+                        quotes.append({
+                            "symbol": row[0],
+                            "company_name": row[1],
+                            "exchange": row[2],
+                            "country": row[3],
+                            "quote_time_utc": to_iso(row[4]),
+                            "price": to_float(row[5]),
+                            "open": to_float(row[6]),
+                            "high": to_float(row[7]),
+                            "low": to_float(row[8]),
+                            "previous_close": to_float(row[9]),
+                            "change": to_float(row[10]),
+                            "change_pct": to_float(row[11]),
+                            "fetched_at_utc": to_iso(row[12])
+                        })
+
+                # ---------------------------------------------------
+                # history
+                # Use fact_market_timeseries directly
+                # ---------------------------------------------------
                 cur.execute("""
                     SELECT
                         s.symbol_code,
@@ -356,8 +524,8 @@ def dashboard_data():
                 history = {}
                 for sym, close_price, local_time in raw_series:
                     history.setdefault(sym, []).append({
-                        "x": local_time.isoformat() if local_time else None,
-                        "y": float(close_price) if close_price is not None else None
+                        "x": to_iso(local_time),
+                        "y": to_float(close_price)
                     })
 
                 if not history:
@@ -376,13 +544,13 @@ def dashboard_data():
                     raw_series = cur.fetchall()
                     for sym, close_price, local_time in raw_series:
                         history.setdefault(sym, []).append({
-                            "x": local_time.isoformat() if local_time else None,
-                            "y": float(close_price) if close_price is not None else None
+                            "x": to_iso(local_time),
+                            "y": to_float(close_price)
                         })
 
-                # ---------------------------
-                # Latency history
-                # ---------------------------
+                # ---------------------------------------------------
+                # latency_history
+                # ---------------------------------------------------
                 cur.execute("""
                     SELECT
                         TO_CHAR(called_at_utc AT TIME ZONE 'Europe/Berlin', 'HH24:MI') AS t,
@@ -396,67 +564,142 @@ def dashboard_data():
                 for row in cur.fetchall():
                     latency_history.append({
                         "t": row[0],
-                        "ms": float(row[1]) if row[1] is not None else 0.0
+                        "ms": to_float(row[1]) or 0.0
                     })
 
-                # ---------------------------
-                # Upcoming earnings
-                # ---------------------------
-                cur.execute("""
-                    SELECT
-                        symbol_code,
-                        company_name,
-                        report_date,
-                        hour,
-                        eps_estimate,
-                        eps_actual,
-                        revenue_estimate,
-                        revenue_actual,
-                        eps_surprise_pct
-                    FROM vw_earnings_upcoming
-                    ORDER BY report_date ASC, symbol_code ASC
-                    LIMIT 8;
-                """)
+                # ---------------------------------------------------
+                # earnings
+                # Preferred: vw_earnings_upcoming
+                # Fallback: fact_earnings_calendar + dim_symbol
+                # ---------------------------------------------------
                 earnings = []
-                for row in cur.fetchall():
-                    earnings.append({
-                        "symbol": row[0],
-                        "company_name": row[1],
-                        "report_date": row[2].isoformat() if row[2] else None,
-                        "hour": row[3],
-                        "eps_estimate": float(row[4]) if row[4] is not None else None,
-                        "eps_actual": float(row[5]) if row[5] is not None else None,
-                        "revenue_estimate": float(row[6]) if row[6] is not None else None,
-                        "revenue_actual": float(row[7]) if row[7] is not None else None,
-                        "eps_surprise_pct": float(row[8]) if row[8] is not None else None
-                    })
 
-                # ---------------------------
-                # Recent API log
-                # ---------------------------
-                cur.execute("""
-                    SELECT
-                        called_at_utc,
-                        source_name,
-                        symbol_code,
-                        endpoint,
-                        http_status,
-                        response_ms,
-                        error_msg
-                    FROM vw_api_log
-                    LIMIT 12;
-                """)
+                if relation_exists(cur, "vw_earnings_upcoming"):
+                    cur.execute("""
+                        SELECT
+                            symbol_code,
+                            company_name,
+                            report_date,
+                            hour,
+                            eps_estimate,
+                            eps_actual,
+                            revenue_estimate,
+                            revenue_actual,
+                            eps_surprise_pct
+                        FROM vw_earnings_upcoming
+                        ORDER BY report_date ASC, symbol_code ASC
+                        LIMIT 8;
+                    """)
+                    for row in cur.fetchall():
+                        earnings.append({
+                            "symbol": row[0],
+                            "company_name": row[1],
+                            "report_date": to_iso(row[2]),
+                            "hour": row[3],
+                            "eps_estimate": to_float(row[4]),
+                            "eps_actual": to_float(row[5]),
+                            "revenue_estimate": to_float(row[6]),
+                            "revenue_actual": to_float(row[7]),
+                            "eps_surprise_pct": to_float(row[8])
+                        })
+                else:
+                    logger.warning("vw_earnings_upcoming does not exist. Using fallback query for earnings.")
+                    cur.execute("""
+                        SELECT
+                            s.symbol_code,
+                            s.company_name,
+                            e.report_date,
+                            e.hour,
+                            e.eps_estimate,
+                            e.eps_actual,
+                            e.revenue_estimate,
+                            e.revenue_actual,
+                            CASE
+                                WHEN e.eps_actual IS NOT NULL
+                                 AND e.eps_estimate IS NOT NULL
+                                THEN ROUND(
+                                    (e.eps_actual - e.eps_estimate)
+                                    / NULLIF(ABS(e.eps_estimate), 0) * 100,
+                                    2
+                                )
+                                ELSE NULL
+                            END AS eps_surprise_pct
+                        FROM fact_earnings_calendar e
+                        JOIN dim_symbol s ON s.symbol_id = e.symbol_id
+                        WHERE e.report_date >= CURRENT_DATE
+                        ORDER BY e.report_date ASC, s.symbol_code ASC
+                        LIMIT 8;
+                    """)
+                    for row in cur.fetchall():
+                        earnings.append({
+                            "symbol": row[0],
+                            "company_name": row[1],
+                            "report_date": to_iso(row[2]),
+                            "hour": row[3],
+                            "eps_estimate": to_float(row[4]),
+                            "eps_actual": to_float(row[5]),
+                            "revenue_estimate": to_float(row[6]),
+                            "revenue_actual": to_float(row[7]),
+                            "eps_surprise_pct": to_float(row[8])
+                        })
+
+                # ---------------------------------------------------
+                # api_log
+                # Preferred: vw_api_log
+                # Fallback: log_api_call + dim_source + dim_symbol
+                # ---------------------------------------------------
                 api_log = []
-                for row in cur.fetchall():
-                    api_log.append({
-                        "called_at_utc": row[0].isoformat() if row[0] else None,
-                        "source_name": row[1],
-                        "symbol_code": row[2],
-                        "endpoint": row[3],
-                        "http_status": row[4],
-                        "response_ms": row[5],
-                        "error_msg": row[6]
-                    })
+
+                if relation_exists(cur, "vw_api_log"):
+                    cur.execute("""
+                        SELECT
+                            called_at_utc,
+                            source_name,
+                            symbol_code,
+                            endpoint,
+                            http_status,
+                            response_ms,
+                            error_msg
+                        FROM vw_api_log
+                        LIMIT 12;
+                    """)
+                    for row in cur.fetchall():
+                        api_log.append({
+                            "called_at_utc": to_iso(row[0]),
+                            "source_name": row[1],
+                            "symbol_code": row[2],
+                            "endpoint": row[3],
+                            "http_status": row[4],
+                            "response_ms": row[5],
+                            "error_msg": row[6]
+                        })
+                else:
+                    logger.warning("vw_api_log does not exist. Using fallback query for api_log.")
+                    cur.execute("""
+                        SELECT
+                            l.called_at_utc,
+                            src.source_name,
+                            s.symbol_code,
+                            l.endpoint,
+                            l.http_status,
+                            l.response_ms,
+                            l.error_msg
+                        FROM log_api_call l
+                        LEFT JOIN dim_source src ON src.source_id = l.source_id
+                        LEFT JOIN dim_symbol s   ON s.symbol_id = l.symbol_id
+                        ORDER BY l.called_at_utc DESC
+                        LIMIT 12;
+                    """)
+                    for row in cur.fetchall():
+                        api_log.append({
+                            "called_at_utc": to_iso(row[0]),
+                            "source_name": row[1],
+                            "symbol_code": row[2],
+                            "endpoint": row[3],
+                            "http_status": row[4],
+                            "response_ms": row[5],
+                            "error_msg": row[6]
+                        })
 
                 return jsonify({
                     "stats": {

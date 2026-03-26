@@ -150,6 +150,42 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 .fp-rp{font-size:9px;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
 .fp-pc{font-size:9px;font-weight:800;text-align:right;font-family:"IBM Plex Mono",monospace;}
 
+/* Y-AXIS PRICE BADGE */
+.y-badge{
+  position:absolute;right:8px;z-index:9;pointer-events:none;
+  padding:4px 9px;border-radius:8px;
+  background:rgba(4,9,16,.97);border:1px solid rgba(59,130,246,.28);
+  color:#dbeafe;font-size:10px;font-weight:800;
+  font-family:"IBM Plex Mono",monospace;
+  box-shadow:0 4px 16px rgba(0,0,0,.4);
+  opacity:0;transform:translateY(-50%);
+  transition:opacity .08s ease,top 0s;
+  white-space:nowrap;
+}
+.y-badge.on{opacity:1;}
+
+/* PER-LINE Y BADGES */
+.y-line-badge{
+  position:absolute;right:8px;z-index:9;pointer-events:none;
+  padding:3px 7px;border-radius:7px;
+  font-size:9px;font-weight:800;
+  font-family:"IBM Plex Mono",monospace;
+  opacity:0;transform:translateY(-50%);
+  transition:opacity .08s ease,top 0s;
+  white-space:nowrap;
+}
+.y-line-badge.on{opacity:1;}
+
+/* CURSOR DOT */
+.cursor-dot{
+  position:absolute;width:8px;height:8px;border-radius:50%;z-index:9;
+  pointer-events:none;
+  box-shadow:0 0 0 2px rgba(255,255,255,.15),0 0 14px rgba(255,255,255,.2);
+  transform:translate(-50%,-50%);
+  opacity:0;transition:opacity .08s ease;
+}
+.cursor-dot.on{opacity:1;}
+
 /* LEGEND */
 .leg{display:flex;flex-direction:column;gap:5px;margin-top:8px;}
 .lr{display:grid;grid-template-columns:9px 1fr auto auto;gap:8px;align-items:center;padding:9px 11px;border-radius:11px;background:var(--panel2);border:1px solid var(--border2);}
@@ -295,8 +331,13 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
             </div>
           </div>
           <div class="cstrip" id="cstrip"></div>
-          <div class="cbox">
+          <div class="cbox" id="chart-box">
             <div class="fpb" id="fpb"></div>
+            <div class="y-badge" id="y-badge"></div>
+            <div class="y-line-badge" id="ylb-0"></div>
+            <div class="y-line-badge" id="ylb-1"></div>
+            <div class="y-line-badge" id="ylb-2"></div>
+            <div class="cursor-dot" id="cursor-dot"></div>
             <canvas id="main-chart"></canvas>
           </div>
           <div class="leg" id="legend"></div>
@@ -517,9 +558,52 @@ Chart.register({
   afterDatasetsDraw(chart){
     const{ctx,tooltip,chartArea}=chart;
     if(!tooltip?._active?.length)return;
-    const x=tooltip._active[0].element.x;
-    ctx.save();ctx.beginPath();ctx.moveTo(x,chartArea.top);ctx.lineTo(x,chartArea.bottom);
-    ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.18)";ctx.setLineDash([4,5]);ctx.stroke();ctx.restore();
+
+    const active=tooltip._active[0];
+    const x=active.element.x;
+    const y=active.element.y;
+    const dataIndex=active.index;
+
+    ctx.save();
+
+    /* ── vertical dashed line ── */
+    ctx.beginPath();
+    ctx.moveTo(x,chartArea.top);ctx.lineTo(x,chartArea.bottom);
+    ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.22)";
+    ctx.setLineDash([4,5]);ctx.stroke();
+
+    /* ── horizontal dashed line at hovered y ── */
+    ctx.beginPath();
+    ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);
+    ctx.lineWidth=1;ctx.strokeStyle="rgba(59,130,246,.22)";
+    ctx.setLineDash([3,4]);ctx.stroke();
+
+    ctx.setLineDash([]);
+
+    /* ── filled dot + ring on every dataset at same index ── */
+    chart.data.datasets.forEach((ds,dsIdx)=>{
+      const meta=chart.getDatasetMeta(dsIdx);
+      const pt=meta.data[dataIndex];
+      if(!pt)return;
+      // outer glow ring
+      ctx.beginPath();
+      ctx.arc(pt.x,pt.y,8,0,Math.PI*2);
+      ctx.strokeStyle="rgba(255,255,255,.18)";
+      ctx.lineWidth=1.5;
+      ctx.stroke();
+      // filled dot
+      ctx.beginPath();
+      ctx.arc(pt.x,pt.y,4.5,0,Math.PI*2);
+      ctx.fillStyle=ds.borderColor;
+      ctx.fill();
+      // inner white center
+      ctx.beginPath();
+      ctx.arc(pt.x,pt.y,1.8,0,Math.PI*2);
+      ctx.fillStyle="rgba(255,255,255,.9)";
+      ctx.fill();
+    });
+
+    ctx.restore();
   }
 });
 
@@ -531,6 +615,8 @@ function initChart(){
       responsive:true,maintainAspectRatio:false,animation:{duration:260},
       events:["mousemove","mouseout","click","touchstart","touchmove","touchend"],
       interaction:{mode:"index",intersect:false,axis:"x"},
+      hover:{mode:"index",intersect:false},
+      elements:{point:{hoverRadius:6,hitRadius:22}},
       onHover(_,_2,chart){
         const tt=chart.tooltip;
         if(tt?.dataPoints?.length){showFloat(tt.dataPoints);updateLegHover(tt.dataPoints,chart);}
@@ -562,10 +648,18 @@ function initRing(){
   ringChart=new Chart(ctx,{type:"doughnut",data:{datasets:[{data:[succRate,100-succRate],backgroundColor:["#22c55e","#162130"],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:true,cutout:"82%",plugins:{legend:{display:false},tooltip:{enabled:false}}}});
 }
 
-/* ═══════════ FLOAT BOX ═══════════ */
+/* ═══════════ FLOAT BOX + Y-BADGES + CURSOR DOT ═══════════ */
 function showFloat(dps){
-  const box=document.getElementById("fpb");
+  if(!dps?.length)return;
+
+  const box    = document.getElementById("fpb");
+  const yBadge = document.getElementById("y-badge");
+  const cDot   = document.getElementById("cursor-dot");
+
+  /* ── time header ── */
   const time=new Date(dps[0].parsed.x).toLocaleString("de-DE",{hour:"2-digit",minute:"2-digit",day:"2-digit",month:"2-digit"});
+
+  /* ── floating box content ── */
   box.innerHTML=`<div class="fp-t">${time}</div>`+dps.map(dp=>{
     const ds=mainChart.data.datasets[dp.datasetIndex];
     const raw=dp.raw||{},first=ds.data?.[0];
@@ -577,8 +671,53 @@ function showFloat(dps){
     <div class="fp-s"><span></span><span class="fp-rp">${usd(raw.price??0)}</span><span class="fp-pc" style="color:${pc}">${p}</span></div>`;
   }).join("");
   box.classList.add("on");
+
+  /* ── main y-badge (primary dataset, horizontal line position) ── */
+  const fp=dps[0];
+  const yVal=MODE==="real"?usd(fp.parsed.y):`${fp.parsed.y>=0?"+":""}${fp.parsed.y.toFixed(2)}%`;
+  yBadge.textContent=yVal;
+  yBadge.style.top=fp.element.y+"px";
+  yBadge.classList.add("on");
+
+  /* ── per-line right-side badges (each line's exact price) ── */
+  dps.forEach((dp,i)=>{
+    const badge=document.getElementById(`ylb-${i}`);
+    if(!badge)return;
+    const ds=mainChart.data.datasets[dp.datasetIndex];
+    const mv=MODE==="real"?usd(dp.parsed.y):`${dp.parsed.y>=0?"+":""}${dp.parsed.y.toFixed(2)}%`;
+    // position slightly offset so they don't overlap the main badge
+    badge.textContent=mv;
+    badge.style.top=dp.element.y+"px";
+    badge.style.background=ds.borderColor+"28";
+    badge.style.border=`1px solid ${ds.borderColor}55`;
+    badge.style.color=ds.borderColor;
+    // shift badges right so they don't stack on the main y-badge
+    badge.style.right=(i===0?"8px":i===1?"8px":"8px");
+    badge.style.marginTop=(i===0?"0":i===1?"-2px":"-4px");
+    badge.classList.add("on");
+  });
+  /* hide unused badges */
+  for(let i=dps.length;i<3;i++){
+    const b=document.getElementById(`ylb-${i}`);
+    if(b)b.classList.remove("on");
+  }
+
+  /* ── cursor dot on primary hovered point ── */
+  cDot.style.left=fp.element.x+"px";
+  cDot.style.top=fp.element.y+"px";
+  cDot.style.background=mainChart.data.datasets[fp.datasetIndex]?.borderColor||"#3b82f6";
+  cDot.classList.add("on");
 }
-function hideFloat(){document.getElementById("fpb").classList.remove("on");}
+
+function hideFloat(){
+  document.getElementById("fpb").classList.remove("on");
+  document.getElementById("y-badge").classList.remove("on");
+  document.getElementById("cursor-dot").classList.remove("on");
+  for(let i=0;i<3;i++){
+    const b=document.getElementById(`ylb-${i}`);
+    if(b)b.classList.remove("on");
+  }
+}
 
 /* ═══════════ LEGEND ═══════════ */
 function perf(ds){

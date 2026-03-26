@@ -553,54 +553,54 @@ function makeSeries(sym,tfH,nP){
 const nPts=tf=>({24:56,12:40,6:28,3:20,1:14}[tf]||40);
 
 /* ═══════════ CHART ═══════════ */
+/* Global hover state — set by canvas mousemove, read by plugin */
+let _hoverDataIndex = -1;
+
 Chart.register({
   id:"xhair",
   afterDatasetsDraw(chart){
-    const{ctx,tooltip,chartArea}=chart;
-    if(!tooltip?._active?.length)return;
+    if(_hoverDataIndex < 0)return;
+    const{ctx,chartArea,data}=chart;
+    if(!chartArea)return;
 
-    const active=tooltip._active[0];
-    const x=active.element.x;
-    const y=active.element.y;
-    const dataIndex=active.index;
+    /* find pixel x/y from first dataset at hovered index */
+    const meta0=chart.getDatasetMeta(0);
+    const pt0=meta0?.data[_hoverDataIndex];
+    if(!pt0)return;
+
+    const x=pt0.x;
+    const y=pt0.y;
 
     ctx.save();
 
-    /* ── vertical dashed line ── */
+    /* vertical dashed line */
     ctx.beginPath();
     ctx.moveTo(x,chartArea.top);ctx.lineTo(x,chartArea.bottom);
-    ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.22)";
+    ctx.lineWidth=1;ctx.strokeStyle="rgba(255,255,255,.25)";
     ctx.setLineDash([4,5]);ctx.stroke();
 
-    /* ── horizontal dashed line at hovered y ── */
+    /* horizontal dashed line at primary point y */
     ctx.beginPath();
     ctx.moveTo(chartArea.left,y);ctx.lineTo(chartArea.right,y);
-    ctx.lineWidth=1;ctx.strokeStyle="rgba(59,130,246,.22)";
+    ctx.lineWidth=1;ctx.strokeStyle="rgba(59,130,246,.25)";
     ctx.setLineDash([3,4]);ctx.stroke();
 
     ctx.setLineDash([]);
 
-    /* ── filled dot + ring on every dataset at same index ── */
-    chart.data.datasets.forEach((ds,dsIdx)=>{
+    /* dot + glow on every visible dataset */
+    data.datasets.forEach((ds,dsIdx)=>{
       const meta=chart.getDatasetMeta(dsIdx);
-      const pt=meta.data[dataIndex];
+      const pt=meta.data[_hoverDataIndex];
       if(!pt)return;
-      // outer glow ring
-      ctx.beginPath();
-      ctx.arc(pt.x,pt.y,8,0,Math.PI*2);
-      ctx.strokeStyle="rgba(255,255,255,.18)";
-      ctx.lineWidth=1.5;
-      ctx.stroke();
-      // filled dot
-      ctx.beginPath();
-      ctx.arc(pt.x,pt.y,4.5,0,Math.PI*2);
-      ctx.fillStyle=ds.borderColor;
-      ctx.fill();
-      // inner white center
-      ctx.beginPath();
-      ctx.arc(pt.x,pt.y,1.8,0,Math.PI*2);
-      ctx.fillStyle="rgba(255,255,255,.9)";
-      ctx.fill();
+      /* outer ring */
+      ctx.beginPath();ctx.arc(pt.x,pt.y,8,0,Math.PI*2);
+      ctx.strokeStyle="rgba(255,255,255,.2)";ctx.lineWidth=1.5;ctx.stroke();
+      /* filled dot */
+      ctx.beginPath();ctx.arc(pt.x,pt.y,4.5,0,Math.PI*2);
+      ctx.fillStyle=ds.borderColor;ctx.fill();
+      /* white center */
+      ctx.beginPath();ctx.arc(pt.x,pt.y,1.8,0,Math.PI*2);
+      ctx.fillStyle="rgba(255,255,255,.95)";ctx.fill();
     });
 
     ctx.restore();
@@ -616,15 +616,22 @@ function initChart(){
       events:["mousemove","mouseout","click","touchstart","touchmove","touchend"],
       interaction:{mode:"index",intersect:false,axis:"x"},
       hover:{mode:"index",intersect:false},
-      elements:{point:{hoverRadius:6,hitRadius:22}},
-      onHover(_,_2,chart){
-        const tt=chart.tooltip;
-        if(tt?.dataPoints?.length){showFloat(tt.dataPoints);updateLegHover(tt.dataPoints,chart);}
-        else{hideFloat();updateLegDefault();}
-      },
+      elements:{point:{hoverRadius:0,hitRadius:24}},
       plugins:{
         legend:{display:false},
-        tooltip:{enabled:false},
+        tooltip:{
+          enabled:true,
+          external(){},
+          callbacks:{
+            title:()=>"",
+            label:()=>""
+          },
+          backgroundColor:"rgba(0,0,0,0)",
+          borderWidth:0,
+          displayColors:false,
+          bodyColor:"rgba(0,0,0,0)",
+          padding:0
+        },
         zoom:{
           pan:{enabled:window.innerWidth>=900,mode:"x",threshold:8},
           zoom:{wheel:{enabled:window.innerWidth>=900},pinch:{enabled:true},mode:"x"},
@@ -640,7 +647,60 @@ function initChart(){
       }
     }
   });
-  document.getElementById("main-chart").addEventListener("mouseleave",()=>{hideFloat();updateLegDefault();});
+
+  /* ── Direct canvas events: most reliable hover detection in Chart.js v4 ── */
+  const canvas = document.getElementById("main-chart");
+
+  function handleHover(clientX, clientY){
+    if(!mainChart)return;
+    const rect = canvas.getBoundingClientRect();
+    const points = mainChart.getElementsAtEventForMode(
+      {clientX, clientY, type:"mousemove"},
+      "index", {intersect:false}, false
+    );
+    if(points && points.length){
+      _hoverDataIndex = points[0].index;
+      const dps = points.map(p=>({
+        datasetIndex: p.datasetIndex,
+        index: p.index,
+        parsed: mainChart.data.datasets[p.datasetIndex].data[p.index],
+        raw:    mainChart.data.datasets[p.datasetIndex].data[p.index],
+        element: mainChart.getDatasetMeta(p.datasetIndex).data[p.index]
+      }));
+      showFloat(dps);
+      updateLegHover(dps, mainChart);
+      mainChart.update("none");
+    } else {
+      _hoverDataIndex = -1;
+      hideFloat();
+      updateLegDefault();
+      mainChart.update("none");
+    }
+  }
+
+  canvas.addEventListener("mousemove", e=>{
+    handleHover(e.clientX, e.clientY);
+  });
+  canvas.addEventListener("mouseleave",()=>{
+    _hoverDataIndex=-1;
+    hideFloat();updateLegDefault();
+    mainChart.update("none");
+  });
+
+  /* Touch support */
+  canvas.addEventListener("touchstart", e=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    handleHover(t.clientX, t.clientY);
+  },{passive:false});
+  canvas.addEventListener("touchmove", e=>{
+    e.preventDefault();
+    const t=e.touches[0];
+    handleHover(t.clientX, t.clientY);
+  },{passive:false});
+  canvas.addEventListener("touchend",()=>{
+    setTimeout(()=>{_hoverDataIndex=-1;hideFloat();updateLegDefault();mainChart.update("none");},1200);
+  });
 }
 
 function initRing(){
@@ -769,6 +829,8 @@ function renderStrip(){
 }
 
 function refreshChart(){
+  _hoverDataIndex=-1;
+  hideFloat();
   const syms=getSet().map(find).filter(Boolean);
   mainChart.data.datasets=syms.map((s,i)=>({
     label:s.sym,data:makeSeries(s,Number(TF),nPts(TF)),parsing:false,

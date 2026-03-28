@@ -20,6 +20,13 @@ DB_CONFIG = {
 def get_db():
     return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "message": "Market API läuft",
+        "status": "ok"
+    })
+
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok"})
@@ -75,7 +82,6 @@ def get_table_data(table_name):
     sort_col = request.args.get("sort_col")
     sort_dir = request.args.get("sort_dir", "desc").upper()
 
-    # table exists check
     cur.execute("""
         SELECT EXISTS (
             SELECT 1
@@ -91,7 +97,6 @@ def get_table_data(table_name):
         conn.close()
         return jsonify({"error": "Table not found"}), 404
 
-    # column info
     cur.execute("""
         SELECT 
             c.column_name as name,

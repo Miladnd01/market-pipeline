@@ -266,6 +266,87 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 }
 .footer-credit span{color:var(--muted);}
 .footer-credit strong{color:#4e7aac;font-weight:800;}
+/* ── DB SCHEMA EXPLORER ── */
+.db-header{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid var(--border2);}
+.db-title{font-size:11px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);letter-spacing:.06em;}
+.db-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;font-family:"IBM Plex Mono",monospace;}
+.db-search{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
+.db-search::placeholder{color:var(--faint);}
+.db-search:focus{border-color:rgba(59,130,246,.45);outline:none;}
+
+.db-tree{display:flex;flex-direction:column;gap:2px;padding:8px 10px;}
+
+/* schema row = clickable table node */
+.dbt-row{
+  display:flex;align-items:center;gap:0;
+  border-radius:10px;cursor:pointer;
+  overflow:hidden;
+  border:1px solid transparent;
+  transition:all .12s;
+  flex-direction:column;
+}
+.dbt-row:active{transform:scale(.99);}
+.dbt-row.open .dbt-head{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.28);}
+
+.dbt-head{
+  display:grid;grid-template-columns:18px 1fr auto auto;
+  align-items:center;gap:8px;
+  width:100%;padding:9px 11px;
+  border-radius:10px;
+  border:1px solid transparent;
+  background:var(--panel2);
+  transition:all .12s;
+}
+.dbt-row.open .dbt-head{
+  border-radius:10px 10px 0 0;
+  border-bottom:1px solid var(--border2);
+}
+
+.dbt-icon{font-size:12px;color:#60a5fa;flex-shrink:0;}
+.dbt-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
+.dbt-type{font-size:9px;font-weight:700;font-family:"IBM Plex Mono",monospace;padding:2px 6px;border-radius:5px;}
+.dbt-type.dim{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
+.dbt-type.fact{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);}
+.dbt-type.log{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
+.dbt-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
+.dbt-row.open .dbt-arrow{transform:rotate(90deg);}
+
+/* columns panel */
+.dbt-cols{
+  display:none;
+  flex-direction:column;gap:0;
+  background:rgba(4,9,16,.6);
+  border:1px solid rgba(59,130,246,.2);
+  border-top:none;
+  border-radius:0 0 10px 10px;
+  width:100%;
+  overflow:hidden;
+}
+.dbt-row.open .dbt-cols{display:flex;}
+
+.dbt-col{
+  display:grid;grid-template-columns:18px 1fr auto;
+  gap:6px;align-items:center;
+  padding:7px 11px;
+  border-bottom:1px solid rgba(255,255,255,.03);
+  font-size:10px;font-family:"IBM Plex Mono",monospace;
+}
+.dbt-col:last-child{border-bottom:none;}
+.col-icon{font-size:9px;color:var(--faint);}
+.col-icon.pk{color:#fbbf24;}
+.col-icon.fk{color:#60a5fa;}
+.col-name{color:var(--soft);font-weight:600;}
+.col-name.pk-col{color:#fde68a;font-weight:800;}
+.col-dtype{color:var(--faint);font-size:9px;text-align:right;}
+
+/* row count chip */
+.dbt-rows{font-size:9px;font-weight:700;font-family:"IBM Plex Mono",monospace;color:var(--muted);}
+
+/* stats bar */
+.db-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px;}
+.db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;padding:9px 10px;text-align:center;}
+.db-stat-val{font-size:16px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
 </style>
 </head>
 <body>
@@ -424,19 +505,30 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <div class="end"></div>
     </section>
 
-    <!-- SCREEN: WATCHLIST -->
+    <!-- SCREEN: DATABASE SCHEMA EXPLORER -->
     <section class="screen" id="scr-watch">
-      <div class="ticker-wrap"><div class="ticker-track" id="ticker"></div></div>
+
+      <!-- Stats bar -->
       <div class="card">
-        <div class="ch">
-          <div><div class="kk">Watchlist</div><div class="ht mono">Assets</div></div>
-          <div style="text-align:right">
-            <div class="mono" style="font-size:14px;font-weight:800" id="sel-sym">--</div>
-            <div class="mono" style="font-size:11px;margin-top:3px" id="sel-chg">--</div>
-          </div>
+        <div class="db-stats">
+          <div class="db-stat"><div class="db-stat-val mono" style="color:#c084fc">4</div><div class="db-stat-lbl">DIM</div></div>
+          <div class="db-stat"><div class="db-stat-val mono" style="color:#4ade80">5</div><div class="db-stat-lbl">FACT</div></div>
+          <div class="db-stat"><div class="db-stat-val mono" style="color:#fbbf24">1</div><div class="db-stat-lbl">LOG</div></div>
         </div>
-        <div class="cb"><div style="display:flex;flex-direction:column;gap:5px" id="wlist"></div></div>
       </div>
+
+      <!-- Schema tree -->
+      <div class="card">
+        <div class="db-header">
+          <i class="fa-solid fa-database" style="color:#60a5fa;font-size:13px"></i>
+          <span class="db-title">market_db</span>
+          <span class="db-badge">PostgreSQL</span>
+          <input class="db-search" id="db-search" placeholder="Filter tables…" type="text"/>
+        </div>
+
+        <div class="db-tree" id="db-tree"></div>
+      </div>
+
       <div class="end"></div>
     </section>
 
@@ -453,7 +545,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <div class="nb on" data-nav="home"><i class="fa-solid fa-chart-line"></i><span>Market</span></div>
       <div class="nb" data-nav="alerts"><i class="fa-solid fa-bell"></i><span>Alerts</span><div class="nbadge" id="nav-badge">0</div></div>
       <div class="nb" data-nav="pipe"><i class="fa-solid fa-server"></i><span>Pipeline</span></div>
-      <div class="nb" data-nav="watch"><i class="fa-solid fa-star"></i><span>Watch</span></div>
+      <div class="nb" data-nav="watch"><i class="fa-solid fa-database"></i><span>Schema</span></div>
     </div>
   </div>
 </div>
@@ -1064,10 +1156,236 @@ document.getElementById("refreshBtn").addEventListener("click",()=>{
   setTimeout(()=>{ic.style.transform="";ic.style.transition="";spinning=false;},700);
 });
 
+/* ═══════════ DB SCHEMA ═══════════ */
+const DB_SCHEMA=[
+  {
+    name:"dim_indicator",type:"dim",
+    desc:"Market indicators & signals",
+    rows:"~2.4K",
+    cols:[
+      {name:"indicator_id",dtype:"SERIAL",pk:true},
+      {name:"indicator_code",dtype:"VARCHAR(50)"},
+      {name:"indicator_name",dtype:"VARCHAR(200)"},
+      {name:"category",dtype:"VARCHAR(100)"},
+      {name:"unit",dtype:"VARCHAR(30)"},
+      {name:"description",dtype:"TEXT"},
+      {name:"is_active",dtype:"BOOLEAN"},
+      {name:"created_at",dtype:"TIMESTAMPTZ"},
+    ]
+  },
+  {
+    name:"dim_interval",type:"dim",
+    desc:"Time interval definitions",
+    rows:"~12",
+    cols:[
+      {name:"interval_id",dtype:"SERIAL",pk:true},
+      {name:"interval_code",dtype:"VARCHAR(10)"},
+      {name:"interval_label",dtype:"VARCHAR(50)"},
+      {name:"minutes",dtype:"INTEGER"},
+      {name:"is_intraday",dtype:"BOOLEAN"},
+    ]
+  },
+  {
+    name:"dim_source",type:"dim",
+    desc:"Data source providers",
+    rows:"~38",
+    cols:[
+      {name:"source_id",dtype:"SERIAL",pk:true},
+      {name:"source_code",dtype:"VARCHAR(50)"},
+      {name:"source_name",dtype:"VARCHAR(200)"},
+      {name:"base_url",dtype:"TEXT"},
+      {name:"api_version",dtype:"VARCHAR(20)"},
+      {name:"rate_limit",dtype:"INTEGER"},
+      {name:"is_active",dtype:"BOOLEAN"},
+      {name:"created_at",dtype:"TIMESTAMPTZ"},
+    ]
+  },
+  {
+    name:"dim_symbol",type:"dim",
+    desc:"Tradable instruments & metadata",
+    rows:"~8.7K",
+    cols:[
+      {name:"symbol_id",dtype:"SERIAL",pk:true},
+      {name:"ticker",dtype:"VARCHAR(20)"},
+      {name:"company_name",dtype:"VARCHAR(300)"},
+      {name:"exchange",dtype:"VARCHAR(50)"},
+      {name:"asset_class",dtype:"VARCHAR(50)"},
+      {name:"sector",dtype:"VARCHAR(100)"},
+      {name:"industry",dtype:"VARCHAR(150)"},
+      {name:"currency",dtype:"VARCHAR(10)"},
+      {name:"country",dtype:"VARCHAR(60)"},
+      {name:"is_active",dtype:"BOOLEAN"},
+      {name:"listed_at",dtype:"DATE"},
+    ]
+  },
+  {
+    name:"fact_company_fundamental",type:"fact",
+    desc:"Quarterly/annual fundamental data",
+    rows:"~124K",
+    cols:[
+      {name:"fundamental_id",dtype:"BIGSERIAL",pk:true},
+      {name:"symbol_id",dtype:"INTEGER",fk:"dim_symbol"},
+      {name:"source_id",dtype:"INTEGER",fk:"dim_source"},
+      {name:"period_type",dtype:"VARCHAR(10)"},
+      {name:"period_end",dtype:"DATE"},
+      {name:"revenue",dtype:"NUMERIC(20,4)"},
+      {name:"net_income",dtype:"NUMERIC(20,4)"},
+      {name:"eps",dtype:"NUMERIC(12,4)"},
+      {name:"pe_ratio",dtype:"NUMERIC(10,4)"},
+      {name:"market_cap",dtype:"NUMERIC(22,2)"},
+      {name:"beta",dtype:"NUMERIC(8,4)"},
+      {name:"fetched_at",dtype:"TIMESTAMPTZ"},
+    ]
+  },
+  {
+    name:"fact_earnings_calendar",type:"fact",
+    desc:"Scheduled earnings release events",
+    rows:"~31K",
+    cols:[
+      {name:"earnings_id",dtype:"BIGSERIAL",pk:true},
+      {name:"symbol_id",dtype:"INTEGER",fk:"dim_symbol"},
+      {name:"source_id",dtype:"INTEGER",fk:"dim_source"},
+      {name:"report_date",dtype:"DATE"},
+      {name:"fiscal_quarter",dtype:"VARCHAR(10)"},
+      {name:"eps_estimate",dtype:"NUMERIC(10,4)"},
+      {name:"eps_actual",dtype:"NUMERIC(10,4)"},
+      {name:"surprise_pct",dtype:"NUMERIC(8,4)"},
+      {name:"fetched_at",dtype:"TIMESTAMPTZ"},
+    ]
+  },
+  {
+    name:"fact_market_indicator",type:"fact",
+    desc:"Computed indicator values over time",
+    rows:"~2.1M",
+    cols:[
+      {name:"market_indicator_id",dtype:"BIGSERIAL",pk:true},
+      {name:"indicator_id",dtype:"INTEGER",fk:"dim_indicator"},
+      {name:"symbol_id",dtype:"INTEGER",fk:"dim_symbol"},
+      {name:"interval_id",dtype:"INTEGER",fk:"dim_interval"},
+      {name:"recorded_at",dtype:"TIMESTAMPTZ"},
+      {name:"value",dtype:"NUMERIC(18,6)"},
+      {name:"signal",dtype:"VARCHAR(20)"},
+      {name:"fetched_at",dtype:"TIMESTAMPTZ"},
+    ]
+  },
+  {
+    name:"fact_market_quote",type:"fact",
+    desc:"Real-time & delayed price quotes",
+    rows:"~890K",
+    cols:[
+      {name:"quote_id",dtype:"BIGSERIAL",pk:true},
+      {name:"symbol_id",dtype:"INTEGER",fk:"dim_symbol"},
+      {name:"source_id",dtype:"INTEGER",fk:"dim_source"},
+      {name:"recorded_at",dtype:"TIMESTAMPTZ"},
+      {name:"open",dtype:"NUMERIC(14,4)"},
+      {name:"high",dtype:"NUMERIC(14,4)"},
+      {name:"low",dtype:"NUMERIC(14,4)"},
+      {name:"close",dtype:"NUMERIC(14,4)"},
+      {name:"volume",dtype:"BIGINT"},
+      {name:"vwap",dtype:"NUMERIC(14,4)"},
+      {name:"change_pct",dtype:"NUMERIC(8,4)"},
+    ]
+  },
+  {
+    name:"fact_market_timeseries",type:"fact",
+    desc:"OHLCV timeseries by interval",
+    rows:"~5.6M",
+    cols:[
+      {name:"timeseries_id",dtype:"BIGSERIAL",pk:true},
+      {name:"symbol_id",dtype:"INTEGER",fk:"dim_symbol"},
+      {name:"interval_id",dtype:"INTEGER",fk:"dim_interval"},
+      {name:"source_id",dtype:"INTEGER",fk:"dim_source"},
+      {name:"bar_time",dtype:"TIMESTAMPTZ"},
+      {name:"open",dtype:"NUMERIC(14,4)"},
+      {name:"high",dtype:"NUMERIC(14,4)"},
+      {name:"low",dtype:"NUMERIC(14,4)"},
+      {name:"close",dtype:"NUMERIC(14,4)"},
+      {name:"volume",dtype:"BIGINT"},
+      {name:"is_adjusted",dtype:"BOOLEAN"},
+    ]
+  },
+  {
+    name:"log_api_call",type:"log",
+    desc:"API request audit trail",
+    rows:"~418K",
+    cols:[
+      {name:"log_id",dtype:"BIGSERIAL",pk:true},
+      {name:"source_id",dtype:"INTEGER",fk:"dim_source"},
+      {name:"symbol_id",dtype:"INTEGER",fk:"dim_symbol"},
+      {name:"endpoint",dtype:"TEXT"},
+      {name:"http_status",dtype:"SMALLINT"},
+      {name:"latency_ms",dtype:"INTEGER"},
+      {name:"success",dtype:"BOOLEAN"},
+      {name:"error_message",dtype:"TEXT"},
+      {name:"called_at",dtype:"TIMESTAMPTZ"},
+    ]
+  },
+];
+
+function renderDbTree(filter=""){
+  const tree=document.getElementById("db-tree");
+  const q=filter.toLowerCase();
+  const filtered=DB_SCHEMA.filter(t=>!q||t.name.includes(q)||t.cols.some(c=>c.name.includes(q)));
+
+  tree.innerHTML=filtered.map(t=>{
+    const typeLabel=t.type==="dim"?"DIM":t.type==="fact"?"FACT":"LOG";
+    const colsHtml=t.cols.map(c=>{
+      const isPK=c.pk, isFK=c.fk;
+      const iconCls=isPK?"fa-key pk":isFK?"fa-link fk":"fa-circle";
+      const nameCls=isPK?"col-name pk-col":"col-name";
+      const fkHint=isFK?`<span style="color:#3b82f6;font-size:8px">→${c.fk}</span>`:"";
+      return `<div class="dbt-col">
+        <i class="fa-solid ${iconCls} col-icon${isPK?" pk":isFK?" fk":""}"></i>
+        <span class="${nameCls}">${c.name} ${fkHint}</span>
+        <span class="col-dtype">${c.dtype}</span>
+      </div>`;
+    }).join("");
+
+    return `<div class="dbt-row" data-table="${t.name}">
+      <div class="dbt-head">
+        <i class="fa-solid fa-table-cells dbt-icon"></i>
+        <span class="dbt-name">${t.name}</span>
+        <span class="dbt-type ${t.type}">${typeLabel}</span>
+        <i class="fa-solid fa-chevron-right dbt-arrow"></i>
+      </div>
+      <div class="dbt-cols">
+        <!-- meta row -->
+        <div style="padding:6px 11px 5px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.04);">
+          <span style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace">${t.desc}</span>
+          <span style="margin-left:auto;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--faint)">${t.rows} rows</span>
+        </div>
+        <!-- col header -->
+        <div style="display:grid;grid-template-columns:18px 1fr auto;gap:6px;padding:5px 11px 4px;border-bottom:1px solid rgba(255,255,255,.04);">
+          <span></span>
+          <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-family:'IBM Plex Mono',monospace">Column</span>
+          <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-family:'IBM Plex Mono',monospace;text-align:right">Type</span>
+        </div>
+        ${colsHtml}
+      </div>
+    </div>`;
+  }).join("");
+
+  /* click to expand/collapse */
+  tree.querySelectorAll(".dbt-row").forEach(row=>{
+    row.querySelector(".dbt-head").addEventListener("click",()=>{
+      const wasOpen=row.classList.contains("open");
+      /* close all others */
+      tree.querySelectorAll(".dbt-row.open").forEach(r=>r.classList.remove("open"));
+      if(!wasOpen)row.classList.add("open");
+    });
+  });
+}
+
+/* search filter */
+document.getElementById("db-search").addEventListener("input",e=>{
+  renderDbTree(e.target.value);
+});
+
 /* ═══════════ BOOT ═══════════ */
 initChart();
 initRing();
 initAlertSel();
+renderDbTree();
 updateAll();
 setInterval(tick,25000);
 </script>

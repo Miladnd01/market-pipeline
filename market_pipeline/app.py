@@ -1,61 +1,28 @@
 import os
-from urllib.parse import urlparse
+from datetime import datetime
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from psycopg2 import sql
-from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
+DB_CONFIG = {
+    "host": os.environ.get("DB_HOST", "localhost"),
+    "database": os.environ.get("DB_NAME", "market_db"),
+    "user": os.environ.get("DB_USER", "your_user"),
+    "password": os.environ.get("DB_PASSWORD", "your_password"),
+    "port": int(os.environ.get("DB_PORT", 5432)),
+}
+
 def get_db():
-    database_url = os.environ.get("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL is not set")
-
-    return psycopg2.connect(database_url, cursor_factory=RealDictCursor)
-
-def get_table_columns(cur, table_name):
-    cur.execute("""
-        SELECT 
-            c.column_name as name,
-            c.data_type as dtype,
-            c.is_nullable = 'YES' as nullable,
-            EXISTS(
-                SELECT 1
-                FROM information_schema.table_constraints tc
-                JOIN information_schema.key_column_usage kcu
-                  ON tc.constraint_name = kcu.constraint_name
-                 AND tc.table_schema = kcu.table_schema
-                WHERE tc.table_name = c.table_name
-                  AND tc.table_schema = c.table_schema
-                  AND kcu.column_name = c.column_name
-                  AND tc.constraint_type = 'PRIMARY KEY'
-            ) as is_pk,
-            EXISTS(
-                SELECT 1
-                FROM information_schema.table_constraints tc
-                JOIN information_schema.key_column_usage kcu
-                  ON tc.constraint_name = kcu.constraint_name
-                 AND tc.table_schema = kcu.table_schema
-                WHERE tc.table_name = c.table_name
-                  AND tc.table_schema = c.table_schema
-                  AND kcu.column_name = c.column_name
-                  AND tc.constraint_type = 'FOREIGN KEY'
-            ) as is_fk
-        FROM information_schema.columns c
-        WHERE c.table_schema = 'public'
-          AND c.table_name = %s
-        ORDER BY c.ordinal_position
-    """, (table_name,))
-    return cur.fetchall()
+    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    return jsonify({"ok": True})
+    return jsonify({"status": "ok"})
 
 @app.route("/api/tables", methods=["GET"])
 def get_tables():
@@ -73,14 +40,14 @@ def get_tables():
             END as type,
             obj_description((t.table_schema||'.'||t.table_name)::regclass) as description,
             (
-                SELECT COUNT(*)
-                FROM information_schema.columns c
-                WHERE c.table_schema = t.table_schema
-                  AND c.table_name = t.table_name
+                SELECT COUNT(*) 
+                FROM information_schema.columns c 
+                WHERE c.table_name = t.table_name
+                  AND c.table_schema = t.table_schema
             ) as column_count,
             (
-                SELECT reltuples::bigint
-                FROM pg_class
+                SELECT reltuples::bigint 
+                FROM pg_class 
                 WHERE oid = (t.table_schema||'.'||t.table_name)::regclass
             ) as row_count
         FROM information_schema.tables t
@@ -100,14 +67,22 @@ def get_table_data(table_name):
     conn = get_db()
     cur = conn.cursor()
 
-    # Prüfen, ob Tabelle wirklich existiert
+    page = int(request.args.get("page", 1))
+    page_size = int(request.args.get("page_size", 50))
+    search = request.args.get("search", "")
+    date_from = request.args.get("date_from")
+    date_to = request.args.get("date_to")
+    sort_col = request.args.get("sort_col")
+    sort_dir = request.args.get("sort_dir", "desc").upper()
+
+    # table exists check
     cur.execute("""
         SELECT EXISTS (
             SELECT 1
             FROM information_schema.tables
             WHERE table_schema = 'public'
               AND table_name = %s
-        ) AS exists
+        ) as exists
     """, (table_name,))
     exists = cur.fetchone()["exists"]
 
@@ -116,21 +91,21 @@ def get_table_data(table_name):
         conn.close()
         return jsonify({"error": "Table not found"}), 404
 
-    page = max(int(request.args.get("page", 1)), 1)
-    page_size = min(max(int(request.args.get("page_size", 50)), 1), 200)
-    search = request.args.get("search", "").strip()
-    date_from = request.args.get("date_from")
-    date_to = request.args.get("date_to")
-    sort_col = request.args.get("sort_col")
-    sort_dir = request.args.get("sort_dir", "desc").lower()
+    # column info
+    cur.execute("""
+        SELECT 
+            c.column_name as name,
+            c.data_type as dtype,
+            c.is_nullable = 'YES' as nullable
+        FROM information_schema.columns c
+        WHERE c.table_schema = 'public'
+          AND c.table_name = %s
+        ORDER BY c.ordinal_position
+    """, (table_name,))
+    columns = cur.fetchall()
 
-    if sort_dir not in ("asc", "desc"):
-        sort_dir = "desc"
-
-    columns = get_table_columns(cur, table_name)
     column_names = [c["name"] for c in columns]
 
-    # sichere timestamp/date-Spalte finden
     timestamp_col = next(
         (c["name"] for c in columns if "timestamp" in c["dtype"] or "date" in c["dtype"]),
         None
@@ -142,52 +117,38 @@ def get_table_data(table_name):
     if search:
         search_parts = []
         for col in column_names:
-            search_parts.append(sql.SQL("{}::text ILIKE %s").format(sql.Identifier(col)))
+            search_parts.append(f'"{col}"::text ILIKE %s')
             params.append(f"%{search}%")
-        where_parts.append(sql.SQL("(") + sql.SQL(" OR ").join(search_parts) + sql.SQL(")"))
+        where_parts.append("(" + " OR ".join(search_parts) + ")")
 
     if timestamp_col and date_from:
-        where_parts.append(sql.SQL("{} >= %s").format(sql.Identifier(timestamp_col)))
+        where_parts.append(f'"{timestamp_col}" >= %s')
         params.append(date_from)
 
     if timestamp_col and date_to:
-        where_parts.append(sql.SQL("{} <= %s").format(sql.Identifier(timestamp_col)))
+        where_parts.append(f'"{timestamp_col}" <= %s')
         params.append(date_to + " 23:59:59")
 
-    where_clause = sql.SQL("")
-    if where_parts:
-        where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(where_parts)
+    where_clause = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
 
     if not sort_col or sort_col not in column_names:
-        if timestamp_col:
-            sort_col = timestamp_col
-            sort_dir = "desc"
-        else:
-            pk_col = next((c["name"] for c in columns if c["is_pk"]), column_names[0])
-            sort_col = pk_col
-            sort_dir = "desc"
+        sort_col = timestamp_col if timestamp_col else column_names[0]
 
-    count_query = sql.SQL("SELECT COUNT(*) AS total FROM {}{}").format(
-        sql.Identifier(table_name),
-        where_clause
-    )
+    if sort_dir not in ("ASC", "DESC"):
+        sort_dir = "DESC"
+
+    count_query = f'SELECT COUNT(*) as total FROM "{table_name}" {where_clause}'
     cur.execute(count_query, params)
     total = cur.fetchone()["total"]
 
     offset = (page - 1) * page_size
 
-    data_query = sql.SQL("""
-        SELECT *
-        FROM {}{}
-        ORDER BY {} {}
+    data_query = f'''
+        SELECT * FROM "{table_name}"
+        {where_clause}
+        ORDER BY "{sort_col}" {sort_dir}
         LIMIT %s OFFSET %s
-    """).format(
-        sql.Identifier(table_name),
-        where_clause,
-        sql.Identifier(sort_col),
-        sql.SQL(sort_dir.upper())
-    )
-
+    '''
     cur.execute(data_query, params + [page_size, offset])
     rows = cur.fetchall()
 
@@ -208,5 +169,4 @@ def get_table_data(table_name):
     })
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8080)))

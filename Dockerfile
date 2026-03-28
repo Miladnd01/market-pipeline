@@ -8,15 +8,15 @@ COPY market_pipeline/requirements.txt .
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy market_pipeline folder contents
+# Copy app files
 COPY market_pipeline/ .
 
 # Expose port
 EXPOSE 8080
 
-# Set environment
+# Environment
 ENV PORT=8080
 ENV PYTHONUNBUFFERED=1
 
-# Run Flask app (pipeline runs in background thread)
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "--timeout", "120", "app:app"]
+# Start app
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "1", "--threads", "4", "--timeout", "120", "app:app"]

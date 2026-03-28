@@ -1,11 +1,11 @@
 import os
 from datetime import datetime
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, send_from_directory
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 
 DB_CONFIG = {
     "host": os.environ.get("DB_HOST", "localhost"),
@@ -20,10 +20,7 @@ def get_db():
 
 @app.route("/", methods=["GET"])
 def home():
-    return jsonify({
-        "message": "Market API läuft",
-        "status": "ok"
-    })
+    return send_from_directory("static", "index.html")
 
 @app.route("/api/health", methods=["GET"])
 def health():

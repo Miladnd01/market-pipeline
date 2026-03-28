@@ -266,6 +266,69 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 }
 .footer-credit span{color:var(--muted);}
 .footer-credit strong{color:#4e7aac;font-weight:800;}
+
+/* ══════════ TABLE VIEWER ══════════ */
+.tv-header{overflow:visible !important;}
+.tv-header-inner{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border2);}
+.tv-back-btn{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
+.tv-back-btn:active{transform:scale(.93);}
+.tv-title-block{flex:1;min-width:0;}
+.tv-table-name{font-size:15px;font-weight:800;color:var(--txt);}
+.tv-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.tv-type-badge{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 9px;border-radius:99px;flex-shrink:0;}
+.tv-quickstats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--border2);}
+.tv-qs-item{padding:9px 12px;border-right:1px solid var(--border2);display:flex;flex-direction:column;gap:2px;}
+.tv-qs-item:last-child{border-right:none;}
+.tv-qs-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.tv-qs-val{font-size:14px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.tv-chart-header{display:flex;align-items:center;gap:8px;padding:9px 14px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.tv-chart-wrap{height:130px;padding:6px;position:relative;}
+.tv-col-pill{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;border-radius:99px;cursor:pointer;border:1px solid var(--border);background:var(--panel2);color:var(--muted);transition:all .1s;}
+.tv-col-pill.on{background:rgba(59,130,246,.18);border-color:rgba(59,130,246,.4);color:#93c5fd;}
+.tv-filter-toggle{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;}
+.tv-toggle-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
+.tv-toggle-arrow.open{transform:rotate(180deg);}
+.tv-filter-body{padding:12px 14px 14px;border-top:1px solid var(--border2);flex-direction:column;gap:10px;}
+.tv-filter-fields{display:flex;gap:8px;flex-wrap:wrap;}
+.tv-filter-btns{display:flex;gap:8px;justify-content:flex-end;}
+.tv-af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;border-radius:99px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;display:inline-flex;align-items:center;gap:4px;}
+.tv-data-card{overflow:hidden;}
+.tv-data-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.tv-data-info{font-size:10px;color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
+.tv-data-search{flex:1;min-width:120px;background:#050d18;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
+.tv-data-search::placeholder{color:var(--faint);}
+.tv-data-search:focus{outline:none;border-color:rgba(59,130,246,.4);}
+.tv-page-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.tv-pg-btn{width:28px;height:28px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;transition:all .1s;}
+.tv-pg-btn:active{background:#111e30;} .tv-pg-btn:disabled{opacity:.3;cursor:default;}
+.tv-pg-num{font-size:10px;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
+.tv-table-wrap{overflow-x:auto;overflow-y:auto;max-height:340px;min-height:160px;-webkit-overflow-scrolling:touch;}
+.tv-table-wrap::-webkit-scrollbar{height:4px;width:4px;}
+.tv-table-wrap::-webkit-scrollbar-thumb{background:#1b2d42;border-radius:99px;}
+table.tv-tbl{border-collapse:collapse;width:max-content;min-width:100%;font-size:11px;font-family:"IBM Plex Mono",monospace;}
+table.tv-tbl thead th{position:sticky;top:0;z-index:3;background:#06101c;padding:8px 14px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;transition:background .1s;user-select:none;}
+table.tv-tbl thead th:hover{background:#091525;}
+table.tv-tbl thead th.sort-asc::after{content:" ▲";font-size:8px;color:#60a5fa;}
+table.tv-tbl thead th.sort-desc::after{content:" ▼";font-size:8px;color:#60a5fa;}
+table.tv-tbl thead th.th-pk{color:#fde68a;} table.tv-tbl thead th.th-fk{color:#93c5fd;}
+table.tv-tbl tbody tr{border-bottom:1px solid rgba(255,255,255,.03);transition:background .06s;}
+table.tv-tbl tbody tr:hover{background:rgba(59,130,246,.07);}
+table.tv-tbl tbody tr.tr-even{background:rgba(255,255,255,.012);}
+table.tv-tbl tbody td{padding:7px 14px;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
+table.tv-tbl tbody td.td-pk{color:#fde68a;font-weight:700;} table.tv-tbl tbody td.td-fk{color:#93c5fd;} table.tv-tbl tbody td.td-null{color:var(--faint);font-style:italic;} table.tv-tbl tbody td.td-true{color:#4ade80;} table.tv-tbl tbody td.td-false{color:#f87171;} table.tv-tbl tbody td.td-num{color:#fcd34d;}
+.tv-pagination{display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;flex-wrap:wrap;border-top:1px solid var(--border2);}
+.tv-pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:8px;font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;background:var(--panel2);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.tv-pg-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#bfdbfe;}
+.tv-pg-dots{font-size:11px;color:var(--faint);padding:0 4px;}
+.dbl-item{display:grid;grid-template-columns:20px 1fr auto auto 20px;gap:8px;align-items:center;padding:11px 13px;border-radius:12px;background:var(--panel2);border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
+.dbl-item:active{transform:scale(.99);}
+.dbl-item:hover{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07);}
+.dbl-icon{font-size:12px;color:#60a5fa;}
+.dbl-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
+.dbl-desc{font-size:9px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
+.dbl-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--faint);white-space:nowrap;}
+.dbl-arrow{font-size:11px;color:var(--faint);}
+
 /* ── DB EXPLORER ── */
 .db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
 .db-title-row{display:flex;align-items:center;gap:6px;flex:1;}
@@ -656,7 +719,7 @@ table.dtbl tbody td.bool-false{color:#f87171;}
       <div class="end"></div>
     </section>
 
-    <!-- SCREEN: DATABASE EXPLORER -->
+    <!-- SCREEN: DATABASE — Tabellen-Auswahl -->
     <section class="screen" id="scr-watch">
       <div class="card">
         <div class="db-stats">
@@ -674,10 +737,78 @@ table.dtbl tbody td.bool-false{color:#f87171;}
           </div>
           <input class="db-search" id="db-search" placeholder="Tabelle suchen…" type="text"/>
         </div>
-        <div class="db-tree" id="db-tree"></div>
+        <div id="db-tree" style="display:flex;flex-direction:column;gap:3px;padding:8px 10px;"></div>
       </div>
       <div class="end"></div>
     </section>
+
+    <!-- SCREEN: TABLE VIEWER (neue Seite nach Tabellenauswahl) -->
+    <section class="screen" id="scr-tableview">
+      <!-- Header mit Zurück-Button -->
+      <div class="tv-header card">
+        <div class="tv-header-inner">
+          <button class="tv-back-btn" id="tv-back"><i class="fa-solid fa-arrow-left"></i></button>
+          <div class="tv-title-block">
+            <div class="tv-table-name mono" id="tv-tname">--</div>
+            <div class="tv-meta mono" id="tv-tmeta">--</div>
+          </div>
+          <div class="tv-type-badge" id="tv-type-badge">--</div>
+        </div>
+        <!-- Schnell-Stats -->
+        <div class="tv-quickstats" id="tv-quickstats"></div>
+      </div>
+
+      <!-- Mini-Chart -->
+      <div class="card" id="tv-chart-card">
+        <div class="tv-chart-header">
+          <span class="kk">Verteilung / Zeitreihe</span>
+          <div id="tv-chart-col-sel" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+        </div>
+        <div class="tv-chart-wrap">
+          <canvas id="tv-chart"></canvas>
+        </div>
+      </div>
+
+      <!-- Filter-Panel -->
+      <div class="card" id="tv-filter-card">
+        <div class="tv-filter-toggle" id="tv-filter-toggle">
+          <i class="fa-solid fa-filter" style="color:#60a5fa;font-size:11px"></i>
+          <span class="kk" style="color:var(--soft)">Filter</span>
+          <div id="tv-active-filters" style="display:flex;gap:4px;flex-wrap:wrap;flex:1"></div>
+          <i class="fa-solid fa-chevron-down tv-toggle-arrow" id="tv-toggle-arrow"></i>
+        </div>
+        <div class="tv-filter-body" id="tv-filter-body" style="display:none">
+          <div class="tv-filter-fields" id="tv-filter-fields"></div>
+          <div class="tv-filter-btns">
+            <button class="sf-btn-reset" id="tv-filter-reset">↺ Zurücksetzen</button>
+            <button class="sf-btn-apply" id="tv-filter-apply">▶ Filtern</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Datentabelle + Pagination -->
+      <div class="card tv-data-card">
+        <div class="tv-data-toolbar">
+          <span class="tv-data-info mono" id="tv-data-info">-- Zeilen</span>
+          <input class="tv-data-search" id="tv-data-search" placeholder="Schnellsuche…"/>
+          <div class="tv-page-ctrl">
+            <button class="tv-pg-btn" id="tv-pg-prev"><i class="fa-solid fa-chevron-left"></i></button>
+            <span class="tv-pg-num mono" id="tv-pg-num">1 / 1</span>
+            <button class="tv-pg-btn" id="tv-pg-next"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="tv-table-wrap" id="tv-table-wrap">
+          <div style="padding:40px;text-align:center;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:11px">
+            Tabelle auswählen…
+          </div>
+        </div>
+        <!-- Pagination unten -->
+        <div class="tv-pagination" id="tv-pagination"></div>
+      </div>
+
+      <div class="end"></div>
+    </section>
+
 
   </div><!-- /screens -->
 
@@ -729,53 +860,36 @@ function toast(msg){
 }
 
 /* ═══════════ NAVIGATION ═══════════ */
-const SCREEN_IDS={home:"scr-home",alerts:"scr-alerts",pipe:"scr-pipe",watch:"scr-watch"};
+const SCREEN_IDS={home:"scr-home",alerts:"scr-alerts",pipe:"scr-pipe",watch:"scr-watch",tableview:"scr-tableview"};
 const NAV_ORD=["home","alerts","pipe","watch"];
 let activeNav="home", busy=false;
 
 function setNav(id){
-  if(id===activeNav||busy)return;
+  const isSub=(id==="tableview");
+  if(!isSub&&(id===activeNav||busy))return;
+  if(isSub&&busy)return;
   busy=true;
 
   const prevEl=document.getElementById(SCREEN_IDS[activeNav]);
   const nextEl=document.getElementById(SCREEN_IDS[id]);
+  if(!prevEl||!nextEl){busy=false;return;}
 
-  const fwd=NAV_ORD.indexOf(id)>NAV_ORD.indexOf(activeNav)?1:-1;
-
-  // remove active from prev, add exit class
+  const fwd=isSub?1:(NAV_ORD.indexOf(id)>NAV_ORD.indexOf(activeNav)?1:-1);
   prevEl.classList.remove("active");
   prevEl.classList.add(fwd===1?"slide-out-left":"slide-out-right");
-
-  // prep next: start position (no transition)
   nextEl.style.transition="none";
   nextEl.style.opacity="0";
   nextEl.style.transform=`translateX(${fwd>0?40:-40}px)`;
   nextEl.style.visibility="hidden";
   nextEl.classList.add("active");
-
-  // one frame later: enable transition and animate in
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      nextEl.style.transition="";
-      nextEl.style.opacity="";
-      nextEl.style.transform="";
-      nextEl.style.visibility="";
-    });
-  });
-
-  // clean up prev after transition
-  setTimeout(()=>{
-    prevEl.classList.remove("slide-out-left","slide-out-right");
-    busy=false;
-  },240);
-
-  // update nav buttons
-  document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("on",b.dataset.nav===id));
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    nextEl.style.transition="";nextEl.style.opacity="";
+    nextEl.style.transform="";nextEl.style.visibility="";
+  });});
+  setTimeout(()=>{prevEl.classList.remove("slide-out-left","slide-out-right");busy=false;},240);
+  if(!isSub)document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("on",b.dataset.nav===id));
   activeNav=id;
-  /* re-render DB tree when schema tab opened */
-  if(id==="watch"){
-    setTimeout(()=>renderDbTree(),30);
-  }
+  if(id==="watch")setTimeout(()=>renderDbTree(),30);
 }
 
 document.querySelectorAll(".nb").forEach(b=>b.addEventListener("click",()=>setNav(b.dataset.nav)));
@@ -1591,7 +1705,9 @@ function buildStatsTab(t){
   }).join("");
 }
 
-/* ── dtype → Badge-Klasse ── */
+/* ════════════════════════════════════════
+   DB SCHEMA — Tabellenliste (vereinfacht)
+════════════════════════════════════════ */
 function dtypeBadge(dtype){
   const d=(dtype||"").toLowerCase();
   if(d.includes("int")||d.includes("serial")||d.includes("bigint")||d.includes("smallint"))return["int","INT"];
@@ -1603,80 +1719,30 @@ function dtypeBadge(dtype){
   return["oth",dtype];
 }
 
-/* ── Filter-Panel aus Layout.txt ── */
-function buildFilterPanel(tName){
-  const hasSym=["fact_company_fundamental","fact_earnings_calendar","fact_market_indicator","fact_market_quote","fact_market_timeseries"].includes(tName);
-  const hasFirma=["fact_company_fundamental","fact_earnings_calendar"].includes(tName);
-  const hasExch=["fact_company_fundamental","fact_market_quote"].includes(tName);
-  const isLog=tName==="log_api_call";
-  let f="";
-  if(hasSym) f+=`<div class="sf-field"><div class="sf-label">Symbol</div><input class="sf-input" placeholder="z. B. AAPL"/></div>`;
-  if(hasFirma) f+=`<div class="sf-field"><div class="sf-label">Firmenname</div><input class="sf-input" placeholder="z. B. Apple"/></div>`;
-  if(hasExch) f+=`<div class="sf-field"><div class="sf-label">Exchange</div><input class="sf-input" placeholder="z. B. NASDAQ"/></div>`;
-  if(tName==="fact_company_fundamental") f+=`<div class="sf-field"><div class="sf-label">Land</div><input class="sf-input" placeholder="z. B. USA"/></div><div class="sf-field"><div class="sf-label">Sektor</div><input class="sf-input" placeholder="z. B. Technology"/></div>`;
-  if(tName==="fact_earnings_calendar") f+=`<div class="sf-field"><div class="sf-label">Fiscal Year</div><input class="sf-input" type="number" placeholder="2026"/></div><div class="sf-field"><div class="sf-label">Fiscal Quarter</div><select class="sf-select"><option value="">-- Alle --</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div>`;
-  if(tName==="fact_market_indicator") f+=`<div class="sf-field"><div class="sf-label">Indikator</div><input class="sf-input" placeholder="RSI, SMA, EMA"/></div>`;
-  if(tName==="fact_market_indicator"||tName==="fact_market_timeseries") f+=`<div class="sf-field"><div class="sf-label">Intervall</div><select class="sf-select"><option value="">-- Alle --</option><option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1d</option><option>1wk</option><option>1mo</option></select></div>`;
-  if(isLog) f+=`<div class="sf-field"><div class="sf-label">API Provider</div><input class="sf-input" placeholder="z. B. Finnhub"/></div><div class="sf-field"><div class="sf-label">Endpoint</div><input class="sf-input" placeholder="/quote …"/></div><div class="sf-field"><div class="sf-label">Status Code</div><input class="sf-input" type="number" placeholder="200"/></div><div class="sf-field"><div class="sf-label">Erfolg</div><select class="sf-select"><option value="">-- Alle --</option><option value="true">Erfolgreich</option><option value="false">Fehler</option></select></div>`;
-  f+=`<div class="sf-field" style="flex:2;min-width:200px"><div class="sf-label">Zeitraum</div><div class="sf-date-row"><input class="sf-input" type="date" value="2026-01-01" style="flex:1"/><span>→</span><input class="sf-input" type="date" value="2026-03-28" style="flex:1"/></div></div>`;
-  return`<div class="schema-filter"><div class="schema-filter-hd" id="sfh-${tName}"><i class="fa-solid fa-filter" style="font-size:10px;color:#60a5fa"></i><span class="schema-filter-hd-lbl">Filter / Query-Parameter</span><i class="fa-solid fa-chevron-right schema-filter-hd-arrow"></i></div><div class="schema-filter-body"><div class="sf-row">${f}</div><div class="sf-btn-row"><button class="sf-btn-reset">↺ Zurücksetzen</button><button class="sf-btn-apply">▶ Filtern</button></div></div></div>`;
-}
-
 function renderDbTree(filter=""){
   const tree=document.getElementById("db-tree");
   if(!tree)return;
   const q=(filter||"").toLowerCase().trim();
-  const filtered=q?DB_SCHEMA.filter(t=>t.name.includes(q)||t.cols.some(c=>c.name.includes(q))):DB_SCHEMA;
+  const filtered=q?DB_SCHEMA.filter(t=>t.name.includes(q)):DB_SCHEMA;
 
   tree.innerHTML=filtered.map(t=>{
     const typeLabel=t.type==="dim"?"DIM":t.type==="fact"?"FACT":"LOG";
-    const rowCount=DEMO_DATA[t.name]?.length||0;
-
-    const colRows=t.cols.map((c,i)=>{
-      const isPK=!!c.pk,isFK=!!c.fk;
-      const icCls=isPK?"pk":isFK?"fk":"reg";
-      const icIcon=isPK?"fa-key":isFK?"fa-link":"fa-circle";
-      const nmCls=isPK?"pk-name":isFK?"fk-name":"";
-      const [badgeCls,badgeTxt]=dtypeBadge(c.dtype);
-      const fkHint=isFK?`<span class="cr-fk-hint">→ ${c.fk}</span>`:"";
-      const nullable=(!isPK&&!isFK);
-      return`<div class="dbt-col-row"><span class="cr-num">${i+1}</span><span class="cr-ic ${icCls}"><i class="fa-solid ${icIcon}"></i></span><span class="cr-name ${nmCls}">${c.name}${fkHint}</span><span class="cr-dtype"><span class="dtype-badge ${badgeCls}">${badgeTxt}</span></span><span class="cr-nullable ${nullable?"null-yes":"null-no"}">${nullable?"NULL":"NOT NULL"}</span></div>`;
-    }).join("");
-
-    const schemaInner=`<div class="schema-meta"><span class="schema-meta-desc">${t.desc}</span><span class="schema-meta-count">${t.cols.length} Spalten</span><span class="schema-meta-count" style="background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.25);color:#d8b4fe">${t.rows} Zeilen</span></div><div class="schema-col-header"><span class="sch-hd" style="text-align:center">#</span><span class="sch-hd"></span><span class="sch-hd">Spaltenname</span><span class="sch-hd">Datentyp</span><span class="sch-hd" style="text-align:center">Nullable</span></div>${colRows}${buildFilterPanel(t.name)}`;
-
-    return`<div class="dbt-row" data-table="${t.name}"><div class="dbt-head"><i class="fa-solid fa-table-cells dbt-icon"></i><span class="dbt-name">${t.name}</span><span class="dbt-type ${t.type}">${typeLabel}</span><span class="dbt-count">${t.rows}</span><i class="fa-solid fa-chevron-right dbt-arrow"></i></div><div class="dbt-panel"><div class="dbt-tabs"><button class="dbt-tab on" data-tab="schema"><i class="fa-solid fa-table-list" style="margin-right:4px"></i>Schema</button><button class="dbt-tab" data-tab="data"><i class="fa-solid fa-database" style="margin-right:4px"></i>Daten <span style="background:rgba(59,130,246,.2);border-radius:99px;padding:1px 6px;font-size:8px">${rowCount}</span></button><button class="dbt-tab" data-tab="stats"><i class="fa-solid fa-chart-bar" style="margin-right:4px"></i>Statistik</button></div><div class="dbt-tab-content schema-on"><div class="dbt-schema">${schemaInner}</div><div class="dbt-data"><div class="data-toolbar"><input class="data-filter" placeholder="Zeile filtern…" data-table="${t.name}"/><span class="data-count" id="dc-${t.name}">${rowCount} Zeilen</span></div><div class="tbl-wrap" id="tw-${t.name}"></div></div><div class="dbt-stats-tab" id="st-${t.name}"></div></div></div></div>`;
+    const typeCl=t.type==="dim"?"dim":t.type==="fact"?"fact":"log";
+    const cnt=DEMO_DATA[t.name]?.length||0;
+    return`<div class="dbl-item" data-tname="${t.name}">
+      <i class="fa-solid fa-table-cells dbl-icon"></i>
+      <div>
+        <div class="dbl-name">${t.name}</div>
+        <div class="dbl-desc">${t.desc} · ${t.cols.length} Spalten</div>
+      </div>
+      <span class="dbt-type ${typeCl}">${typeLabel}</span>
+      <span class="dbl-count">${t.rows}</span>
+      <i class="fa-solid fa-chevron-right dbl-arrow"></i>
+    </div>`;
   }).join("");
 
-  tree.querySelectorAll(".dbt-row").forEach(row=>{
-    const tName=row.dataset.table;
-    const tDef=DB_SCHEMA.find(t=>t.name===tName);
-    row.querySelector(".dbt-head").addEventListener("click",()=>{
-      const wasOpen=row.classList.contains("open");
-      tree.querySelectorAll(".dbt-row.open").forEach(r=>r.classList.remove("open"));
-      if(!wasOpen){
-        row.classList.add("open");
-        const tw=document.getElementById(`tw-${tName}`);
-        if(tw&&!tw.dataset.loaded){const{html}=buildDataTable(tDef);tw.innerHTML=html;tw.dataset.loaded="1";}
-        const st=document.getElementById(`st-${tName}`);
-        if(st&&!st.dataset.loaded){st.innerHTML=buildStatsTab(tDef);st.dataset.loaded="1";}
-      }
-    });
-    row.querySelectorAll(".dbt-tab").forEach(tab=>{
-      tab.addEventListener("click",e=>{
-        e.stopPropagation();
-        const tc=row.querySelector(".dbt-tab-content");
-        row.querySelectorAll(".dbt-tab").forEach(t=>t.classList.remove("on"));
-        tab.classList.add("on");
-        tc.className="dbt-tab-content "+tab.dataset.tab+"-on";
-      });
-    });
-    const sfh=row.querySelector(`#sfh-${tName}`);
-    if(sfh) sfh.addEventListener("click",e=>{e.stopPropagation();sfh.classList.toggle("open");});
-    const sfReset=row.querySelector(".sf-btn-reset");
-    if(sfReset) sfReset.addEventListener("click",e=>{e.stopPropagation();row.querySelectorAll(".sf-input").forEach(el=>{if(el.type!=="date")el.value="";});row.querySelectorAll(".sf-select").forEach(el=>el.selectedIndex=0);});
-    const filterInp=row.querySelector(".data-filter");
-    if(filterInp) filterInp.addEventListener("input",e=>{e.stopPropagation();const tw=document.getElementById(`tw-${tName}`);const dc=document.getElementById(`dc-${tName}`);const{html,total}=buildDataTable(tDef,e.target.value);tw.innerHTML=html;if(dc)dc.textContent=`${total} Zeilen`;});
+  tree.querySelectorAll(".dbl-item").forEach(item=>{
+    item.addEventListener("click",()=>openTableViewer(item.dataset.tname));
   });
 }
 
@@ -1684,6 +1750,297 @@ document.addEventListener("DOMContentLoaded",()=>{
   const inp=document.getElementById("db-search");
   if(inp)inp.addEventListener("input",e=>renderDbTree(e.target.value));
 });
+
+/* ════════════════════════════════════════
+   TABLE VIEWER
+════════════════════════════════════════ */
+const PAGE_SIZE=50; // Demo hat wenige Zeilen; echte DB: 1000
+let TV={
+  tDef:null, allRows:[], filtered:[], sorted:[],
+  page:1, totalPages:1,
+  sortCol:null, sortDir:1,
+  searchQ:"", filterVals:{},
+  chartObj:null, chartCol:null
+};
+
+function openTableViewer(tName){
+  TV.tDef=DB_SCHEMA.find(t=>t.name===tName);
+  if(!TV.tDef)return;
+  TV.allRows=[...(DEMO_DATA[tName]||[])];
+  TV.filtered=[...TV.allRows];
+  TV.sorted=[...TV.filtered];
+  TV.page=1; TV.sortCol=null; TV.sortDir=1; TV.searchQ=""; TV.filterVals={};
+
+  /* Header */
+  document.getElementById("tv-tname").textContent=tName;
+  document.getElementById("tv-tmeta").textContent=`${TV.tDef.desc} · ${TV.tDef.cols.length} Spalten · ${TV.tDef.rows} Zeilen gesamt`;
+  const typeLbl=TV.tDef.type==="dim"?"DIM":TV.tDef.type==="fact"?"FACT":"LOG";
+  const typeCl=TV.tDef.type==="dim"?"dim":TV.tDef.type==="fact"?"fact":"log";
+  const badge=document.getElementById("tv-type-badge");
+  badge.textContent=typeLbl; badge.className=`tv-type-badge dbt-type ${typeCl}`;
+
+  /* Quick stats */
+  const rows=TV.allRows;
+  const numCols=TV.tDef.cols.filter(c=>["num","int"].includes(dtypeBadge(c.dtype)[0]));
+  const pkCol=TV.tDef.cols.find(c=>c.pk);
+  const nullCount=rows.reduce((sum,r)=>sum+TV.tDef.cols.filter(c=>r[c.name]==null).length,0);
+  document.getElementById("tv-quickstats").innerHTML=`
+    <div class="tv-qs-item"><div class="tv-qs-lbl">Records</div><div class="tv-qs-val mono" style="color:#4ade80">${rows.length}</div></div>
+    <div class="tv-qs-item"><div class="tv-qs-lbl">Spalten</div><div class="tv-qs-val mono" style="color:#93c5fd">${TV.tDef.cols.length}</div></div>
+    <div class="tv-qs-item"><div class="tv-qs-lbl">Numerisch</div><div class="tv-qs-val mono" style="color:#fcd34d">${numCols.length}</div></div>
+    <div class="tv-qs-item"><div class="tv-qs-lbl">NULL-Werte</div><div class="tv-qs-val mono" style="color:#f87171">${nullCount}</div></div>`;
+
+  /* Chart column pills */
+  const numericCols=TV.tDef.cols.filter(c=>{const[bc]=dtypeBadge(c.dtype);return bc==="num"||bc==="int";});
+  TV.chartCol=numericCols[0]?.name||null;
+  const pills=document.getElementById("tv-chart-col-sel");
+  pills.innerHTML=numericCols.slice(0,6).map(c=>`<button class="tv-col-pill${c.name===TV.chartCol?" on":""}" data-col="${c.name}">${c.name}</button>`).join("");
+  pills.querySelectorAll(".tv-col-pill").forEach(pill=>{
+    pill.addEventListener("click",()=>{
+      pills.querySelectorAll(".tv-col-pill").forEach(p=>p.classList.remove("on"));
+      pill.classList.add("on");
+      TV.chartCol=pill.dataset.col;
+      renderTvChart();
+    });
+  });
+
+  /* Filter panel */
+  buildTvFilterPanel();
+
+  /* Clear search */
+  document.getElementById("tv-data-search").value="";
+
+  /* Navigate to tableview screen */
+  setNav("tableview");
+
+  /* Render */
+  applyTvSort();
+  renderTvTable();
+  renderTvChart();
+}
+
+/* ── Filter Panel ── */
+function buildTvFilterPanel(){
+  const tName=TV.tDef.name;
+  const hasSym=["fact_company_fundamental","fact_earnings_calendar","fact_market_indicator","fact_market_quote","fact_market_timeseries"].includes(tName);
+  const isLog=tName==="log_api_call";
+  let f="";
+  if(hasSym) f+=`<div class="sf-field"><div class="sf-label">Symbol</div><input class="sf-input" id="tvf-symbol" placeholder="z. B. AAPL"/></div>`;
+  if(["fact_company_fundamental","fact_earnings_calendar"].includes(tName)) f+=`<div class="sf-field"><div class="sf-label">Firmenname</div><input class="sf-input" id="tvf-firm" placeholder="z. B. Apple"/></div>`;
+  if(["fact_company_fundamental","fact_market_quote"].includes(tName)) f+=`<div class="sf-field"><div class="sf-label">Exchange</div><input class="sf-input" id="tvf-exch" placeholder="NASDAQ"/></div>`;
+  if(tName==="fact_company_fundamental") f+=`<div class="sf-field"><div class="sf-label">Sektor</div><input class="sf-input" id="tvf-sector" placeholder="Technology"/></div>`;
+  if(tName==="fact_earnings_calendar") f+=`<div class="sf-field"><div class="sf-label">Quartal</div><select class="sf-select" id="tvf-quarter"><option value="">-- Alle --</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div>`;
+  if(tName==="fact_market_indicator") f+=`<div class="sf-field"><div class="sf-label">Indikator</div><input class="sf-input" id="tvf-indicator" placeholder="RSI, MACD…"/></div>`;
+  if(["fact_market_indicator","fact_market_timeseries"].includes(tName)) f+=`<div class="sf-field"><div class="sf-label">Intervall</div><select class="sf-select" id="tvf-interval"><option value="">-- Alle --</option><option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1d</option><option>1wk</option></select></div>`;
+  if(isLog){
+    f+=`<div class="sf-field"><div class="sf-label">Endpoint</div><input class="sf-input" id="tvf-endpoint" placeholder="/quote…"/></div>`;
+    f+=`<div class="sf-field"><div class="sf-label">Status Code</div><input class="sf-input" type="number" id="tvf-status" placeholder="200"/></div>`;
+    f+=`<div class="sf-field"><div class="sf-label">Erfolg</div><select class="sf-select" id="tvf-success"><option value="">-- Alle --</option><option value="true">✓ Erfolgreich</option><option value="false">✗ Fehler</option></select></div>`;
+  }
+  f+=`<div class="sf-field" style="flex:2;min-width:200px"><div class="sf-label">Zeitraum</div><div class="sf-date-row"><input class="sf-input" type="date" id="tvf-datefrom" value="2026-01-01" style="flex:1"/><span>→</span><input class="sf-input" type="date" id="tvf-dateto" value="2026-03-28" style="flex:1"/></div></div>`;
+  document.getElementById("tv-filter-fields").innerHTML=f;
+
+  /* active filter tags container */
+  document.getElementById("tv-active-filters").innerHTML="";
+}
+
+/* ── Sort ── */
+function applyTvSort(){
+  let rows=[...TV.filtered];
+  if(TV.sortCol){
+    rows.sort((a,b)=>{
+      const av=a[TV.sortCol]??'', bv=b[TV.sortCol]??'';
+      const n=typeof av==="number"&&typeof bv==="number";
+      return TV.sortDir*(n?av-bv:String(av).localeCompare(String(bv)));
+    });
+  }
+  TV.sorted=rows;
+  TV.totalPages=Math.max(1,Math.ceil(rows.length/PAGE_SIZE));
+  TV.page=Math.min(TV.page,TV.totalPages);
+}
+
+/* ── Render Table ── */
+function renderTvTable(){
+  const wrap=document.getElementById("tv-table-wrap");
+  const cols=TV.tDef.cols;
+  const start=(TV.page-1)*PAGE_SIZE;
+  const pageRows=TV.sorted.slice(start,start+PAGE_SIZE);
+  const total=TV.sorted.length;
+
+  /* info */
+  document.getElementById("tv-data-info").textContent=
+    `${total.toLocaleString()} Zeilen · Seite ${TV.page} von ${TV.totalPages} · Records ${start+1}–${Math.min(start+PAGE_SIZE,total)}`;
+  document.getElementById("tv-pg-num").textContent=`${TV.page} / ${TV.totalPages}`;
+
+  /* header */
+  const thead=cols.map(c=>{
+    const cls=c.pk?"th-pk":c.fk?"th-fk":"";
+    const sortCls=TV.sortCol===c.name?(TV.sortDir===1?"sort-asc":"sort-desc"):"";
+    const icon=c.pk?"🔑 ":c.fk?"🔗 ":"";
+    return`<th class="${cls} ${sortCls}" data-col="${c.name}">${icon}${c.name}</th>`;
+  }).join("");
+
+  /* body */
+  const tbody=pageRows.map((row,ri)=>{
+    const cells=cols.map(c=>{
+      const val=row[c.name];
+      let txt,cls="";
+      if(val===null||val===undefined){txt="NULL";cls="td-null";}
+      else if(typeof val==="boolean"){txt=val?"true":"false";cls=val?"td-true":"td-false";}
+      else if(typeof val==="number"){
+        const[bc]=dtypeBadge(c.dtype);
+        txt=bc==="num"?Number(val).toLocaleString("en-US",{maximumFractionDigits:4}):Number(val).toLocaleString("en-US");
+        cls=c.pk?"td-pk":c.fk?"td-fk":"td-num";
+      } else {
+        txt=String(val);
+        cls=c.pk?"td-pk":c.fk?"td-fk":"";
+      }
+      return`<td class="${cls}" title="${txt}">${txt}</td>`;
+    }).join("");
+    return`<tr class="${ri%2===0?"":"tr-even"}">${cells}</tr>`;
+  }).join("")||`<tr><td colspan="${cols.length}" style="text-align:center;color:var(--faint);padding:20px">Keine Daten</td></tr>`;
+
+  wrap.innerHTML=`<table class="tv-tbl"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+
+  /* sort click */
+  wrap.querySelectorAll("th[data-col]").forEach(th=>{
+    th.addEventListener("click",()=>{
+      const col=th.dataset.col;
+      if(TV.sortCol===col)TV.sortDir*=-1;
+      else{TV.sortCol=col;TV.sortDir=1;}
+      applyTvSort();renderTvTable();renderTvPagination();
+    });
+  });
+
+  renderTvPagination();
+
+  /* page buttons */
+  const prev=document.getElementById("tv-pg-prev");
+  const next=document.getElementById("tv-pg-next");
+  prev.disabled=TV.page<=1;
+  next.disabled=TV.page>=TV.totalPages;
+}
+
+/* ── Pagination Pills ── */
+function renderTvPagination(){
+  const el=document.getElementById("tv-pagination");
+  const p=TV.page, tp=TV.totalPages;
+  if(tp<=1){el.innerHTML="";return;}
+  let pills=[];
+  const addPill=n=>{if(n<1||n>tp)return;pills.push(`<button class="tv-pg-pill${n===p?" on":""}" data-p="${n}">${n}</button>`);};
+  const addDots=()=>pills.push(`<span class="tv-pg-dots">…</span>`);
+  addPill(1);
+  if(p>4)addDots();
+  for(let i=Math.max(2,p-2);i<=Math.min(tp-1,p+2);i++)addPill(i);
+  if(p<tp-3)addDots();
+  addPill(tp);
+  el.innerHTML=pills.join("");
+  el.querySelectorAll(".tv-pg-pill[data-p]").forEach(pill=>{
+    pill.addEventListener("click",()=>{TV.page=+pill.dataset.p;renderTvTable();});
+  });
+}
+
+/* ── Mini Chart ── */
+function renderTvChart(){
+  if(!TV.chartCol||!TV.allRows.length){
+    const wrap=document.getElementById("tv-chart-wrap");
+    if(wrap)wrap.innerHTML=`<div style="height:100%;display:flex;align-items:center;justify-content:center;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:10px">Keine numerischen Spalten</div>`;
+    return;
+  }
+  const ctx=document.getElementById("tv-chart")?.getContext("2d");
+  if(!ctx)return;
+  if(TV.chartObj){TV.chartObj.destroy();TV.chartObj=null;}
+
+  const rows=TV.sorted.slice(0,80);
+  const labels=rows.map((_,i)=>i+1);
+  const vals=rows.map(r=>{const v=r[TV.chartCol];return typeof v==="number"?v:null;});
+
+  TV.chartObj=new Chart(ctx,{
+    type:"line",
+    data:{labels,datasets:[{
+      label:TV.chartCol,data:vals,
+      borderColor:"#3b82f6",backgroundColor:"rgba(59,130,246,.1)",
+      borderWidth:1.8,pointRadius:0,pointHoverRadius:3,tension:.3,fill:true
+    }]},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:200},
+      plugins:{legend:{display:false},tooltip:{
+        callbacks:{label:ctx=>`${TV.chartCol}: ${ctx.parsed.y?.toLocaleString("en-US",{maximumFractionDigits:4})}`}
+      }},
+      scales:{
+        x:{ticks:{display:false},grid:{color:"#0d1b28"}},
+        y:{ticks:{color:"#8aa4c8",font:{family:"IBM Plex Mono",size:9},maxTicksLimit:5,
+            callback:v=>Number(v).toLocaleString("en-US",{maximumFractionDigits:2})},
+          grid:{color:"#0d1b28"}}
+      }
+    }
+  });
+}
+
+/* ── Filter anwenden ── */
+document.getElementById("tv-filter-apply").addEventListener("click",()=>{
+  const get=id=>{const el=document.getElementById(id);return el?el.value.trim():""};
+  TV.filterVals={};
+  // sammle alle Filter-Input-Werte
+  TV.tDef?.cols.forEach(c=>{});
+  const symbol=get("tvf-symbol"),endpoint=get("tvf-endpoint"),status=get("tvf-status"),success=get("tvf-success");
+  if(symbol)TV.filterVals.symbol=symbol.toUpperCase();
+  if(endpoint)TV.filterVals.endpoint=endpoint.toLowerCase();
+  if(status)TV.filterVals.http_status=+status;
+  if(success!=="")TV.filterVals.success=success==="true";
+
+  TV.filtered=TV.allRows.filter(row=>{
+    if(TV.filterVals.symbol&&String(row.symbol_id||row.ticker||"").toUpperCase()!==TV.filterVals.symbol)return false;
+    if(TV.filterVals.endpoint&&!String(row.endpoint||"").toLowerCase().includes(TV.filterVals.endpoint))return false;
+    if(TV.filterVals.http_status&&row.http_status!==TV.filterVals.http_status)return false;
+    if(TV.filterVals.success!==undefined&&row.success!==TV.filterVals.success)return false;
+    return true;
+  });
+  TV.page=1;applyTvSort();renderTvTable();renderTvChart();
+
+  // zeige aktive Filter als Tags
+  const tagsEl=document.getElementById("tv-active-filters");
+  tagsEl.innerHTML=Object.entries(TV.filterVals).map(([k,v])=>
+    `<span class="tv-af-tag">${k}: ${v}</span>`
+  ).join("");
+});
+
+/* ── Filter zurücksetzen ── */
+document.getElementById("tv-filter-reset").addEventListener("click",()=>{
+  document.querySelectorAll(".tv-filter-fields .sf-input").forEach(el=>{if(el.type!=="date")el.value="";});
+  document.querySelectorAll(".tv-filter-fields .sf-select").forEach(el=>el.selectedIndex=0);
+  TV.filterVals={};TV.filtered=[...TV.allRows];TV.page=1;
+  document.getElementById("tv-active-filters").innerHTML="";
+  applyTvSort();renderTvTable();renderTvChart();
+});
+
+/* ── Schnellsuche ── */
+document.getElementById("tv-data-search").addEventListener("input",e=>{
+  const q=e.target.value.toLowerCase().trim();
+  TV.filtered=q?TV.allRows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q))):TV.allRows;
+  TV.page=1;applyTvSort();renderTvTable();renderTvChart();
+});
+
+/* ── Filter Toggle ── */
+document.getElementById("tv-filter-toggle").addEventListener("click",()=>{
+  const body=document.getElementById("tv-filter-body");
+  const arrow=document.getElementById("tv-toggle-arrow");
+  const open=body.style.display==="flex";
+  body.style.display=open?"none":"flex";
+  arrow.classList.toggle("open",!open);
+});
+
+/* ── Pagination prev/next ── */
+document.getElementById("tv-pg-prev").addEventListener("click",()=>{if(TV.page>1){TV.page--;renderTvTable();}});
+document.getElementById("tv-pg-next").addEventListener("click",()=>{if(TV.page<TV.totalPages){TV.page++;renderTvTable();}});
+
+/* ── Zurück zur Tabellenliste ── */
+document.getElementById("tv-back").addEventListener("click",()=>{
+  if(TV.chartObj){TV.chartObj.destroy();TV.chartObj=null;}
+  setNav("watch");
+});
+
+
 
 
 

@@ -318,20 +318,148 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
   border-bottom:2px solid transparent;transition:all .12s;}
 .dbt-tab.on{color:#93c5fd;border-bottom-color:#3b82f6;}
 
-/* SCHEMA TAB */
+/* ══════════════════════════════════
+   SCHEMA TAB — pgAdmin-Stil
+══════════════════════════════════ */
 .dbt-schema{display:none;flex-direction:column;}
 .dbt-tab-content.schema-on .dbt-schema{display:flex;}
+
+/* Tabelle-Info-Leiste */
+.schema-meta{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 14px;border-bottom:1px solid var(--border2);
+  background:rgba(4,9,16,.5);flex-wrap:wrap;
+}
+.schema-meta-desc{font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;flex:1;}
+.schema-meta-count{
+  font-size:9px;font-family:"IBM Plex Mono",monospace;
+  padding:2px 8px;border-radius:99px;
+  background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.22);color:#93c5fd;
+  white-space:nowrap;
+}
+
+/* Spalten-Header-Zeile */
+.schema-col-header{
+  display:grid;grid-template-columns:22px 20px 1fr 120px 70px;
+  gap:0;align-items:center;
+  padding:5px 14px 5px 12px;
+  border-bottom:1px solid var(--border);
+  background:#060f1a;
+}
+.sch-hd{
+  font-size:9px;font-weight:800;text-transform:uppercase;
+  letter-spacing:.12em;color:var(--faint);
+  font-family:"IBM Plex Mono",monospace;
+}
+
+/* Jede Spaltenzeile */
 .dbt-col-row{
-  display:grid;grid-template-columns:16px 1fr auto;gap:6px;align-items:center;
-  padding:7px 12px;border-bottom:1px solid rgba(255,255,255,.03);
-  font-size:10px;font-family:"IBM Plex Mono",monospace;
+  display:grid;grid-template-columns:22px 20px 1fr 120px 70px;
+  gap:0;align-items:stretch;
+  border-bottom:1px solid rgba(255,255,255,.03);
+  font-family:"IBM Plex Mono",monospace;
+  transition:background .08s;
 }
 .dbt-col-row:last-child{border-bottom:none;}
-.col-ic{font-size:9px;}
-.col-ic.pk{color:#fbbf24;}.col-ic.fk{color:#60a5fa;}.col-ic.reg{color:var(--faint);}
-.col-nm{color:var(--soft);font-weight:600;}
-.col-nm.pk-col{color:#fde68a;font-weight:800;}
-.col-dt{color:var(--faint);font-size:9px;text-align:right;}
+.dbt-col-row:hover{background:rgba(59,130,246,.05);}
+
+/* Zellen */
+.cr-num{
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--faint);
+  border-right:1px solid rgba(255,255,255,.03);
+  padding:8px 4px;min-width:22px;
+}
+.cr-ic{
+  display:flex;align-items:center;justify-content:center;
+  padding:8px 2px;border-right:1px solid rgba(255,255,255,.03);
+  font-size:10px;
+}
+.cr-ic.pk{color:#fbbf24;}.cr-ic.fk{color:#60a5fa;}.cr-ic.reg{color:transparent;}
+.cr-name{
+  display:flex;align-items:center;gap:6px;
+  padding:8px 10px 8px 8px;
+  font-size:11px;font-weight:700;color:var(--soft);
+  border-right:1px solid rgba(255,255,255,.03);
+  overflow:hidden;
+}
+.cr-name.pk-name{color:#fde68a;}
+.cr-name.fk-name{color:#93c5fd;}
+.cr-fk-hint{
+  font-size:8px;color:rgba(96,165,250,.6);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.cr-dtype{
+  display:flex;align-items:center;
+  padding:8px 10px;
+  border-right:1px solid rgba(255,255,255,.03);
+  overflow:hidden;
+}
+.dtype-badge{
+  display:inline-block;
+  font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:110px;
+}
+.dtype-badge.int{background:rgba(59,130,246,.12);color:#93c5fd;border:1px solid rgba(59,130,246,.2);}
+.dtype-badge.str{background:rgba(34,197,94,.1);color:#86efac;border:1px solid rgba(34,197,94,.18);}
+.dtype-badge.num{background:rgba(245,158,11,.1);color:#fcd34d;border:1px solid rgba(245,158,11,.18);}
+.dtype-badge.ts {background:rgba(168,85,247,.1);color:#d8b4fe;border:1px solid rgba(168,85,247,.18);}
+.dtype-badge.bl {background:rgba(20,184,166,.1);color:#5eead4;border:1px solid rgba(20,184,166,.18);}
+.dtype-badge.txt{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.18);}
+.dtype-badge.oth{background:rgba(100,116,139,.1);color:#94a3b8;border:1px solid rgba(100,116,139,.18);}
+
+.cr-nullable{
+  display:flex;align-items:center;justify-content:center;
+  padding:8px 6px;font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;
+}
+.null-yes{color:#4ade80;}.null-no{color:var(--faint);}
+
+/* Filter-Panel im Schema-Tab */
+.schema-filter{
+  display:flex;flex-direction:column;gap:0;
+  border-top:1px solid var(--border2);
+}
+.schema-filter-hd{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--border2);
+  background:rgba(4,9,16,.4);cursor:pointer;
+}
+.schema-filter-hd-lbl{font-size:10px;font-weight:800;color:var(--muted);font-family:"IBM Plex Mono",monospace;flex:1;}
+.schema-filter-hd-arrow{font-size:9px;color:var(--faint);transition:transform .18s;}
+.schema-filter-hd.open .schema-filter-hd-arrow{transform:rotate(90deg);}
+.schema-filter-body{
+  display:none;flex-direction:column;gap:8px;
+  padding:12px 14px;background:rgba(4,9,16,.3);
+}
+.schema-filter-hd.open+.schema-filter-body{display:flex;}
+.sf-row{display:flex;gap:8px;flex-wrap:wrap;}
+.sf-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+.sf-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.sf-input,.sf-select{
+  background:#050d18;border:1px solid var(--border);border-radius:8px;
+  padding:7px 10px;color:var(--txt);font-size:11px;
+  font-family:"IBM Plex Mono",monospace;width:100%;
+  transition:border-color .12s;
+}
+.sf-input:focus,.sf-select:focus{outline:none;border-color:rgba(59,130,246,.5);}
+.sf-input::placeholder{color:var(--faint);}
+.sf-date-row{display:flex;gap:6px;align-items:center;}
+.sf-date-row span{font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.sf-btn-row{display:flex;gap:8px;justify-content:flex-end;padding-top:4px;}
+.sf-btn-apply{
+  padding:7px 16px;border-radius:9px;
+  background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4);
+  color:#bfdbfe;font-size:10px;font-weight:800;cursor:pointer;
+  font-family:"IBM Plex Mono",monospace;transition:background .1s;
+}
+.sf-btn-apply:active{background:rgba(59,130,246,.35);}
+.sf-btn-reset{
+  padding:7px 14px;border-radius:9px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;
+  font-family:"IBM Plex Mono",monospace;transition:background .1s;
+}
+.sf-btn-reset:active{background:rgba(255,255,255,.08);}
 
 /* DATA TAB */
 .dbt-data{display:none;flex-direction:column;}
@@ -356,7 +484,7 @@ table.dtbl thead th.pk-th{color:#fde68a;}
 table.dtbl thead th.fk-th{color:#93c5fd;}
 table.dtbl tbody tr{border-bottom:1px solid rgba(255,255,255,.03);}
 table.dtbl tbody tr:hover{background:rgba(59,130,246,.06);}
-table.dtbl tbody td{padding:6px 12px;color:var(--soft);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;}
+table.dtbl tbody td{padding:6px 12px;color:var(--soft);white-space:nowrap;max-width:200px;overflow:hidden;text-overflow:ellipsis;}
 table.dtbl tbody td.pk-td{color:#fde68a;font-weight:700;}
 table.dtbl tbody td.fk-td{color:#93c5fd;}
 table.dtbl tbody td.null-td{color:var(--faint);font-style:italic;}
@@ -1463,123 +1591,92 @@ function buildStatsTab(t){
   }).join("");
 }
 
+/* ── dtype → Badge-Klasse ── */
+function dtypeBadge(dtype){
+  const d=(dtype||"").toLowerCase();
+  if(d.includes("int")||d.includes("serial")||d.includes("bigint")||d.includes("smallint"))return["int","INT"];
+  if(d.includes("varchar")||d.includes("char"))return["str",dtype];
+  if(d.includes("numeric")||d.includes("float")||d.includes("decimal"))return["num",dtype];
+  if(d.includes("timestamp")||d.includes("date")||d.includes("time"))return["ts",dtype];
+  if(d.includes("bool"))return["bl","BOOLEAN"];
+  if(d==="text")return["txt","TEXT"];
+  return["oth",dtype];
+}
+
+/* ── Filter-Panel aus Layout.txt ── */
+function buildFilterPanel(tName){
+  const hasSym=["fact_company_fundamental","fact_earnings_calendar","fact_market_indicator","fact_market_quote","fact_market_timeseries"].includes(tName);
+  const hasFirma=["fact_company_fundamental","fact_earnings_calendar"].includes(tName);
+  const hasExch=["fact_company_fundamental","fact_market_quote"].includes(tName);
+  const isLog=tName==="log_api_call";
+  let f="";
+  if(hasSym) f+=`<div class="sf-field"><div class="sf-label">Symbol</div><input class="sf-input" placeholder="z. B. AAPL"/></div>`;
+  if(hasFirma) f+=`<div class="sf-field"><div class="sf-label">Firmenname</div><input class="sf-input" placeholder="z. B. Apple"/></div>`;
+  if(hasExch) f+=`<div class="sf-field"><div class="sf-label">Exchange</div><input class="sf-input" placeholder="z. B. NASDAQ"/></div>`;
+  if(tName==="fact_company_fundamental") f+=`<div class="sf-field"><div class="sf-label">Land</div><input class="sf-input" placeholder="z. B. USA"/></div><div class="sf-field"><div class="sf-label">Sektor</div><input class="sf-input" placeholder="z. B. Technology"/></div>`;
+  if(tName==="fact_earnings_calendar") f+=`<div class="sf-field"><div class="sf-label">Fiscal Year</div><input class="sf-input" type="number" placeholder="2026"/></div><div class="sf-field"><div class="sf-label">Fiscal Quarter</div><select class="sf-select"><option value="">-- Alle --</option><option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option></select></div>`;
+  if(tName==="fact_market_indicator") f+=`<div class="sf-field"><div class="sf-label">Indikator</div><input class="sf-input" placeholder="RSI, SMA, EMA"/></div>`;
+  if(tName==="fact_market_indicator"||tName==="fact_market_timeseries") f+=`<div class="sf-field"><div class="sf-label">Intervall</div><select class="sf-select"><option value="">-- Alle --</option><option>1m</option><option>5m</option><option>15m</option><option>1h</option><option>1d</option><option>1wk</option><option>1mo</option></select></div>`;
+  if(isLog) f+=`<div class="sf-field"><div class="sf-label">API Provider</div><input class="sf-input" placeholder="z. B. Finnhub"/></div><div class="sf-field"><div class="sf-label">Endpoint</div><input class="sf-input" placeholder="/quote …"/></div><div class="sf-field"><div class="sf-label">Status Code</div><input class="sf-input" type="number" placeholder="200"/></div><div class="sf-field"><div class="sf-label">Erfolg</div><select class="sf-select"><option value="">-- Alle --</option><option value="true">Erfolgreich</option><option value="false">Fehler</option></select></div>`;
+  f+=`<div class="sf-field" style="flex:2;min-width:200px"><div class="sf-label">Zeitraum</div><div class="sf-date-row"><input class="sf-input" type="date" value="2026-01-01" style="flex:1"/><span>→</span><input class="sf-input" type="date" value="2026-03-28" style="flex:1"/></div></div>`;
+  return`<div class="schema-filter"><div class="schema-filter-hd" id="sfh-${tName}"><i class="fa-solid fa-filter" style="font-size:10px;color:#60a5fa"></i><span class="schema-filter-hd-lbl">Filter / Query-Parameter</span><i class="fa-solid fa-chevron-right schema-filter-hd-arrow"></i></div><div class="schema-filter-body"><div class="sf-row">${f}</div><div class="sf-btn-row"><button class="sf-btn-reset">↺ Zurücksetzen</button><button class="sf-btn-apply">▶ Filtern</button></div></div></div>`;
+}
+
 function renderDbTree(filter=""){
   const tree=document.getElementById("db-tree");
   if(!tree)return;
   const q=(filter||"").toLowerCase().trim();
-  const filtered=q
-    ?DB_SCHEMA.filter(t=>t.name.includes(q)||t.cols.some(c=>c.name.includes(q)))
-    :DB_SCHEMA;
+  const filtered=q?DB_SCHEMA.filter(t=>t.name.includes(q)||t.cols.some(c=>c.name.includes(q))):DB_SCHEMA;
 
   tree.innerHTML=filtered.map(t=>{
     const typeLabel=t.type==="dim"?"DIM":t.type==="fact"?"FACT":"LOG";
     const rowCount=DEMO_DATA[t.name]?.length||0;
 
-    /* schema columns html */
-    const schemaHtml=t.cols.map(c=>{
+    const colRows=t.cols.map((c,i)=>{
       const isPK=!!c.pk,isFK=!!c.fk;
-      const ic=isPK?"fa-key pk":isFK?"fa-link fk":"fa-circle reg";
-      const nm=isPK?"pk-col":"";
-      const fkHint=isFK?` <span style="color:#60a5fa;font-size:8px">→ ${c.fk}</span>`:"";
-      return`<div class="dbt-col-row"><i class="fa-solid ${ic} col-ic"></i><span class="col-nm ${nm}">${c.name}${fkHint}</span><span class="col-dt">${c.dtype}</span></div>`;
+      const icCls=isPK?"pk":isFK?"fk":"reg";
+      const icIcon=isPK?"fa-key":isFK?"fa-link":"fa-circle";
+      const nmCls=isPK?"pk-name":isFK?"fk-name":"";
+      const [badgeCls,badgeTxt]=dtypeBadge(c.dtype);
+      const fkHint=isFK?`<span class="cr-fk-hint">→ ${c.fk}</span>`:"";
+      const nullable=(!isPK&&!isFK);
+      return`<div class="dbt-col-row"><span class="cr-num">${i+1}</span><span class="cr-ic ${icCls}"><i class="fa-solid ${icIcon}"></i></span><span class="cr-name ${nmCls}">${c.name}${fkHint}</span><span class="cr-dtype"><span class="dtype-badge ${badgeCls}">${badgeTxt}</span></span><span class="cr-nullable ${nullable?"null-yes":"null-no"}">${nullable?"NULL":"NOT NULL"}</span></div>`;
     }).join("");
 
-    return`<div class="dbt-row" data-table="${t.name}">
-      <div class="dbt-head">
-        <i class="fa-solid fa-table-cells dbt-icon"></i>
-        <span class="dbt-name">${t.name}</span>
-        <span class="dbt-type ${t.type}">${typeLabel}</span>
-        <span class="dbt-count">${t.rows}</span>
-        <i class="fa-solid fa-chevron-right dbt-arrow"></i>
-      </div>
-      <div class="dbt-panel">
-        <!-- tabs -->
-        <div class="dbt-tabs">
-          <button class="dbt-tab on" data-tab="schema">Schema</button>
-          <button class="dbt-tab" data-tab="data">Daten <span style="background:rgba(59,130,246,.2);border-radius:99px;padding:1px 6px;font-size:8px">${rowCount}</span></button>
-          <button class="dbt-tab" data-tab="stats">Statistik</button>
-        </div>
-        <!-- content -->
-        <div class="dbt-tab-content schema-on">
-          <!-- SCHEMA TAB -->
-          <div class="dbt-schema">
-            <div style="padding:5px 12px 4px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;">
-              <span style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;flex:1">${t.desc}</span>
-              <span style="font-size:9px;color:var(--faint);font-family:'IBM Plex Mono',monospace">${t.cols.length} cols</span>
-            </div>
-            <div style="display:grid;grid-template-columns:16px 1fr auto;gap:6px;padding:5px 12px 4px;border-bottom:1px solid rgba(255,255,255,.03);">
-              <span></span>
-              <span style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace">Column</span>
-              <span style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace;text-align:right">Type</span>
-            </div>
-            ${schemaHtml}
-          </div>
-          <!-- DATA TAB -->
-          <div class="dbt-data">
-            <div class="data-toolbar">
-              <input class="data-filter" placeholder="Zeile filtern…" data-table="${t.name}"/>
-              <span class="data-count" id="dc-${t.name}">${rowCount} Zeilen</span>
-            </div>
-            <div class="tbl-wrap" id="tw-${t.name}"></div>
-          </div>
-          <!-- STATS TAB -->
-          <div class="dbt-stats-tab" id="st-${t.name}"></div>
-        </div>
-      </div>
-    </div>`;
+    const schemaInner=`<div class="schema-meta"><span class="schema-meta-desc">${t.desc}</span><span class="schema-meta-count">${t.cols.length} Spalten</span><span class="schema-meta-count" style="background:rgba(168,85,247,.12);border-color:rgba(168,85,247,.25);color:#d8b4fe">${t.rows} Zeilen</span></div><div class="schema-col-header"><span class="sch-hd" style="text-align:center">#</span><span class="sch-hd"></span><span class="sch-hd">Spaltenname</span><span class="sch-hd">Datentyp</span><span class="sch-hd" style="text-align:center">Nullable</span></div>${colRows}${buildFilterPanel(t.name)}`;
+
+    return`<div class="dbt-row" data-table="${t.name}"><div class="dbt-head"><i class="fa-solid fa-table-cells dbt-icon"></i><span class="dbt-name">${t.name}</span><span class="dbt-type ${t.type}">${typeLabel}</span><span class="dbt-count">${t.rows}</span><i class="fa-solid fa-chevron-right dbt-arrow"></i></div><div class="dbt-panel"><div class="dbt-tabs"><button class="dbt-tab on" data-tab="schema"><i class="fa-solid fa-table-list" style="margin-right:4px"></i>Schema</button><button class="dbt-tab" data-tab="data"><i class="fa-solid fa-database" style="margin-right:4px"></i>Daten <span style="background:rgba(59,130,246,.2);border-radius:99px;padding:1px 6px;font-size:8px">${rowCount}</span></button><button class="dbt-tab" data-tab="stats"><i class="fa-solid fa-chart-bar" style="margin-right:4px"></i>Statistik</button></div><div class="dbt-tab-content schema-on"><div class="dbt-schema">${schemaInner}</div><div class="dbt-data"><div class="data-toolbar"><input class="data-filter" placeholder="Zeile filtern…" data-table="${t.name}"/><span class="data-count" id="dc-${t.name}">${rowCount} Zeilen</span></div><div class="tbl-wrap" id="tw-${t.name}"></div></div><div class="dbt-stats-tab" id="st-${t.name}"></div></div></div></div>`;
   }).join("");
 
-  /* wire up interactions */
   tree.querySelectorAll(".dbt-row").forEach(row=>{
     const tName=row.dataset.table;
     const tDef=DB_SCHEMA.find(t=>t.name===tName);
-
-    /* expand/collapse on head click */
     row.querySelector(".dbt-head").addEventListener("click",()=>{
       const wasOpen=row.classList.contains("open");
       tree.querySelectorAll(".dbt-row.open").forEach(r=>r.classList.remove("open"));
       if(!wasOpen){
         row.classList.add("open");
-        /* render data table on first open */
         const tw=document.getElementById(`tw-${tName}`);
-        if(tw&&!tw.dataset.loaded){
-          const {html}=buildDataTable(tDef);
-          tw.innerHTML=html;
-          tw.dataset.loaded="1";
-        }
-        /* render stats on first open */
+        if(tw&&!tw.dataset.loaded){const{html}=buildDataTable(tDef);tw.innerHTML=html;tw.dataset.loaded="1";}
         const st=document.getElementById(`st-${tName}`);
-        if(st&&!st.dataset.loaded){
-          st.innerHTML=buildStatsTab(tDef);
-          st.dataset.loaded="1";
-        }
+        if(st&&!st.dataset.loaded){st.innerHTML=buildStatsTab(tDef);st.dataset.loaded="1";}
       }
     });
-
-    /* tab switching */
     row.querySelectorAll(".dbt-tab").forEach(tab=>{
       tab.addEventListener("click",e=>{
         e.stopPropagation();
         const tc=row.querySelector(".dbt-tab-content");
         row.querySelectorAll(".dbt-tab").forEach(t=>t.classList.remove("on"));
         tab.classList.add("on");
-        tc.className="dbt-tab-content";
-        tc.classList.add(tab.dataset.tab+"-on");
+        tc.className="dbt-tab-content "+tab.dataset.tab+"-on";
       });
     });
-
-    /* data row filter */
+    const sfh=row.querySelector(`#sfh-${tName}`);
+    if(sfh) sfh.addEventListener("click",e=>{e.stopPropagation();sfh.classList.toggle("open");});
+    const sfReset=row.querySelector(".sf-btn-reset");
+    if(sfReset) sfReset.addEventListener("click",e=>{e.stopPropagation();row.querySelectorAll(".sf-input").forEach(el=>{if(el.type!=="date")el.value="";});row.querySelectorAll(".sf-select").forEach(el=>el.selectedIndex=0);});
     const filterInp=row.querySelector(".data-filter");
-    if(filterInp){
-      filterInp.addEventListener("input",e=>{
-        e.stopPropagation();
-        const tw=document.getElementById(`tw-${tName}`);
-        const dc=document.getElementById(`dc-${tName}`);
-        const {html,total}=buildDataTable(tDef,e.target.value);
-        tw.innerHTML=html;
-        if(dc)dc.textContent=`${total} Zeilen`;
-      });
-    }
+    if(filterInp) filterInp.addEventListener("input",e=>{e.stopPropagation();const tw=document.getElementById(`tw-${tName}`);const dc=document.getElementById(`dc-${tName}`);const{html,total}=buildDataTable(tDef,e.target.value);tw.innerHTML=html;if(dc)dc.textContent=`${total} Zeilen`;});
   });
 }
 
@@ -1587,6 +1684,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   const inp=document.getElementById("db-search");
   if(inp)inp.addEventListener("input",e=>renderDbTree(e.target.value));
 });
+
 
 
 /* ═══════════ BOOT ═══════════ */

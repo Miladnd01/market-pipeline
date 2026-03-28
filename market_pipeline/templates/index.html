@@ -266,87 +266,110 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
 }
 .footer-credit span{color:var(--muted);}
 .footer-credit strong{color:#4e7aac;font-weight:800;}
-/* ── DB SCHEMA EXPLORER ── */
-.db-header{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid var(--border2);}
-.db-title{font-size:11px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);letter-spacing:.06em;}
-.db-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;font-family:"IBM Plex Mono",monospace;}
-.db-search{flex:1;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
+/* ── DB EXPLORER ── */
+.db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.db-title-row{display:flex;align-items:center;gap:6px;flex:1;}
+.db-pg-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
+.db-title{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
+.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
 .db-search::placeholder{color:var(--faint);}
 .db-search:focus{border-color:rgba(59,130,246,.45);outline:none;}
 
-.db-tree{display:flex;flex-direction:column;gap:2px;padding:8px 10px;}
-
-/* schema row = clickable table node */
-.dbt-row{
-  display:flex;align-items:center;gap:0;
-  border-radius:10px;cursor:pointer;
-  overflow:hidden;
-  border:1px solid transparent;
-  transition:all .12s;
-  flex-direction:column;
-}
-.dbt-row:active{transform:scale(.99);}
-.dbt-row.open .dbt-head{background:rgba(59,130,246,.1);border-color:rgba(59,130,246,.28);}
-
-.dbt-head{
-  display:grid;grid-template-columns:18px 1fr auto auto;
-  align-items:center;gap:8px;
-  width:100%;padding:9px 11px;
-  border-radius:10px;
-  border:1px solid transparent;
-  background:var(--panel2);
-  transition:all .12s;
-}
-.dbt-row.open .dbt-head{
-  border-radius:10px 10px 0 0;
-  border-bottom:1px solid var(--border2);
-}
-
-.dbt-icon{font-size:12px;color:#60a5fa;flex-shrink:0;}
-.dbt-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
-.dbt-type{font-size:9px;font-weight:700;font-family:"IBM Plex Mono",monospace;padding:2px 6px;border-radius:5px;}
-.dbt-type.dim{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
-.dbt-type.fact{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);}
-.dbt-type.log{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
-.dbt-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
-.dbt-row.open .dbt-arrow{transform:rotate(90deg);}
-
-/* columns panel */
-.dbt-cols{
-  display:none;
-  flex-direction:column;gap:0;
-  background:rgba(4,9,16,.6);
-  border:1px solid rgba(59,130,246,.2);
-  border-top:none;
-  border-radius:0 0 10px 10px;
-  width:100%;
-  overflow:hidden;
-}
-.dbt-row.open .dbt-cols{display:flex;}
-
-.dbt-col{
-  display:grid;grid-template-columns:18px 1fr auto;
-  gap:6px;align-items:center;
-  padding:7px 11px;
-  border-bottom:1px solid rgba(255,255,255,.03);
-  font-size:10px;font-family:"IBM Plex Mono",monospace;
-}
-.dbt-col:last-child{border-bottom:none;}
-.col-icon{font-size:9px;color:var(--faint);}
-.col-icon.pk{color:#fbbf24;}
-.col-icon.fk{color:#60a5fa;}
-.col-name{color:var(--soft);font-weight:600;}
-.col-name.pk-col{color:#fde68a;font-weight:800;}
-.col-dtype{color:var(--faint);font-size:9px;text-align:right;}
-
-/* row count chip */
-.dbt-rows{font-size:9px;font-weight:700;font-family:"IBM Plex Mono",monospace;color:var(--muted);}
-
-/* stats bar */
-.db-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px;}
+/* stats strip */
+.db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;}
 .db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;padding:9px 10px;text-align:center;}
 .db-stat-val{font-size:16px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
 .db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
+
+/* table list */
+.db-tree{display:flex;flex-direction:column;gap:3px;padding:8px 10px;}
+.dbt-row{border-radius:11px;overflow:hidden;border:1px solid transparent;transition:border-color .12s;flex-direction:column;display:flex;}
+.dbt-head{
+  display:grid;grid-template-columns:16px 1fr auto auto 16px;
+  align-items:center;gap:8px;width:100%;padding:10px 12px;
+  background:var(--panel2);cursor:pointer;
+  transition:background .12s;
+}
+.dbt-head:active{background:#111e30;}
+.dbt-row.open{border-color:rgba(59,130,246,.3);}
+.dbt-row.open .dbt-head{background:rgba(59,130,246,.1);border-radius:10px 10px 0 0;}
+.dbt-icon{font-size:12px;color:#60a5fa;}
+.dbt-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
+.dbt-type{font-size:9px;font-weight:700;font-family:"IBM Plex Mono",monospace;padding:2px 7px;border-radius:5px;white-space:nowrap;}
+.dbt-type.dim{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
+.dbt-type.fact{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);}
+.dbt-type.log{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
+.dbt-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--muted);white-space:nowrap;}
+.dbt-arrow{font-size:10px;color:var(--muted);transition:transform .18s;}
+.dbt-row.open .dbt-arrow{transform:rotate(90deg);}
+
+/* inner panel with tabs */
+.dbt-panel{
+  display:none;flex-direction:column;
+  background:rgba(4,9,16,.7);
+  border-top:1px solid rgba(59,130,246,.18);
+}
+.dbt-row.open .dbt-panel{display:flex;}
+
+/* tab bar inside panel */
+.dbt-tabs{display:flex;border-bottom:1px solid var(--border2);}
+.dbt-tab{flex:1;padding:7px 4px;font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;
+  color:var(--muted);text-align:center;cursor:pointer;border:none;background:none;
+  border-bottom:2px solid transparent;transition:all .12s;}
+.dbt-tab.on{color:#93c5fd;border-bottom-color:#3b82f6;}
+
+/* SCHEMA TAB */
+.dbt-schema{display:none;flex-direction:column;}
+.dbt-tab-content.schema-on .dbt-schema{display:flex;}
+.dbt-col-row{
+  display:grid;grid-template-columns:16px 1fr auto;gap:6px;align-items:center;
+  padding:7px 12px;border-bottom:1px solid rgba(255,255,255,.03);
+  font-size:10px;font-family:"IBM Plex Mono",monospace;
+}
+.dbt-col-row:last-child{border-bottom:none;}
+.col-ic{font-size:9px;}
+.col-ic.pk{color:#fbbf24;}.col-ic.fk{color:#60a5fa;}.col-ic.reg{color:var(--faint);}
+.col-nm{color:var(--soft);font-weight:600;}
+.col-nm.pk-col{color:#fde68a;font-weight:800;}
+.col-dt{color:var(--faint);font-size:9px;text-align:right;}
+
+/* DATA TAB */
+.dbt-data{display:none;flex-direction:column;}
+.dbt-tab-content.data-on .dbt-data{display:flex;}
+.data-toolbar{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--border2);}
+.data-filter{flex:1;background:#050d18;border:1px solid var(--border);border-radius:7px;padding:5px 9px;color:var(--txt);font-size:10px;font-family:"IBM Plex Mono",monospace;}
+.data-filter::placeholder{color:var(--faint);}
+.data-filter:focus{outline:none;border-color:rgba(59,130,246,.4);}
+.data-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--muted);white-space:nowrap;}
+.tbl-wrap{overflow-x:auto;max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.tbl-wrap::-webkit-scrollbar{height:4px;width:4px;}
+.tbl-wrap::-webkit-scrollbar-track{background:transparent;}
+.tbl-wrap::-webkit-scrollbar-thumb{background:#1b2d42;border-radius:99px;}
+table.dtbl{border-collapse:collapse;width:max-content;min-width:100%;font-size:10px;font-family:"IBM Plex Mono",monospace;}
+table.dtbl thead th{
+  position:sticky;top:0;z-index:2;
+  background:#07111e;color:var(--muted);
+  padding:6px 12px;text-align:left;font-weight:800;
+  border-bottom:1px solid var(--border2);white-space:nowrap;font-size:9px;text-transform:uppercase;letter-spacing:.08em;
+}
+table.dtbl thead th.pk-th{color:#fde68a;}
+table.dtbl thead th.fk-th{color:#93c5fd;}
+table.dtbl tbody tr{border-bottom:1px solid rgba(255,255,255,.03);}
+table.dtbl tbody tr:hover{background:rgba(59,130,246,.06);}
+table.dtbl tbody td{padding:6px 12px;color:var(--soft);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;}
+table.dtbl tbody td.pk-td{color:#fde68a;font-weight:700;}
+table.dtbl tbody td.fk-td{color:#93c5fd;}
+table.dtbl tbody td.null-td{color:var(--faint);font-style:italic;}
+table.dtbl tbody td.bool-true{color:#4ade80;}
+table.dtbl tbody td.bool-false{color:#f87171;}
+
+/* STATS TAB */
+.dbt-stats-tab{display:none;flex-direction:column;gap:5px;padding:8px 10px;}
+.dbt-tab-content.stats-on .dbt-stats-tab{display:flex;}
+.stat-row{display:grid;grid-template-columns:1fr repeat(4,auto);gap:8px;align-items:center;
+  padding:7px 10px;border-radius:9px;background:var(--panel2);border:1px solid var(--border2);}
+.stat-col-name{font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
+.stat-pill{font-size:9px;font-family:"IBM Plex Mono",monospace;padding:2px 6px;border-radius:5px;background:rgba(59,130,246,.1);color:#93c5fd;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -505,10 +528,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
       <div class="end"></div>
     </section>
 
-    <!-- SCREEN: DATABASE SCHEMA EXPLORER -->
+    <!-- SCREEN: DATABASE EXPLORER -->
     <section class="screen" id="scr-watch">
-
-      <!-- Stats bar -->
       <div class="card">
         <div class="db-stats">
           <div class="db-stat"><div class="db-stat-val mono" style="color:#c084fc">4</div><div class="db-stat-lbl">DIM</div></div>
@@ -516,19 +537,17 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font
           <div class="db-stat"><div class="db-stat-val mono" style="color:#fbbf24">1</div><div class="db-stat-lbl">LOG</div></div>
         </div>
       </div>
-
-      <!-- Schema tree -->
       <div class="card">
-        <div class="db-header">
-          <i class="fa-solid fa-database" style="color:#60a5fa;font-size:13px"></i>
-          <span class="db-title">market_db</span>
-          <span class="db-badge">PostgreSQL</span>
-          <input class="db-search" id="db-search" placeholder="Filter tables…" type="text"/>
+        <div class="db-topbar">
+          <div class="db-title-row">
+            <i class="fa-solid fa-database" style="color:#60a5fa;font-size:13px"></i>
+            <span class="db-title">market_db</span>
+            <span class="db-pg-badge">PostgreSQL</span>
+          </div>
+          <input class="db-search" id="db-search" placeholder="Tabelle suchen…" type="text"/>
         </div>
-
         <div class="db-tree" id="db-tree"></div>
       </div>
-
       <div class="end"></div>
     </section>
 
@@ -1333,68 +1352,270 @@ const DB_SCHEMA=[
   },
 ];
 
+/* ── Demo-Daten für alle 10 Tabellen ── */
+const DEMO_DATA={
+  dim_indicator:[
+    {indicator_id:1,indicator_code:"RSI_14",indicator_name:"Relative Strength Index 14",category:"Momentum",unit:"Score",is_active:true},
+    {indicator_id:2,indicator_code:"MACD",indicator_name:"MACD Signal Line",category:"Trend",unit:"Price",is_active:true},
+    {indicator_id:3,indicator_code:"BB_20",indicator_name:"Bollinger Bands 20",category:"Volatility",unit:"Price",is_active:true},
+    {indicator_id:4,indicator_code:"EMA_50",indicator_name:"Exponential MA 50",category:"Trend",unit:"Price",is_active:true},
+    {indicator_id:5,indicator_code:"ATR_14",indicator_name:"Average True Range 14",category:"Volatility",unit:"Price",is_active:false},
+    {indicator_id:6,indicator_code:"STOCH",indicator_name:"Stochastic Oscillator",category:"Momentum",unit:"Score",is_active:true},
+  ],
+  dim_interval:[
+    {interval_id:1,interval_code:"1m",interval_label:"1 Minute",minutes:1,is_intraday:true},
+    {interval_id:2,interval_code:"5m",interval_label:"5 Minutes",minutes:5,is_intraday:true},
+    {interval_id:3,interval_code:"15m",interval_label:"15 Minutes",minutes:15,is_intraday:true},
+    {interval_id:4,interval_code:"1h",interval_label:"1 Hour",minutes:60,is_intraday:true},
+    {interval_id:5,interval_code:"4h",interval_label:"4 Hours",minutes:240,is_intraday:true},
+    {interval_id:6,interval_code:"1d",interval_label:"1 Day",minutes:1440,is_intraday:false},
+    {interval_id:7,interval_code:"1w",interval_label:"1 Week",minutes:10080,is_intraday:false},
+  ],
+  dim_source:[
+    {source_id:1,source_code:"ALPHAV",source_name:"Alpha Vantage",base_url:"https://alphavantage.co",api_version:"v1",rate_limit:75,is_active:true},
+    {source_id:2,source_code:"POLYGON",source_name:"Polygon.io",base_url:"https://api.polygon.io",api_version:"v2",rate_limit:100,is_active:true},
+    {source_id:3,source_code:"YAHOO",source_name:"Yahoo Finance",base_url:"https://query1.finance.yahoo.com",api_version:"v8",rate_limit:200,is_active:true},
+    {source_id:4,source_code:"FMP",source_name:"Financial Modeling Prep",base_url:"https://financialmodelingprep.com",api_version:"v3",rate_limit:250,is_active:true},
+    {source_id:5,source_code:"TIINGO",source_name:"Tiingo",base_url:"https://api.tiingo.com",api_version:"v1",rate_limit:50,is_active:false},
+  ],
+  dim_symbol:[
+    {symbol_id:1,ticker:"AAPL",company_name:"Apple Inc.",exchange:"NASDAQ",asset_class:"Equity",sector:"Technology",currency:"USD",country:"USA",is_active:true},
+    {symbol_id:2,ticker:"MSFT",company_name:"Microsoft Corporation",exchange:"NASDAQ",asset_class:"Equity",sector:"Technology",currency:"USD",country:"USA",is_active:true},
+    {symbol_id:3,ticker:"NVDA",company_name:"NVIDIA Corporation",exchange:"NASDAQ",asset_class:"Equity",sector:"Technology",currency:"USD",country:"USA",is_active:true},
+    {symbol_id:4,ticker:"GOOGL",company_name:"Alphabet Inc.",exchange:"NASDAQ",asset_class:"Equity",sector:"Technology",currency:"USD",country:"USA",is_active:true},
+    {symbol_id:5,ticker:"TSLA",company_name:"Tesla Inc.",exchange:"NASDAQ",asset_class:"Equity",sector:"Consumer Cyclical",currency:"USD",country:"USA",is_active:true},
+    {symbol_id:6,ticker:"META",company_name:"Meta Platforms Inc.",exchange:"NASDAQ",asset_class:"Equity",sector:"Technology",currency:"USD",country:"USA",is_active:true},
+    {symbol_id:7,ticker:"AMZN",company_name:"Amazon.com Inc.",exchange:"NASDAQ",asset_class:"Equity",sector:"Consumer Cyclical",currency:"USD",country:"USA",is_active:true},
+  ],
+  fact_company_fundamental:[
+    {fundamental_id:1,symbol_id:1,source_id:2,period_type:"Q",period_end:"2024-12-31",revenue:124300000000,net_income:36330000000,eps:6.42,pe_ratio:29.4,market_cap:2900000000000,beta:1.18},
+    {fundamental_id:2,symbol_id:2,source_id:2,period_type:"Q",period_end:"2024-12-31",revenue:69600000000,net_income:24100000000,eps:12.05,pe_ratio:35.1,market_cap:3100000000000,beta:0.92},
+    {fundamental_id:3,symbol_id:3,source_id:2,period_type:"Q",period_end:"2024-12-31",revenue:35100000000,net_income:19310000000,eps:1.91,pe_ratio:68.2,market_cap:2300000000000,beta:1.62},
+    {fundamental_id:4,symbol_id:4,source_id:2,period_type:"Q",period_end:"2024-12-31",revenue:96400000000,net_income:26540000000,eps:5.32,pe_ratio:26.8,market_cap:1800000000000,beta:1.05},
+    {fundamental_id:5,symbol_id:5,source_id:2,period_type:"Q",period_end:"2024-12-31",revenue:25710000000,net_income:7260000000,eps:3.26,pe_ratio:76.3,market_cap:790000000000,beta:2.01},
+  ],
+  fact_earnings_calendar:[
+    {earnings_id:1,symbol_id:1,source_id:1,report_date:"2025-04-30",fiscal_quarter:"Q2-2025",eps_estimate:1.62,eps_actual:null,surprise_pct:null},
+    {earnings_id:2,symbol_id:2,source_id:1,report_date:"2025-04-23",fiscal_quarter:"Q3-2025",eps_estimate:3.10,eps_actual:null,surprise_pct:null},
+    {earnings_id:3,symbol_id:3,source_id:1,report_date:"2025-05-28",fiscal_quarter:"Q1-2026",eps_estimate:0.89,eps_actual:null,surprise_pct:null},
+    {earnings_id:4,symbol_id:4,source_id:1,report_date:"2025-04-29",fiscal_quarter:"Q1-2025",eps_estimate:1.97,eps_actual:2.14,surprise_pct:8.63},
+    {earnings_id:5,symbol_id:5,source_id:1,report_date:"2025-04-22",fiscal_quarter:"Q1-2025",eps_estimate:0.44,eps_actual:0.41,surprise_pct:-6.82},
+    {earnings_id:6,symbol_id:6,source_id:1,report_date:"2025-04-30",fiscal_quarter:"Q1-2025",eps_estimate:5.22,eps_actual:6.43,surprise_pct:23.18},
+  ],
+  fact_market_indicator:[
+    {market_indicator_id:1,indicator_id:1,symbol_id:1,interval_id:6,recorded_at:"2025-03-28 00:00:00+00",value:58.34,signal:"Neutral"},
+    {market_indicator_id:2,indicator_id:1,symbol_id:2,interval_id:6,recorded_at:"2025-03-28 00:00:00+00",value:62.10,signal:"Bullish"},
+    {market_indicator_id:3,indicator_id:2,symbol_id:1,interval_id:6,recorded_at:"2025-03-28 00:00:00+00",value:1.24,signal:"Bullish"},
+    {market_indicator_id:4,indicator_id:3,symbol_id:3,interval_id:6,recorded_at:"2025-03-28 00:00:00+00",value:0.56,signal:"Neutral"},
+    {market_indicator_id:5,indicator_id:4,symbol_id:5,interval_id:4,recorded_at:"2025-03-28 16:00:00+00",value:245.32,signal:"Bearish"},
+    {market_indicator_id:6,indicator_id:5,symbol_id:6,interval_id:4,recorded_at:"2025-03-28 16:00:00+00",value:4.82,signal:"Neutral"},
+  ],
+  fact_market_quote:[
+    {quote_id:1,symbol_id:1,source_id:2,recorded_at:"2025-03-28 20:00:00+00",open:185.20,high:188.90,low:184.50,close:187.32,volume:52341200,vwap:186.74,change_pct:1.24},
+    {quote_id:2,symbol_id:2,source_id:2,recorded_at:"2025-03-28 20:00:00+00",open:423.10,high:424.80,low:419.20,close:421.55,volume:18923400,vwap:421.92,change_pct:-0.35},
+    {quote_id:3,symbol_id:3,source_id:2,recorded_at:"2025-03-28 20:00:00+00",open:125.40,high:131.20,low:124.90,close:129.87,volume:213456700,vwap:128.34,change_pct:3.21},
+    {quote_id:4,symbol_id:4,source_id:2,recorded_at:"2025-03-28 20:00:00+00",open:141.20,high:143.50,low:140.80,close:142.14,volume:24561200,vwap:141.98,change_pct:0.56},
+    {quote_id:5,symbol_id:5,source_id:2,recorded_at:"2025-03-28 20:00:00+00",open:243.10,high:250.40,low:242.50,close:248.73,volume:98432100,vwap:247.12,change_pct:2.15},
+    {quote_id:6,symbol_id:6,source_id:2,recorded_at:"2025-03-28 20:00:00+00",open:500.80,high:502.10,low:492.30,close:495.22,volume:11234500,vwap:496.84,change_pct:-1.12},
+  ],
+  fact_market_timeseries:[
+    {timeseries_id:1,symbol_id:1,interval_id:6,source_id:2,bar_time:"2025-03-28",open:185.20,high:188.90,low:184.50,close:187.32,volume:52341200,is_adjusted:true},
+    {timeseries_id:2,symbol_id:1,interval_id:6,source_id:2,bar_time:"2025-03-27",open:183.50,high:186.10,low:182.80,close:184.92,volume:48932100,is_adjusted:true},
+    {timeseries_id:3,symbol_id:2,interval_id:6,source_id:2,bar_time:"2025-03-28",open:423.10,high:424.80,low:419.20,close:421.55,volume:18923400,is_adjusted:true},
+    {timeseries_id:4,symbol_id:3,interval_id:4,source_id:2,bar_time:"2025-03-28 16:00:00",open:128.20,high:131.50,low:127.80,close:129.87,volume:32145600,is_adjusted:false},
+    {timeseries_id:5,symbol_id:4,interval_id:6,source_id:2,bar_time:"2025-03-28",open:141.20,high:143.50,low:140.80,close:142.14,volume:24561200,is_adjusted:true},
+    {timeseries_id:6,symbol_id:5,interval_id:4,source_id:2,bar_time:"2025-03-28 16:00:00",open:243.10,high:250.40,low:242.50,close:248.73,volume:98432100,is_adjusted:false},
+  ],
+  log_api_call:[
+    {log_id:1,source_id:2,symbol_id:1,endpoint:"/v2/aggs/ticker/AAPL/range/1/day",http_status:200,latency_ms:142,success:true,error_message:null,called_at:"2025-03-28 20:01:12+00"},
+    {log_id:2,source_id:2,symbol_id:2,endpoint:"/v2/aggs/ticker/MSFT/range/1/day",http_status:200,latency_ms:98,success:true,error_message:null,called_at:"2025-03-28 20:01:13+00"},
+    {log_id:3,source_id:1,symbol_id:3,endpoint:"/query?function=TIME_SERIES_DAILY",http_status:429,latency_ms:34,success:false,error_message:"Rate limit exceeded",called_at:"2025-03-28 20:01:15+00"},
+    {log_id:4,source_id:2,symbol_id:4,endpoint:"/v2/aggs/ticker/GOOGL/range/1/day",http_status:200,latency_ms:115,success:true,error_message:null,called_at:"2025-03-28 20:01:18+00"},
+    {log_id:5,source_id:3,symbol_id:5,endpoint:"/v8/finance/chart/TSLA",http_status:200,latency_ms:203,success:true,error_message:null,called_at:"2025-03-28 20:01:22+00"},
+    {log_id:6,source_id:4,symbol_id:6,endpoint:"/v3/income-statement/META",http_status:200,latency_ms:88,success:true,error_message:null,called_at:"2025-03-28 20:01:25+00"},
+    {log_id:7,source_id:2,symbol_id:1,endpoint:"/v2/snapshot/locale/us/markets/stocks/tickers/AAPL",http_status:500,latency_ms:2100,success:false,error_message:"Internal Server Error",called_at:"2025-03-28 20:02:01+00"},
+  ],
+};
+
+function fmtCell(val,col){
+  if(val===null||val===undefined)return{txt:"NULL",cls:"null-td"};
+  if(typeof val==="boolean")return{txt:val?"true":"false",cls:val?"bool-true":"bool-false"};
+  if(typeof val==="number"){
+    if(col.dtype&&(col.dtype.includes("NUMERIC")||col.dtype.includes("FLOAT"))){
+      return{txt:Number(val).toLocaleString("en-US",{maximumFractionDigits:4}),cls:col.pk?"pk-td":col.fk?"fk-td":""};
+    }
+    return{txt:Number(val).toLocaleString("en-US"),cls:col.pk?"pk-td":col.fk?"fk-td":""};
+  }
+  return{txt:String(val),cls:col.pk?"pk-td":col.fk?"fk-td":""};
+}
+
+function buildDataTable(t,filterStr=""){
+  const rows=DEMO_DATA[t.name]||[];
+  const q=filterStr.toLowerCase();
+  const filtered=q?rows.filter(r=>Object.values(r).some(v=>String(v).toLowerCase().includes(q))):rows;
+
+  const headerHtml=t.cols.map(c=>{
+    const cls=c.pk?"pk-th":c.fk?"fk-th":"";
+    const icon=c.pk?"🔑 ":c.fk?"🔗 ":"";
+    return`<th class="${cls}">${icon}${c.name}</th>`;
+  }).join("");
+
+  const bodyHtml=filtered.slice(0,50).map(row=>{
+    const cells=t.cols.map(c=>{
+      const {txt,cls}=fmtCell(row[c.name],c);
+      return`<td class="${cls}" title="${txt}">${txt}</td>`;
+    }).join("");
+    return`<tr>${cells}</tr>`;
+  }).join("")||`<tr><td colspan="${t.cols.length}" style="text-align:center;color:var(--faint);padding:14px">Keine Daten</td></tr>`;
+
+  return{html:`<table class="dtbl"><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table>`,total:filtered.length};
+}
+
+function buildStatsTab(t){
+  const rows=DEMO_DATA[t.name]||[];
+  if(!rows.length)return`<div style="padding:14px;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:10px">Keine Daten</div>`;
+  return t.cols.map(c=>{
+    const vals=rows.map(r=>r[c.name]).filter(v=>v!==null&&v!==undefined);
+    const isNum=vals.length&&typeof vals[0]==="number";
+    let min="—",max="—",avg="—",fill=`${vals.length}/${rows.length}`;
+    if(isNum){
+      min=Math.min(...vals).toLocaleString("en-US",{maximumFractionDigits:2});
+      max=Math.max(...vals).toLocaleString("en-US",{maximumFractionDigits:2});
+      avg=(vals.reduce((a,b)=>a+b,0)/vals.length).toLocaleString("en-US",{maximumFractionDigits:2});
+    }
+    return`<div class="stat-row">
+      <span class="stat-col-name">${c.name}</span>
+      <span class="stat-pill">Fill: ${fill}</span>
+      ${isNum?`<span class="stat-pill">Min: ${min}</span><span class="stat-pill">Max: ${max}</span><span class="stat-pill">Avg: ${avg}</span>`:`<span class="stat-pill" style="grid-column:span 3">${c.dtype}</span>`}
+    </div>`;
+  }).join("");
+}
+
 function renderDbTree(filter=""){
   const tree=document.getElementById("db-tree");
   if(!tree)return;
   const q=(filter||"").toLowerCase().trim();
   const filtered=q
-    ? DB_SCHEMA.filter(t=>t.name.includes(q)||t.cols.some(c=>c.name.includes(q)))
-    : DB_SCHEMA;
+    ?DB_SCHEMA.filter(t=>t.name.includes(q)||t.cols.some(c=>c.name.includes(q)))
+    :DB_SCHEMA;
 
   tree.innerHTML=filtered.map(t=>{
     const typeLabel=t.type==="dim"?"DIM":t.type==="fact"?"FACT":"LOG";
+    const rowCount=DEMO_DATA[t.name]?.length||0;
 
-    const colsHtml=t.cols.map(c=>{
-      const isPK=!!c.pk, isFK=!!c.fk;
-      let iconClass="fa-solid fa-circle col-icon";
-      let nameClass="col-name";
-      if(isPK){iconClass="fa-solid fa-key col-icon pk"; nameClass="col-name pk-col";}
-      else if(isFK){iconClass="fa-solid fa-link col-icon fk";}
-      const fkHint=isFK?` <span style="color:#3b82f6;font-size:8px">→ ${c.fk}</span>`:"";
-      return `<div class="dbt-col">
-        <i class="${iconClass}"></i>
-        <span class="${nameClass}">${c.name}${fkHint}</span>
-        <span class="col-dtype">${c.dtype}</span>
-      </div>`;
+    /* schema columns html */
+    const schemaHtml=t.cols.map(c=>{
+      const isPK=!!c.pk,isFK=!!c.fk;
+      const ic=isPK?"fa-key pk":isFK?"fa-link fk":"fa-circle reg";
+      const nm=isPK?"pk-col":"";
+      const fkHint=isFK?` <span style="color:#60a5fa;font-size:8px">→ ${c.fk}</span>`:"";
+      return`<div class="dbt-col-row"><i class="fa-solid ${ic} col-ic"></i><span class="col-nm ${nm}">${c.name}${fkHint}</span><span class="col-dt">${c.dtype}</span></div>`;
     }).join("");
 
-    return `<div class="dbt-row" data-table="${t.name}">
+    return`<div class="dbt-row" data-table="${t.name}">
       <div class="dbt-head">
         <i class="fa-solid fa-table-cells dbt-icon"></i>
         <span class="dbt-name">${t.name}</span>
         <span class="dbt-type ${t.type}">${typeLabel}</span>
+        <span class="dbt-count">${t.rows}</span>
         <i class="fa-solid fa-chevron-right dbt-arrow"></i>
       </div>
-      <div class="dbt-cols">
-        <div style="padding:6px 11px 5px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.04);">
-          <span style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace">${t.desc}</span>
-          <span style="margin-left:auto;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--faint)">${t.rows} rows</span>
+      <div class="dbt-panel">
+        <!-- tabs -->
+        <div class="dbt-tabs">
+          <button class="dbt-tab on" data-tab="schema">Schema</button>
+          <button class="dbt-tab" data-tab="data">Daten <span style="background:rgba(59,130,246,.2);border-radius:99px;padding:1px 6px;font-size:8px">${rowCount}</span></button>
+          <button class="dbt-tab" data-tab="stats">Statistik</button>
         </div>
-        <div style="display:grid;grid-template-columns:18px 1fr auto;gap:6px;padding:5px 11px 4px;border-bottom:1px solid rgba(255,255,255,.04);">
-          <span></span>
-          <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-family:'IBM Plex Mono',monospace">Column</span>
-          <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-family:'IBM Plex Mono',monospace;text-align:right">Type</span>
+        <!-- content -->
+        <div class="dbt-tab-content schema-on">
+          <!-- SCHEMA TAB -->
+          <div class="dbt-schema">
+            <div style="padding:5px 12px 4px;border-bottom:1px solid rgba(255,255,255,.04);display:flex;gap:6px;">
+              <span style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace;flex:1">${t.desc}</span>
+              <span style="font-size:9px;color:var(--faint);font-family:'IBM Plex Mono',monospace">${t.cols.length} cols</span>
+            </div>
+            <div style="display:grid;grid-template-columns:16px 1fr auto;gap:6px;padding:5px 12px 4px;border-bottom:1px solid rgba(255,255,255,.03);">
+              <span></span>
+              <span style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace">Column</span>
+              <span style="font-size:9px;font-weight:800;text-transform:uppercase;color:var(--faint);font-family:'IBM Plex Mono',monospace;text-align:right">Type</span>
+            </div>
+            ${schemaHtml}
+          </div>
+          <!-- DATA TAB -->
+          <div class="dbt-data">
+            <div class="data-toolbar">
+              <input class="data-filter" placeholder="Zeile filtern…" data-table="${t.name}"/>
+              <span class="data-count" id="dc-${t.name}">${rowCount} Zeilen</span>
+            </div>
+            <div class="tbl-wrap" id="tw-${t.name}"></div>
+          </div>
+          <!-- STATS TAB -->
+          <div class="dbt-stats-tab" id="st-${t.name}"></div>
         </div>
-        ${colsHtml}
       </div>
     </div>`;
   }).join("");
 
-  /* click expand / collapse */
+  /* wire up interactions */
   tree.querySelectorAll(".dbt-row").forEach(row=>{
+    const tName=row.dataset.table;
+    const tDef=DB_SCHEMA.find(t=>t.name===tName);
+
+    /* expand/collapse on head click */
     row.querySelector(".dbt-head").addEventListener("click",()=>{
       const wasOpen=row.classList.contains("open");
       tree.querySelectorAll(".dbt-row.open").forEach(r=>r.classList.remove("open"));
-      if(!wasOpen)row.classList.add("open");
+      if(!wasOpen){
+        row.classList.add("open");
+        /* render data table on first open */
+        const tw=document.getElementById(`tw-${tName}`);
+        if(tw&&!tw.dataset.loaded){
+          const {html}=buildDataTable(tDef);
+          tw.innerHTML=html;
+          tw.dataset.loaded="1";
+        }
+        /* render stats on first open */
+        const st=document.getElementById(`st-${tName}`);
+        if(st&&!st.dataset.loaded){
+          st.innerHTML=buildStatsTab(tDef);
+          st.dataset.loaded="1";
+        }
+      }
     });
+
+    /* tab switching */
+    row.querySelectorAll(".dbt-tab").forEach(tab=>{
+      tab.addEventListener("click",e=>{
+        e.stopPropagation();
+        const tc=row.querySelector(".dbt-tab-content");
+        row.querySelectorAll(".dbt-tab").forEach(t=>t.classList.remove("on"));
+        tab.classList.add("on");
+        tc.className="dbt-tab-content";
+        tc.classList.add(tab.dataset.tab+"-on");
+      });
+    });
+
+    /* data row filter */
+    const filterInp=row.querySelector(".data-filter");
+    if(filterInp){
+      filterInp.addEventListener("input",e=>{
+        e.stopPropagation();
+        const tw=document.getElementById(`tw-${tName}`);
+        const dc=document.getElementById(`dc-${tName}`);
+        const {html,total}=buildDataTable(tDef,e.target.value);
+        tw.innerHTML=html;
+        if(dc)dc.textContent=`${total} Zeilen`;
+      });
+    }
   });
 }
 
-/* search — bind AFTER DOM ready, guard null */
 document.addEventListener("DOMContentLoaded",()=>{
   const inp=document.getElementById("db-search");
   if(inp)inp.addEventListener("input",e=>renderDbTree(e.target.value));
 });
+
 
 /* ═══════════ BOOT ═══════════ */
 initChart();

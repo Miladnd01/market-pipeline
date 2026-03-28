@@ -1,9 +1,13 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request
+from flask_cors import CORS
 import threading
 import os
 import logging
-from datetime import datetime
+from datetime import datetime, date
 import pytz
+
+from psycopg2 import sql
+from psycopg2.extras import RealDictCursor
 
 from main import main as pipeline_main
 from db.connection import get_connection
@@ -12,6 +16,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+CORS(app)
+
 BERLIN_TZ = pytz.timezone("Europe/Berlin")
 
 # ---------------------------------------------------
@@ -66,6 +72,16 @@ def to_iso(value):
     return value.isoformat() if value is not None else None
 
 
+def json_safe(value):
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    return value
+
+
+def serialize_row(row: dict) -> dict:
+    return {k: json_safe(v) for k, v in row.items()}
+
+
 def update_pipeline_status(**kwargs):
     with pipeline_lock:
         for key, value in kwargs.items():
@@ -99,6 +115,61 @@ def get_pipeline_status_copy():
 
     status_copy["thread_alive"] = pipeline_thread.is_alive() if pipeline_thread else False
     return status_copy
+
+
+def get_table_columns(table_name: str):
+    with get_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("""
+                SELECT 
+                    c.column_name AS name,
+                    c.data_type AS dtype,
+                    (c.is_nullable = 'YES') AS nullable,
+                    EXISTS (
+                        SELECT 1
+                        FROM information_schema.table_constraints tc
+                        JOIN information_schema.key_column_usage kcu
+                          ON tc.constraint_name = kcu.constraint_name
+                         AND tc.table_schema = kcu.table_schema
+                         AND tc.table_name = kcu.table_name
+                        WHERE tc.constraint_type = 'PRIMARY KEY'
+                          AND tc.table_schema = 'public'
+                          AND tc.table_name = c.table_name
+                          AND kcu.column_name = c.column_name
+                    ) AS is_pk,
+                    EXISTS (
+                        SELECT 1
+                        FROM information_schema.table_constraints tc
+                        JOIN information_schema.key_column_usage kcu
+                          ON tc.constraint_name = kcu.constraint_name
+                         AND tc.table_schema = kcu.table_schema
+                         AND tc.table_name = kcu.table_name
+                        WHERE tc.constraint_type = 'FOREIGN KEY'
+                          AND tc.table_schema = 'public'
+                          AND tc.table_name = c.table_name
+                          AND kcu.column_name = c.column_name
+                    ) AS is_fk
+                FROM information_schema.columns c
+                WHERE c.table_schema = 'public'
+                  AND c.table_name = %s
+                ORDER BY c.ordinal_position
+            """, (table_name,))
+            return cur.fetchall()
+
+
+def table_exists(table_name: str) -> bool:
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT EXISTS(
+                    SELECT 1
+                    FROM information_schema.tables
+                    WHERE table_schema = 'public'
+                      AND table_name = %s
+                      AND table_type = 'BASE TABLE'
+                )
+            """, (table_name,))
+            return cur.fetchone()[0]
 
 
 # ---------------------------------------------------
@@ -175,7 +246,7 @@ def start_pipeline_once():
 
 
 # ---------------------------------------------------
-# Routes
+# Standard Routes
 # ---------------------------------------------------
 @app.route("/")
 def index():
@@ -202,7 +273,9 @@ def api_root():
             "/api",
             "/api/dashboard",
             "/api/pipeline-status",
-            "/api/start-pipeline"
+            "/api/start-pipeline",
+            "/api/tables",
+            "/api/table/<table_name>"
         ],
         "timestamp": now_berlin_iso()
     }), 200
@@ -223,6 +296,200 @@ def start_pipeline_api():
     }), 200
 
 
+# ---------------------------------------------------
+# New: Tables Metadata API
+# ---------------------------------------------------
+@app.route("/api/tables", methods=["GET"])
+def get_tables():
+    try:
+        with get_connection() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT 
+                        t.table_name AS name,
+                        CASE 
+                            WHEN t.table_name LIKE 'dim_%' THEN 'dim'
+                            WHEN t.table_name LIKE 'fact_%' THEN 'fact'
+                            WHEN t.table_name LIKE 'log_%' THEN 'log'
+                            ELSE 'other'
+                        END AS type,
+                        obj_description((t.table_schema || '.' || t.table_name)::regclass) AS description,
+                        (
+                            SELECT COUNT(*)
+                            FROM information_schema.columns c
+                            WHERE c.table_schema = t.table_schema
+                              AND c.table_name = t.table_name
+                        ) AS column_count,
+                        COALESCE((
+                            SELECT reltuples::bigint
+                            FROM pg_class
+                            WHERE oid = (t.table_schema || '.' || t.table_name)::regclass
+                        ), 0) AS row_count
+                    FROM information_schema.tables t
+                    WHERE t.table_schema = 'public'
+                      AND t.table_type = 'BASE TABLE'
+                    ORDER BY t.table_name
+                """)
+
+                tables = cur.fetchall()
+                tables = [serialize_row(dict(row)) for row in tables]
+
+                return jsonify({
+                    "tables": tables,
+                    "timestamp": now_berlin_iso()
+                }), 200
+
+    except Exception as e:
+        logger.exception("API Error in /api/tables")
+        return jsonify({
+            "error": str(e),
+            "timestamp": now_berlin_iso()
+        }), 500
+
+
+# ---------------------------------------------------
+# New: Single Table Data API
+# ---------------------------------------------------
+@app.route("/api/table/<table_name>", methods=["GET"])
+def get_table_data(table_name):
+    try:
+        if not table_exists(table_name):
+            return jsonify({
+                "error": f"Tabelle '{table_name}' wurde nicht gefunden.",
+                "timestamp": now_berlin_iso()
+            }), 404
+
+        columns = get_table_columns(table_name)
+        if not columns:
+            return jsonify({
+                "error": f"Keine Spalteninformationen für Tabelle '{table_name}' gefunden.",
+                "timestamp": now_berlin_iso()
+            }), 404
+
+        allowed_columns = {col["name"] for col in columns}
+
+        # Parameters
+        page = max(int(request.args.get("page", 1)), 1)
+        page_size = min(max(int(request.args.get("page_size", 50)), 1), 500)
+        search = request.args.get("search", "").strip()
+        date_from = request.args.get("date_from")
+        date_to = request.args.get("date_to")
+        sort_col = request.args.get("sort_col")
+        sort_dir = request.args.get("sort_dir", "desc").upper()
+
+        if sort_dir not in ("ASC", "DESC"):
+            sort_dir = "DESC"
+
+        # Timestamp/Date-Spalte finden
+        timestamp_col = next(
+            (
+                c["name"] for c in columns
+                if "timestamp" in c["dtype"].lower()
+                or c["dtype"].lower() == "date"
+                or "time" in c["name"].lower()
+                or "date" in c["name"].lower()
+            ),
+            None
+        )
+
+        # Standard Sortierung
+        if sort_col not in allowed_columns:
+            if timestamp_col:
+                sort_col = timestamp_col
+                sort_dir = "DESC"
+            else:
+                pk_col = next((c["name"] for c in columns if c["is_pk"]), columns[0]["name"])
+                sort_col = pk_col
+                sort_dir = "DESC"
+
+        where_parts = []
+        params = []
+
+        # Search über alle Spalten
+        if search:
+            search_parts = []
+            for col in columns:
+                col_name = col["name"]
+                search_parts.append(
+                    sql.SQL("{}::text ILIKE %s").format(sql.Identifier(col_name))
+                )
+                params.append(f"%{search}%")
+
+            if search_parts:
+                combined_search = sql.SQL(" OR ").join(search_parts)
+                where_parts.append(sql.SQL("(") + combined_search + sql.SQL(")"))
+
+        # Date filter nur wenn passende Zeitspalte gefunden wurde
+        if timestamp_col and date_from:
+            where_parts.append(
+                sql.SQL("{} >= %s").format(sql.Identifier(timestamp_col))
+            )
+            params.append(date_from)
+
+        if timestamp_col and date_to:
+            where_parts.append(
+                sql.SQL("{} <= %s").format(sql.Identifier(timestamp_col))
+            )
+            params.append(date_to + " 23:59:59")
+
+        where_clause = sql.SQL("")
+        if where_parts:
+            where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(where_parts)
+
+        order_clause = sql.SQL(" ORDER BY {} {}").format(
+            sql.Identifier(sort_col),
+            sql.SQL(sort_dir)
+        )
+
+        offset = (page - 1) * page_size
+
+        with get_connection() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                # Count Query
+                count_query = sql.SQL("SELECT COUNT(*) AS total FROM {}").format(
+                    sql.Identifier(table_name)
+                ) + where_clause
+
+                cur.execute(count_query, params)
+                total = cur.fetchone()["total"]
+
+                # Data Query
+                data_query = (
+                    sql.SQL("SELECT * FROM {}").format(sql.Identifier(table_name))
+                    + where_clause
+                    + order_clause
+                    + sql.SQL(" LIMIT %s OFFSET %s")
+                )
+
+                cur.execute(data_query, params + [page_size, offset])
+                rows = cur.fetchall()
+                rows = [serialize_row(dict(row)) for row in rows]
+
+        return jsonify({
+            "table": table_name,
+            "columns": [serialize_row(dict(col)) for col in columns],
+            "rows": rows,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "sort_col": sort_col,
+            "sort_dir": sort_dir,
+            "timestamp_col": timestamp_col,
+            "timestamp": now_berlin_iso()
+        }), 200
+
+    except Exception as e:
+        logger.exception("API Error in /api/table/<table_name>")
+        return jsonify({
+            "error": str(e),
+            "table": table_name,
+            "timestamp": now_berlin_iso()
+        }), 500
+
+
+# ---------------------------------------------------
+# Existing Dashboard API
+# ---------------------------------------------------
 @app.route("/api/dashboard")
 def dashboard_data():
     try:
@@ -252,7 +519,6 @@ def dashboard_data():
 
                 # ---------------------------------------------------
                 # 2) dashboard_rows
-                #    Letzter Quote + letztes Fundamental + letzter RSI + letzter MACD
                 # ---------------------------------------------------
                 cur.execute("""
                     SELECT
@@ -401,7 +667,6 @@ def dashboard_data():
 
                 # ---------------------------------------------------
                 # 4) history
-                #    Intraday 24h, fallback daily 30d
                 # ---------------------------------------------------
                 cur.execute("""
                     SELECT

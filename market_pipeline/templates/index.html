@@ -587,8 +587,6 @@ const NAV_ORD=["home","alerts","pipe","watch"];
 let activeNav="home", busy=false;
 
 function setNav(id){
-  // watch always opens sheet on mobile
-  if(id==="watch"){openSheet();return;}
   if(id===activeNav||busy)return;
   busy=true;
 
@@ -627,6 +625,10 @@ function setNav(id){
   // update nav buttons
   document.querySelectorAll(".nb").forEach(b=>b.classList.toggle("on",b.dataset.nav===id));
   activeNav=id;
+  /* re-render DB tree when schema tab opened */
+  if(id==="watch"){
+    setTimeout(()=>renderDbTree(),30);
+  }
 }
 
 document.querySelectorAll(".nb").forEach(b=>b.addEventListener("click",()=>setNav(b.dataset.nav)));
@@ -643,7 +645,7 @@ sc.addEventListener("touchend",e=>{
   if(!canSwipe)return;
   const dx=e.changedTouches[0].clientX-swX;
   if(Math.abs(dx)<65)return;
-  const order=NAV_ORD.filter(x=>x!=="watch");
+  const order=NAV_ORD; // alle 4 screens per swipe erreichbar
   const i=order.indexOf(activeNav);
   if(dx<0&&i<order.length-1)setNav(order[i+1]);
   else if(dx>0&&i>0)setNav(order[i-1]);
@@ -994,7 +996,7 @@ function refreshChart(){
   hideFloat();
 }
 
-/* ═══════════ WATCHLIST ═══════════ */
+/* ═══════════ WATCHLIST (sheet only — wlist screen replaced by DB schema) ═══════════ */
 function mkWI(s){
   return `<div class="wi${SEL.sym===s.sym?" sel":""}" data-sym="${s.sym}">
     <div><div class="wi-s">${s.sym}</div><div class="wi-n">${s.name}</div></div>
@@ -1003,8 +1005,10 @@ function mkWI(s){
 }
 function renderWatchlist(){
   const html=SYMS.map(mkWI).join("");
-  document.getElementById("wlist").innerHTML=html;
-  document.getElementById("sh-list").innerHTML=html;
+  const wlist=document.getElementById("wlist");
+  if(wlist)wlist.innerHTML=html;
+  const shList=document.getElementById("sh-list");
+  if(shList)shList.innerHTML=html;
   document.querySelectorAll("[data-sym]").forEach(el=>{
     el.addEventListener("click",()=>{
       const f=find(el.dataset.sym);if(!f)return;
@@ -1018,15 +1022,18 @@ function renderWatchlist(){
 
 /* ═══════════ TICKER ═══════════ */
 function renderTicker(){
+  const el=document.getElementById("ticker");
+  if(!el)return;
   const mk=s=>`<span class="ti"><span style="color:var(--soft)">${s.sym}</span><span>${usd(s.price)}</span><span style="color:${s.chg>=0?"#4ade80":"#f87171"}">${pct(s.chg)}</span></span>`;
-  const h=SYMS.map(mk).join("")+"&nbsp;&nbsp;&nbsp;"+SYMS.map(mk).join("");
-  document.getElementById("ticker").innerHTML=h;
+  el.innerHTML=SYMS.map(mk).join("")+"&nbsp;&nbsp;&nbsp;"+SYMS.map(mk).join("");
 }
 
 /* ═══════════ FUNDAMENTALS ═══════════ */
 function renderFundamentals(){
+  const el=document.getElementById("fund-grid");
+  if(!el)return;
   const s=SEL,rsi=(Math.random()*30+45).toFixed(1);
-  document.getElementById("fund-grid").innerHTML=[
+  el.innerHTML=[
     ["Symbol",s.sym],["P/E",s.pe],["EPS","$"+s.eps],["Beta",s.beta],
     ["Mkt Cap",s.mcap],["RSI 14",rsi],
     ["ATR 14d","$"+(Math.random()*4+2).toFixed(2)],
@@ -1074,8 +1081,9 @@ document.getElementById("add-alert").addEventListener("click",()=>{
 /* ═══════════ PIPELINE ═══════════ */
 function renderPipeline(){
   const lat=Math.floor(Math.random()*60+25);
-  document.getElementById("ring-pct").textContent=succRate.toFixed(0)+"%";
-  document.getElementById("pipe-log").innerHTML=[
+  const g=id=>document.getElementById(id); // safe getter
+  if(g("ring-pct"))g("ring-pct").textContent=succRate.toFixed(0)+"%";
+  if(g("pipe-log"))g("pipe-log").innerHTML=[
     `⚡ Round-trip: ${lat}ms`,
     `📡 Refresh: ${new Date().toLocaleTimeString()}`,
     `🔄 Pipeline: ${Math.floor(Math.random()*100)} req/s`,
@@ -1084,7 +1092,7 @@ function renderPipeline(){
     `🎯 Success: ${succRate.toFixed(1)}%`,
     `📦 Calls: ${calls}`
   ].join("<br>");
-  document.getElementById("feed").innerHTML=SYMS.map(s=>`
+  if(g("feed"))g("feed").innerHTML=SYMS.map(s=>`
     <div class="fi">
       <div><div class="wi-s">${s.sym}</div><div class="wi-n">${s.name}</div></div>
       <div><div class="wi-p">${usd(s.price)}</div><div class="wi-c" style="color:${s.chg>=0?"#4ade80":"#f87171"}">${pct(s.chg)}</div></div>
@@ -1095,23 +1103,26 @@ function renderPipeline(){
 /* ═══════════ TOPBAR / HERO ═══════════ */
 function updateTopbar(){
   const lat=Math.floor(Math.random()*60+25);
-  document.getElementById("s-time").textContent=new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit"});
-  document.getElementById("s-lat").textContent=lat;
-  document.getElementById("s-suc").textContent=succRate.toFixed(1);
-  document.getElementById("st-a").textContent=SYMS.length;
-  document.getElementById("st-c").textContent=calls;
-  document.getElementById("st-s").textContent=succRate.toFixed(1)+"%";
-  document.getElementById("st-l").textContent=lat+"ms";
+  const g=id=>document.getElementById(id);
+  const st=(id,v)=>{const e=g(id);if(e)e.textContent=v;};
+  st("s-time",new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
+  st("s-lat",lat);
+  st("s-suc",succRate.toFixed(1));
+  st("st-a",SYMS.length);
+  st("st-c",calls);
+  st("st-s",succRate.toFixed(1)+"%");
+  st("st-l",lat+"ms");
 }
 function updateHero(){
   const s=SEL,cc=s.chg>=0?"#4ade80":"#f87171";
-  document.getElementById("h-sym").textContent=s.sym;
-  document.getElementById("h-name").textContent=s.name;
-  document.getElementById("h-exch").textContent=s.exch;
-  document.getElementById("h-price").textContent=usd(s.price);
-  document.getElementById("h-chg").innerHTML=`<span style="color:${cc}">${pct(s.chg)}</span>`;
-  document.getElementById("sel-sym").textContent=s.sym;
-  document.getElementById("sel-chg").innerHTML=`<span style="color:${cc}">${usd(s.price)} ${pct(s.chg)}</span>`;
+  const set=(id,val,html)=>{const el=document.getElementById(id);if(!el)return;html?el.innerHTML=val:el.textContent=val;};
+  set("h-sym",s.sym);
+  set("h-name",s.name);
+  set("h-exch",s.exch);
+  set("h-price",usd(s.price));
+  set("h-chg",`<span style="color:${cc}">${pct(s.chg)}</span>`,true);
+  set("sel-sym",s.sym);
+  set("sel-chg",`<span style="color:${cc}">${usd(s.price)} ${pct(s.chg)}</span>`,true);
 }
 
 /* ═══════════ MASTER UPDATE ═══════════ */
@@ -1324,19 +1335,25 @@ const DB_SCHEMA=[
 
 function renderDbTree(filter=""){
   const tree=document.getElementById("db-tree");
-  const q=filter.toLowerCase();
-  const filtered=DB_SCHEMA.filter(t=>!q||t.name.includes(q)||t.cols.some(c=>c.name.includes(q)));
+  if(!tree)return;
+  const q=(filter||"").toLowerCase().trim();
+  const filtered=q
+    ? DB_SCHEMA.filter(t=>t.name.includes(q)||t.cols.some(c=>c.name.includes(q)))
+    : DB_SCHEMA;
 
   tree.innerHTML=filtered.map(t=>{
     const typeLabel=t.type==="dim"?"DIM":t.type==="fact"?"FACT":"LOG";
+
     const colsHtml=t.cols.map(c=>{
-      const isPK=c.pk, isFK=c.fk;
-      const iconCls=isPK?"fa-key pk":isFK?"fa-link fk":"fa-circle";
-      const nameCls=isPK?"col-name pk-col":"col-name";
-      const fkHint=isFK?`<span style="color:#3b82f6;font-size:8px">→${c.fk}</span>`:"";
+      const isPK=!!c.pk, isFK=!!c.fk;
+      let iconClass="fa-solid fa-circle col-icon";
+      let nameClass="col-name";
+      if(isPK){iconClass="fa-solid fa-key col-icon pk"; nameClass="col-name pk-col";}
+      else if(isFK){iconClass="fa-solid fa-link col-icon fk";}
+      const fkHint=isFK?` <span style="color:#3b82f6;font-size:8px">→ ${c.fk}</span>`:"";
       return `<div class="dbt-col">
-        <i class="fa-solid ${iconCls} col-icon${isPK?" pk":isFK?" fk":""}"></i>
-        <span class="${nameCls}">${c.name} ${fkHint}</span>
+        <i class="${iconClass}"></i>
+        <span class="${nameClass}">${c.name}${fkHint}</span>
         <span class="col-dtype">${c.dtype}</span>
       </div>`;
     }).join("");
@@ -1349,12 +1366,10 @@ function renderDbTree(filter=""){
         <i class="fa-solid fa-chevron-right dbt-arrow"></i>
       </div>
       <div class="dbt-cols">
-        <!-- meta row -->
         <div style="padding:6px 11px 5px;display:flex;align-items:center;gap:8px;border-bottom:1px solid rgba(255,255,255,.04);">
           <span style="font-size:9px;color:var(--muted);font-family:'IBM Plex Mono',monospace">${t.desc}</span>
           <span style="margin-left:auto;font-size:9px;font-family:'IBM Plex Mono',monospace;color:var(--faint)">${t.rows} rows</span>
         </div>
-        <!-- col header -->
         <div style="display:grid;grid-template-columns:18px 1fr auto;gap:6px;padding:5px 11px 4px;border-bottom:1px solid rgba(255,255,255,.04);">
           <span></span>
           <span style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--faint);font-family:'IBM Plex Mono',monospace">Column</span>
@@ -1365,20 +1380,20 @@ function renderDbTree(filter=""){
     </div>`;
   }).join("");
 
-  /* click to expand/collapse */
+  /* click expand / collapse */
   tree.querySelectorAll(".dbt-row").forEach(row=>{
     row.querySelector(".dbt-head").addEventListener("click",()=>{
       const wasOpen=row.classList.contains("open");
-      /* close all others */
       tree.querySelectorAll(".dbt-row.open").forEach(r=>r.classList.remove("open"));
       if(!wasOpen)row.classList.add("open");
     });
   });
 }
 
-/* search filter */
-document.getElementById("db-search").addEventListener("input",e=>{
-  renderDbTree(e.target.value);
+/* search — bind AFTER DOM ready, guard null */
+document.addEventListener("DOMContentLoaded",()=>{
+  const inp=document.getElementById("db-search");
+  if(inp)inp.addEventListener("input",e=>renderDbTree(e.target.value));
 });
 
 /* ═══════════ BOOT ═══════════ */

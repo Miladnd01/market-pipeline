@@ -1,820 +1,159 @@
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, jsonify, request
 from flask_cors import CORS
-import threading
-import os
-import logging
-from datetime import datetime, date
-import pytz
-
-from psycopg2 import sql
+import psycopg2
 from psycopg2.extras import RealDictCursor
-
-from main import main as pipeline_main
-from db.connection import get_connection
-
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-BERLIN_TZ = pytz.timezone("Europe/Berlin")
-
-# ---------------------------------------------------
-# Pipeline Status
-# ---------------------------------------------------
-pipeline_status = {
-    "started": False,
-    "running": False,
-    "thread_alive": False,
-    "phase": "idle",
-    "started_at": None,
-    "stopped_at": None,
-    "last_cycle_at": None,
-    "last_successful_cycle_at": None,
-    "last_error": None,
-    "error": None,
-    "event": None,
-    "cycle_num": 0,
-    "next_cycle_num": None,
-    "sleep_seconds": None,
-    "sleep_started_at": None,
-    "symbols": [],
-    "symbols_total": 0,
-    "symbols_ok": 0,
-    "symbols_failed": 0,
-    "current_symbol": None,
-    "current_symbol_index": None,
-    "fetch_indicators": False,
-    "cycle_started_at": None,
-    "cycle_duration_seconds": None,
-    "last_symbol_result": None,
-    "last_cycle_result": None,
-    "poll_interval_seconds": None
+# Deine PostgreSQL Verbindung
+DB_CONFIG = {
+    'host': 'dpg-d6v9lh94tr6s73dgj93g-a.frankfurt-postgres.render.com',
+    'database': 'marketdb_6mxq',
+    'user': 'marketdb_6mxq_user',
+    'password': 'gSbpVTiDKKo7YCrgLg3dHSipcpJpR9JF'
 }
 
-pipeline_lock = threading.Lock()
-pipeline_thread = None
+def get_db():
+    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
 
-
-# ---------------------------------------------------
-# Helpers
-# ---------------------------------------------------
-def now_berlin_iso() -> str:
-    return datetime.now(BERLIN_TZ).isoformat()
-
-
-def to_float(value):
-    return float(value) if value is not None else None
-
-
-def to_iso(value):
-    return value.isoformat() if value is not None else None
-
-
-def json_safe(value):
-    if isinstance(value, (datetime, date)):
-        return value.isoformat()
-    return value
-
-
-def serialize_row(row: dict) -> dict:
-    return {k: json_safe(v) for k, v in row.items()}
-
-
-def update_pipeline_status(**kwargs):
-    with pipeline_lock:
-        for key, value in kwargs.items():
-            pipeline_status[key] = value
-
-        if "error" in kwargs and kwargs["error"]:
-            pipeline_status["last_error"] = kwargs["error"]
-
-        if kwargs.get("event") == "pipeline_started":
-            pipeline_status["started"] = True
-            pipeline_status["running"] = True
-            pipeline_status["thread_alive"] = True
-            pipeline_status["stopped_at"] = None
-
-        if kwargs.get("event") == "pipeline_stopped":
-            pipeline_status["running"] = False
-            pipeline_status["thread_alive"] = False
-            pipeline_status["stopped_at"] = kwargs.get("stopped_at", now_berlin_iso())
-
-        if kwargs.get("event") == "cycle_finished":
-            pipeline_status["current_symbol"] = None
-            pipeline_status["current_symbol_index"] = None
-
-        if "thread_alive" not in kwargs and pipeline_thread is not None:
-            pipeline_status["thread_alive"] = pipeline_thread.is_alive()
-
-
-def get_pipeline_status_copy():
-    with pipeline_lock:
-        status_copy = dict(pipeline_status)
-
-    status_copy["thread_alive"] = pipeline_thread.is_alive() if pipeline_thread else False
-    return status_copy
-
-
-def table_exists(table_name: str) -> bool:
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT EXISTS(
-                    SELECT 1
-                    FROM information_schema.tables
-                    WHERE table_schema = 'public'
-                      AND table_name = %s
-                      AND table_type = 'BASE TABLE'
-                )
-            """, (table_name,))
-            return cur.fetchone()[0]
-
-
-def get_table_columns(table_name: str):
-    with get_connection() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("""
-                SELECT 
-                    c.column_name AS name,
-                    c.data_type AS dtype,
-                    (c.is_nullable = 'YES') AS nullable,
-                    EXISTS (
-                        SELECT 1
-                        FROM information_schema.table_constraints tc
-                        JOIN information_schema.key_column_usage kcu
-                          ON tc.constraint_name = kcu.constraint_name
-                         AND tc.table_schema = kcu.table_schema
-                         AND tc.table_name = kcu.table_name
-                        WHERE tc.constraint_type = 'PRIMARY KEY'
-                          AND tc.table_schema = 'public'
-                          AND tc.table_name = c.table_name
-                          AND kcu.column_name = c.column_name
-                    ) AS is_pk,
-                    EXISTS (
-                        SELECT 1
-                        FROM information_schema.table_constraints tc
-                        JOIN information_schema.key_column_usage kcu
-                          ON tc.constraint_name = kcu.constraint_name
-                         AND tc.table_schema = kcu.table_schema
-                         AND tc.table_name = kcu.table_name
-                        WHERE tc.constraint_type = 'FOREIGN KEY'
-                          AND tc.table_schema = 'public'
-                          AND tc.table_name = c.table_name
-                          AND kcu.column_name = c.column_name
-                    ) AS is_fk
-                FROM information_schema.columns c
-                WHERE c.table_schema = 'public'
-                  AND c.table_name = %s
-                ORDER BY c.ordinal_position
-            """, (table_name,))
-            return cur.fetchall()
-
-
-def find_timestamp_column(columns):
-    for c in columns:
-        dtype = (c["dtype"] or "").lower()
-        name = (c["name"] or "").lower()
-
-        if "timestamp" in dtype or dtype == "date":
-            return c["name"]
-
-        if "created_at" in name or "updated_at" in name or "called_at" in name \
-           or "fetched_at" in name or "quote_time" in name or "candle_time" in name \
-           or name.endswith("_date") or name.endswith("_utc"):
-            return c["name"]
-
-    return None
-
-
-# ---------------------------------------------------
-# Pipeline Thread
-# ---------------------------------------------------
-def run_pipeline_loop():
-    logger.info("Pipeline thread booting...")
-
-    update_pipeline_status(
-        event="thread_boot",
-        started=True,
-        running=True,
-        thread_alive=True,
-        phase="thread_booting",
-        started_at=now_berlin_iso(),
-        error=None
-    )
-
-    try:
-        pipeline_main(status_callback=update_pipeline_status)
-
-    except Exception as e:
-        logger.exception("Pipeline crashed with exception")
-        update_pipeline_status(
-            event="pipeline_error",
-            running=False,
-            thread_alive=False,
-            phase="crashed",
-            error=str(e),
-            stopped_at=now_berlin_iso()
-        )
-
-    finally:
-        logger.warning("Pipeline thread stopped")
-        update_pipeline_status(
-            event="thread_stopped",
-            running=False,
-            thread_alive=False,
-            phase="stopped",
-            stopped_at=now_berlin_iso()
-        )
-
-
-def ensure_pipeline_started():
-    global pipeline_thread
-
-    with pipeline_lock:
-        if pipeline_thread is not None and pipeline_thread.is_alive():
-            return False
-
-        pipeline_thread = threading.Thread(
-            target=run_pipeline_loop,
-            daemon=True,
-            name="market-pipeline-thread"
-        )
-        pipeline_thread.start()
-
-        pipeline_status["started"] = True
-        pipeline_status["running"] = True
-        pipeline_status["thread_alive"] = True
-        pipeline_status["phase"] = "starting"
-        pipeline_status["started_at"] = now_berlin_iso()
-        pipeline_status["stopped_at"] = None
-        pipeline_status["error"] = None
-        pipeline_status["last_error"] = None
-
-        logger.info("Pipeline started from web process")
-        return True
-
-
-# ---------------------------------------------------
-# Web Routes
-# ---------------------------------------------------
-@app.route("/")
-def index():
-    return render_template("index.html")
-
-
-@app.route("/health")
-def health():
-    return jsonify({
-        "status": "ok",
-        "service": "market-dashboard",
-        "time": now_berlin_iso(),
-        "pipeline": get_pipeline_status_copy()
-    }), 200
-
-
-@app.route("/api")
-def api_root():
-    return jsonify({
-        "service": "market-dashboard",
-        "available_endpoints": [
-            "/",
-            "/health",
-            "/api",
-            "/api/dashboard",
-            "/api/pipeline-status",
-            "/api/start-pipeline",
-            "/api/tables",
-            "/api/table/<table_name>"
-        ],
-        "timestamp": now_berlin_iso()
-    }), 200
-
-
-@app.route("/api/pipeline-status")
-def pipeline_status_api():
-    return jsonify(get_pipeline_status_copy()), 200
-
-
-@app.route("/api/start-pipeline", methods=["GET", "POST"])
-def start_pipeline_api():
-    started_now = ensure_pipeline_started()
-    return jsonify({
-        "started_now": started_now,
-        "pipeline": get_pipeline_status_copy(),
-        "timestamp": now_berlin_iso()
-    }), 200
-
-
-# ---------------------------------------------------
-# API: Tabellenliste
-# ---------------------------------------------------
-@app.route("/api/tables", methods=["GET"])
+@app.route('/api/tables', methods=['GET'])
 def get_tables():
-    try:
-        with get_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute("""
-                    SELECT 
-                        t.table_name AS name,
-                        CASE 
-                            WHEN t.table_name LIKE 'dim_%' THEN 'dim'
-                            WHEN t.table_name LIKE 'fact_%' THEN 'fact'
-                            WHEN t.table_name LIKE 'log_%' THEN 'log'
-                            ELSE 'other'
-                        END AS type,
-                        obj_description((t.table_schema || '.' || t.table_name)::regclass) AS description,
-                        (
-                            SELECT COUNT(*)
-                            FROM information_schema.columns c
-                            WHERE c.table_schema = t.table_schema
-                              AND c.table_name = t.table_name
-                        ) AS column_count,
-                        COALESCE((
-                            SELECT reltuples::bigint
-                            FROM pg_class
-                            WHERE oid = (t.table_schema || '.' || t.table_name)::regclass
-                        ), 0) AS row_count
-                    FROM information_schema.tables t
-                    WHERE t.table_schema = 'public'
-                      AND t.table_type = 'BASE TABLE'
-                    ORDER BY t.table_name
-                """)
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Alle Tabellen mit Metadata
+    cur.execute("""
+        SELECT 
+            t.table_name as name,
+            CASE 
+                WHEN t.table_name LIKE 'dim_%' THEN 'dim'
+                WHEN t.table_name LIKE 'fact_%' THEN 'fact'
+                WHEN t.table_name LIKE 'log_%' THEN 'log'
+                ELSE 'other'
+            END as type,
+            obj_description((t.table_schema||'.'||t.table_name)::regclass) as description,
+            (SELECT COUNT(*) FROM information_schema.columns c 
+             WHERE c.table_name = t.table_name) as column_count,
+            (SELECT reltuples::bigint FROM pg_class 
+             WHERE oid = (t.table_schema||'.'||t.table_name)::regclass) as row_count
+        FROM information_schema.tables t
+        WHERE t.table_schema = 'public' 
+        AND t.table_type = 'BASE TABLE'
+        ORDER BY t.table_name
+    """)
+    
+    tables = cur.fetchall()
+    conn.close()
+    
+    return jsonify({'tables': tables})
 
-                tables = [serialize_row(dict(row)) for row in cur.fetchall()]
-
-                return jsonify({
-                    "tables": tables,
-                    "timestamp": now_berlin_iso()
-                }), 200
-
-    except Exception as e:
-        logger.exception("API Error in /api/tables")
-        return jsonify({
-            "error": str(e),
-            "timestamp": now_berlin_iso()
-        }), 500
-
-
-# ---------------------------------------------------
-# API: Einzelne Tabelle
-# ---------------------------------------------------
-@app.route("/api/table/<table_name>", methods=["GET"])
+@app.route('/api/table/<table_name>', methods=['GET'])
 def get_table_data(table_name):
-    try:
-        if not table_exists(table_name):
-            return jsonify({
-                "error": f"Tabelle '{table_name}' wurde nicht gefunden.",
-                "table": table_name,
-                "timestamp": now_berlin_iso()
-            }), 404
+    conn = get_db()
+    cur = conn.cursor()
+    
+    # Parameters
+    page = int(request.args.get('page', 1))
+    page_size = int(request.args.get('page_size', 50))
+    search = request.args.get('search', '')
+    date_from = request.args.get('date_from')
+    date_to = request.args.get('date_to')
+    sort_col = request.args.get('sort_col')
+    sort_dir = request.args.get('sort_dir', 'desc').upper()
+    
+    # Spalten-Info
+    cur.execute("""
+        SELECT 
+            c.column_name as name,
+            c.data_type as dtype,
+            c.is_nullable = 'YES' as nullable,
+            EXISTS(
+                SELECT 1 FROM information_schema.key_column_usage k
+                WHERE k.table_name = c.table_name 
+                AND k.column_name = c.column_name
+                AND k.constraint_name LIKE 'pk_%'
+            ) as is_pk,
+            EXISTS(
+                SELECT 1 FROM information_schema.key_column_usage k
+                WHERE k.table_name = c.table_name 
+                AND k.column_name = c.column_name
+                AND k.constraint_name LIKE 'fk_%'
+            ) as is_fk
+        FROM information_schema.columns c
+        WHERE c.table_name = %s
+        ORDER BY c.ordinal_position
+    """, (table_name,))
+    
+    columns = cur.fetchall()
+    
+    # Timestamp-Spalte finden
+    timestamp_col = next((c['name'] for c in columns if 'timestamp' in c['dtype'] or 'date' in c['dtype']), None)
+    
+    # WHERE clause
+    where_parts = []
+    params = []
+    
+    if search:
+        search_parts = []
+        for col in columns:
+            search_parts.append(f"{col['name']}::text ILIKE %s")
+            params.append(f'%{search}%')
+        where_parts.append(f"({' OR '.join(search_parts)})")
+    
+    if timestamp_col and date_from:
+        where_parts.append(f"{timestamp_col} >= %s")
+        params.append(date_from)
+    
+    if timestamp_col and date_to:
+        where_parts.append(f"{timestamp_col} <= %s")
+        params.append(date_to + ' 23:59:59')
+    
+    where_clause = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
+    
+    # ORDER BY - Standard: ID DESC für timestamps
+    if not sort_col and timestamp_col:
+        sort_col = timestamp_col
+        sort_dir = 'DESC'
+    elif not sort_col:
+        pk_col = next((c['name'] for c in columns if c['is_pk']), columns[0]['name'])
+        sort_col = pk_col
+        sort_dir = 'DESC'
+    
+    order_clause = f"ORDER BY {sort_col} {sort_dir}"
+    
+    # Count
+    count_query = f"SELECT COUNT(*) as total FROM {table_name} {where_clause}"
+    cur.execute(count_query, params)
+    total = cur.fetchone()['total']
+    
+    # Data
+    offset = (page - 1) * page_size
+    data_query = f"""
+        SELECT * FROM {table_name} 
+        {where_clause} 
+        {order_clause} 
+        LIMIT %s OFFSET %s
+    """
+    cur.execute(data_query, params + [page_size, offset])
+    rows = cur.fetchall()
+    
+    # JSON serialization fix für datetime
+    for row in rows:
+        for key, val in row.items():
+            if isinstance(val, datetime):
+                row[key] = val.isoformat()
+    
+    conn.close()
+    
+    return jsonify({
+        'columns': columns,
+        'rows': rows,
+        'total': total,
+        'page': page,
+        'page_size': page_size
+    })
 
-        columns = get_table_columns(table_name)
-        if not columns:
-            return jsonify({
-                "error": f"Keine Spalten für Tabelle '{table_name}' gefunden.",
-                "table": table_name,
-                "timestamp": now_berlin_iso()
-            }), 404
-
-        allowed_columns = {c["name"] for c in columns}
-        timestamp_col = find_timestamp_column(columns)
-
-        # Query Parameter
-        page = max(int(request.args.get("page", 1)), 1)
-        page_size = min(max(int(request.args.get("page_size", 50)), 1), 500)
-
-        search = (request.args.get("search") or "").strip()
-        date_from = (request.args.get("date_from") or "").strip()
-        date_to = (request.args.get("date_to") or "").strip()
-
-        sort_col = (request.args.get("sort_col") or "").strip()
-        sort_dir = (request.args.get("sort_dir") or "desc").strip().upper()
-
-        if sort_dir not in ("ASC", "DESC"):
-            sort_dir = "DESC"
-
-        # Standard-Sortierung
-        if sort_col not in allowed_columns:
-            if timestamp_col:
-                sort_col = timestamp_col
-                sort_dir = "DESC"
-            else:
-                pk_col = next((c["name"] for c in columns if c["is_pk"]), None)
-                sort_col = pk_col or columns[0]["name"]
-                sort_dir = "DESC"
-
-        where_parts = []
-        params = []
-
-        # Suche über alle Spalten
-        if search:
-            search_parts = []
-            for col in columns:
-                search_parts.append(
-                    sql.SQL("{}::text ILIKE %s").format(sql.Identifier(col["name"]))
-                )
-                params.append(f"%{search}%")
-
-            if search_parts:
-                where_parts.append(
-                    sql.SQL("(") + sql.SQL(" OR ").join(search_parts) + sql.SQL(")")
-                )
-
-        # Datumsfilter nur wenn passende Zeitspalte existiert
-        if timestamp_col and date_from:
-            where_parts.append(
-                sql.SQL("{} >= %s").format(sql.Identifier(timestamp_col))
-            )
-            params.append(date_from)
-
-        if timestamp_col and date_to:
-            where_parts.append(
-                sql.SQL("{} <= %s").format(sql.Identifier(timestamp_col))
-            )
-            params.append(date_to + " 23:59:59")
-
-        where_clause = sql.SQL("")
-        if where_parts:
-            where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(where_parts)
-
-        order_clause = sql.SQL(" ORDER BY {} {}").format(
-            sql.Identifier(sort_col),
-            sql.SQL(sort_dir)
-        )
-
-        offset = (page - 1) * page_size
-
-        with get_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                count_query = (
-                    sql.SQL("SELECT COUNT(*) AS total FROM {}")
-                    .format(sql.Identifier(table_name))
-                    + where_clause
-                )
-                cur.execute(count_query, params)
-                total = cur.fetchone()["total"]
-
-                data_query = (
-                    sql.SQL("SELECT * FROM {}")
-                    .format(sql.Identifier(table_name))
-                    + where_clause
-                    + order_clause
-                    + sql.SQL(" LIMIT %s OFFSET %s")
-                )
-
-                cur.execute(data_query, params + [page_size, offset])
-                rows = [serialize_row(dict(r)) for r in cur.fetchall()]
-
-        return jsonify({
-            "table": table_name,
-            "columns": [serialize_row(dict(c)) for c in columns],
-            "rows": rows,
-            "total": total,
-            "page": page,
-            "page_size": page_size,
-            "sort_col": sort_col,
-            "sort_dir": sort_dir.lower(),
-            "timestamp_col": timestamp_col,
-            "timestamp": now_berlin_iso()
-        }), 200
-
-    except Exception as e:
-        logger.exception("API Error in /api/table/<table_name>")
-        return jsonify({
-            "error": str(e),
-            "table": table_name,
-            "timestamp": now_berlin_iso()
-        }), 500
-
-
-# ---------------------------------------------------
-# API: Dashboard (alte Version behalten)
-# ---------------------------------------------------
-@app.route("/api/dashboard")
-def dashboard_data():
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cur:
-                # 1) Stats
-                cur.execute("SELECT COUNT(*) FROM dim_symbol;")
-                total_symbols = cur.fetchone()[0] or 0
-
-                cur.execute("SELECT COUNT(*) FROM log_api_call;")
-                total_api_calls = cur.fetchone()[0] or 0
-
-                cur.execute("""
-                    SELECT COALESCE(
-                        ROUND(
-                            CAST(COUNT(*) FILTER (WHERE http_status = 200) AS NUMERIC)
-                            / NULLIF(COUNT(*), 0) * 100,
-                            2
-                        ),
-                        0
-                    )
-                    FROM log_api_call;
-                """)
-                success_rate = float(cur.fetchone()[0] or 0)
-
-                # 2) dashboard_rows
-                cur.execute("""
-                    SELECT
-                        s.symbol_code,
-                        s.company_name,
-                        COALESCE(s.exchange, 'Market') AS exchange,
-
-                        q.price AS current_price,
-                        q.change_pct,
-                        q.high AS day_high,
-                        q.low AS day_low,
-                        q.fetched_at_utc AS last_updated,
-
-                        f.market_cap,
-                        f.pe_ratio,
-                        f.eps_ttm,
-                        f.beta,
-                        f.week_52_high,
-                        f.week_52_low,
-
-                        rsi.value AS rsi_14,
-                        CASE
-                            WHEN rsi.value >= 70 THEN 'Overbought'
-                            WHEN rsi.value <= 30 THEN 'Oversold'
-                            WHEN rsi.value IS NULL THEN NULL
-                            ELSE 'Neutral'
-                        END AS rsi_signal,
-
-                        macd.macd,
-                        macd.macd_signal AS macd_sig,
-                        macd.macd_hist,
-                        CASE
-                            WHEN macd.macd > macd.macd_signal THEN 'Bullish'
-                            WHEN macd.macd < macd.macd_signal THEN 'Bearish'
-                            WHEN macd.macd IS NULL OR macd.macd_signal IS NULL THEN NULL
-                            ELSE 'Neutral'
-                        END AS macd_signal_text
-                    FROM dim_symbol s
-                    LEFT JOIN LATERAL (
-                        SELECT fq.*
-                        FROM fact_market_quote fq
-                        WHERE fq.symbol_id = s.symbol_id
-                        ORDER BY fq.fetched_at_utc DESC
-                        LIMIT 1
-                    ) q ON TRUE
-                    LEFT JOIN LATERAL (
-                        SELECT ff.*
-                        FROM fact_company_fundamental ff
-                        WHERE ff.symbol_id = s.symbol_id
-                        ORDER BY ff.fetched_at_utc DESC
-                        LIMIT 1
-                    ) f ON TRUE
-                    LEFT JOIN LATERAL (
-                        SELECT fi.*
-                        FROM fact_market_indicator fi
-                        JOIN dim_indicator di ON di.indicator_id = fi.indicator_id
-                        WHERE fi.symbol_id = s.symbol_id
-                          AND di.indicator_name = 'RSI'
-                        ORDER BY fi.candle_time_utc DESC
-                        LIMIT 1
-                    ) rsi ON TRUE
-                    LEFT JOIN LATERAL (
-                        SELECT fi.*
-                        FROM fact_market_indicator fi
-                        JOIN dim_indicator di ON di.indicator_id = fi.indicator_id
-                        WHERE fi.symbol_id = s.symbol_id
-                          AND di.indicator_name = 'MACD'
-                        ORDER BY fi.candle_time_utc DESC
-                        LIMIT 1
-                    ) macd ON TRUE
-                    WHERE q.price IS NOT NULL
-                    ORDER BY s.symbol_code;
-                """)
-
-                dashboard_rows = []
-                for row in cur.fetchall():
-                    dashboard_rows.append({
-                        "symbol": row[0],
-                        "company_name": row[1],
-                        "exchange": row[2],
-                        "current_price": to_float(row[3]),
-                        "change_pct": to_float(row[4]),
-                        "day_high": to_float(row[5]),
-                        "day_low": to_float(row[6]),
-                        "last_updated": to_iso(row[7]),
-                        "market_cap": to_float(row[8]),
-                        "pe_ratio": to_float(row[9]),
-                        "eps_ttm": to_float(row[10]),
-                        "beta": to_float(row[11]),
-                        "week_52_high": to_float(row[12]),
-                        "week_52_low": to_float(row[13]),
-                        "rsi_14": to_float(row[14]),
-                        "rsi_signal": row[15],
-                        "macd": to_float(row[16]),
-                        "macd_sig": to_float(row[17]),
-                        "macd_hist": to_float(row[18]),
-                        "macd_signal_text": row[19]
-                    })
-
-                # 3) latest quotes
-                cur.execute("""
-                    SELECT DISTINCT ON (s.symbol_code)
-                        s.symbol_code,
-                        s.company_name,
-                        COALESCE(s.exchange, 'Market') AS exchange,
-                        s.country,
-                        q.quote_time_utc,
-                        q.price,
-                        q.open,
-                        q.high,
-                        q.low,
-                        q.previous_close,
-                        q.change,
-                        q.change_pct,
-                        q.fetched_at_utc
-                    FROM fact_market_quote q
-                    JOIN dim_symbol s ON s.symbol_id = q.symbol_id
-                    ORDER BY s.symbol_code, q.fetched_at_utc DESC;
-                """)
-
-                quotes = []
-                for row in cur.fetchall():
-                    quotes.append({
-                        "symbol": row[0],
-                        "company_name": row[1],
-                        "exchange": row[2],
-                        "country": row[3],
-                        "quote_time_utc": to_iso(row[4]),
-                        "price": to_float(row[5]),
-                        "open": to_float(row[6]),
-                        "high": to_float(row[7]),
-                        "low": to_float(row[8]),
-                        "previous_close": to_float(row[9]),
-                        "change": to_float(row[10]),
-                        "change_pct": to_float(row[11]),
-                        "fetched_at_utc": to_iso(row[12])
-                    })
-
-                # 4) history
-                cur.execute("""
-                    SELECT
-                        s.symbol_code,
-                        t.close,
-                        t.candle_time_utc AT TIME ZONE 'Europe/Berlin' AS local_time
-                    FROM fact_market_timeseries t
-                    JOIN dim_symbol s   ON s.symbol_id = t.symbol_id
-                    JOIN dim_interval i ON i.interval_id = t.interval_id
-                    WHERE i.interval_code IN ('1min', '5min', '15min', '30min', '1h')
-                      AND t.candle_time_utc > NOW() - INTERVAL '24 hours'
-                    ORDER BY s.symbol_code, t.candle_time_utc ASC;
-                """)
-
-                raw_series = cur.fetchall()
-                history = {}
-
-                for sym, close_price, local_time in raw_series:
-                    history.setdefault(sym, []).append({
-                        "x": to_iso(local_time),
-                        "y": to_float(close_price)
-                    })
-
-                if not history:
-                    cur.execute("""
-                        SELECT
-                            s.symbol_code,
-                            t.close,
-                            t.candle_time_utc AT TIME ZONE 'Europe/Berlin' AS local_time
-                        FROM fact_market_timeseries t
-                        JOIN dim_symbol s   ON s.symbol_id = t.symbol_id
-                        JOIN dim_interval i ON i.interval_id = t.interval_id
-                        WHERE i.interval_code IN ('1day', 'daily')
-                          AND t.candle_time_utc > NOW() - INTERVAL '30 days'
-                        ORDER BY s.symbol_code, t.candle_time_utc ASC;
-                    """)
-                    raw_series = cur.fetchall()
-
-                    for sym, close_price, local_time in raw_series:
-                        history.setdefault(sym, []).append({
-                            "x": to_iso(local_time),
-                            "y": to_float(close_price)
-                        })
-
-                # 5) latency history
-                cur.execute("""
-                    SELECT
-                        TO_CHAR(called_at_utc AT TIME ZONE 'Europe/Berlin', 'HH24:MI') AS t,
-                        AVG(response_ms) AS avg_ms
-                    FROM log_api_call
-                    WHERE called_at_utc > NOW() - INTERVAL '6 hours'
-                    GROUP BY 1
-                    ORDER BY 1 ASC;
-                """)
-
-                latency_history = []
-                for row in cur.fetchall():
-                    latency_history.append({
-                        "t": row[0],
-                        "ms": to_float(row[1]) or 0.0
-                    })
-
-                # 6) earnings
-                cur.execute("""
-                    SELECT
-                        s.symbol_code,
-                        s.company_name,
-                        e.report_date,
-                        e.hour,
-                        e.eps_estimate,
-                        e.eps_actual,
-                        e.revenue_estimate,
-                        e.revenue_actual,
-                        CASE
-                            WHEN e.eps_actual IS NOT NULL
-                             AND e.eps_estimate IS NOT NULL
-                            THEN ROUND(
-                                (e.eps_actual - e.eps_estimate)
-                                / NULLIF(ABS(e.eps_estimate), 0) * 100,
-                                2
-                            )
-                            ELSE NULL
-                        END AS eps_surprise_pct
-                    FROM fact_earnings_calendar e
-                    JOIN dim_symbol s ON s.symbol_id = e.symbol_id
-                    WHERE e.report_date >= CURRENT_DATE
-                    ORDER BY e.report_date ASC, s.symbol_code ASC
-                    LIMIT 8;
-                """)
-
-                earnings = []
-                for row in cur.fetchall():
-                    earnings.append({
-                        "symbol": row[0],
-                        "company_name": row[1],
-                        "report_date": to_iso(row[2]),
-                        "hour": row[3],
-                        "eps_estimate": to_float(row[4]),
-                        "eps_actual": to_float(row[5]),
-                        "revenue_estimate": to_float(row[6]),
-                        "revenue_actual": to_float(row[7]),
-                        "eps_surprise_pct": to_float(row[8])
-                    })
-
-                # 7) api log
-                cur.execute("""
-                    SELECT
-                        l.called_at_utc,
-                        src.source_name,
-                        s.symbol_code,
-                        l.endpoint,
-                        l.http_status,
-                        l.response_ms,
-                        l.error_msg
-                    FROM log_api_call l
-                    LEFT JOIN dim_source src ON src.source_id = l.source_id
-                    LEFT JOIN dim_symbol s   ON s.symbol_id = l.symbol_id
-                    ORDER BY l.called_at_utc DESC
-                    LIMIT 12;
-                """)
-
-                api_log = []
-                for row in cur.fetchall():
-                    api_log.append({
-                        "called_at_utc": to_iso(row[0]),
-                        "source_name": row[1],
-                        "symbol_code": row[2],
-                        "endpoint": row[3],
-                        "http_status": row[4],
-                        "response_ms": row[5],
-                        "error_msg": row[6]
-                    })
-
-                return jsonify({
-                    "stats": {
-                        "total_symbols": total_symbols,
-                        "total_api_calls": total_api_calls,
-                        "success_rate": success_rate
-                    },
-                    "dashboard_rows": dashboard_rows,
-                    "quotes": quotes,
-                    "history": history,
-                    "latency_history": latency_history,
-                    "earnings": earnings,
-                    "api_log": api_log,
-                    "pipeline": get_pipeline_status_copy(),
-                    "timestamp": now_berlin_iso()
-                }), 200
-
-    except Exception as e:
-        logger.exception("API Error in /api/dashboard")
-        return jsonify({
-            "error": str(e),
-            "pipeline": get_pipeline_status_copy(),
-            "timestamp": now_berlin_iso()
-        }), 500
-
-
-if __name__ == "__main__":
-    # Für dein bestehendes index.html wichtig:
-    # API_BASE = http://localhost:5000/api
-    port = 5000
-    app.run(host="0.0.0.0", port=port, debug=True)
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)

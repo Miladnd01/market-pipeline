@@ -2,12 +2,10 @@ import os
 from datetime import datetime
 
 from flask import Flask, jsonify, request
-from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
 
 app = Flask(__name__)
-CORS(app)
 
 DB_CONFIG = {
     "host": os.environ.get("DB_HOST", "localhost"),

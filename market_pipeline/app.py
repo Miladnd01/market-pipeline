@@ -42,12 +42,15 @@ def health():
     return jsonify({"status": "error", "db": "disconnected"}), 503
 
 # ═══════════ DB CONFIG ═══════════
+# Minimal fix:
+# 1) Prefer Render/Postgres PG* env vars
+# 2) Keep DB_* as fallback
 DB_CONFIG = {
-    "host":     os.getenv("DB_HOST",     "localhost"),
-    "database": os.getenv("DB_NAME",     "market_db"),
-    "user":     os.getenv("DB_USER",     "postgres"),
-    "password": os.getenv("DB_PASSWORD", ""),
-    "port":     int(os.getenv("DB_PORT", 5432)),
+    "host": os.getenv("PGHOST") or os.getenv("DB_HOST", "localhost"),
+    "database": os.getenv("PGDATABASE") or os.getenv("DB_NAME", "market_db"),
+    "user": os.getenv("PGUSER") or os.getenv("DB_USER", "postgres"),
+    "password": os.getenv("PGPASSWORD") or os.getenv("DB_PASSWORD", ""),
+    "port": int(os.getenv("PGPORT") or os.getenv("DB_PORT", 5432)),
 }
 
 def get_db():
@@ -120,7 +123,8 @@ def get_tables():
                 t.table_name
         """)
         tables = [dict(r) for r in cur.fetchall()]
-        cur.close(); conn.close()
+        cur.close()
+        conn.close()
         return jsonify_safe({"tables": tables})
     except Exception as e:
         conn.close()
@@ -130,7 +134,7 @@ def get_tables():
 @app.route("/api/table/<table_name>")
 def get_table_data(table_name):
     # Sicherheit
-    if not table_name.replace("_","").isalnum():
+    if not table_name.replace("_", "").isalnum():
         return jsonify({"error": "Ungültiger Tabellenname"}), 400
 
     conn = get_db()
@@ -143,16 +147,16 @@ def get_table_data(table_name):
         # ── Parameter ──
         page      = max(1, int(request.args.get("page", 1)))
         page_size = min(500, max(1, int(request.args.get("page_size", 50))))
-        search    = request.args.get("search",     "").strip()
-        date_from = request.args.get("date_from",  "").strip()
-        date_to   = request.args.get("date_to",    "").strip()
-        sort_col  = request.args.get("sort_col",   "").strip()
-        sort_dir  = request.args.get("sort_dir",   "desc").upper()
-        symbol_id = request.args.get("symbol_id",  "").strip()
-        endpoint  = request.args.get("endpoint",   "").strip()
-        http_st   = request.args.get("http_status","").strip()
+        search    = request.args.get("search", "").strip()
+        date_from = request.args.get("date_from", "").strip()
+        date_to   = request.args.get("date_to", "").strip()
+        sort_col  = request.args.get("sort_col", "").strip()
+        sort_dir  = request.args.get("sort_dir", "desc").upper()
+        symbol_id = request.args.get("symbol_id", "").strip()
+        endpoint  = request.args.get("endpoint", "").strip()
+        http_st   = request.args.get("http_status", "").strip()
 
-        if sort_dir not in ("ASC","DESC"):
+        if sort_dir not in ("ASC", "DESC"):
             sort_dir = "DESC"
 
         # ── Spalten-Info ──
@@ -191,7 +195,8 @@ def get_table_data(table_name):
         columns = [dict(r) for r in cur.fetchall()]
 
         if not columns:
-            cur.close(); conn.close()
+            cur.close()
+            conn.close()
             return jsonify({"error": f"Tabelle '{table_name}' nicht gefunden"}), 404
 
         # ── Timestamp-Spalte erkennen ──
@@ -216,15 +221,15 @@ def get_table_data(table_name):
             where.append(f"{ts_col} < (%s::date + interval '1 day')::timestamp")
             params.append(date_to)
 
-        if symbol_id and any(c["name"]=="symbol_id" for c in columns):
+        if symbol_id and any(c["name"] == "symbol_id" for c in columns):
             where.append("symbol_id = %s")
             params.append(int(symbol_id))
 
-        if endpoint and any(c["name"]=="endpoint" for c in columns):
+        if endpoint and any(c["name"] == "endpoint" for c in columns):
             where.append("endpoint ILIKE %s")
             params.append(f"%{endpoint}%")
 
-        if http_st and any(c["name"]=="http_status" for c in columns):
+        if http_st and any(c["name"] == "http_status" for c in columns):
             where.append("http_status = %s")
             params.append(int(http_st))
 
@@ -252,19 +257,21 @@ def get_table_data(table_name):
         )
         rows = [dict(r) for r in cur.fetchall()]
 
-        cur.close(); conn.close()
+        cur.close()
+        conn.close()
 
         return jsonify_safe({
-            "columns":    columns,
-            "rows":       rows,
-            "total":      total,
-            "page":       page,
-            "page_size":  page_size,
+            "columns": columns,
+            "rows": rows,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
             "total_pages": max(1, (total + page_size - 1) // page_size),
         })
 
     except Exception as e:
-        if conn: conn.close()
+        if conn:
+            conn.close()
         print(f"❌ get_table_data({table_name}): {e}")
         return jsonify({"error": str(e)}), 500
 

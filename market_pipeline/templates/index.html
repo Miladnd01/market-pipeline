@@ -6,48 +6,54 @@
 <title>© Milan Bikineh · Market Terminal Pro</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 button,select,input{font-family:inherit;outline:none;-webkit-appearance:none;border:none;background:none;}
 
 :root{
-  --bg:#060c14;--bg2:#081018;--panel:#0a1520;--panel2:#0d1a28;
-  --border:#1b2d42;--border2:#132030;
-  --txt:#e0ecff;--soft:#8aa4c8;--muted:#4e6886;--faint:#344d66;
-  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--violet:#a855f7;
+  --bg:#050b13;--bg2:#08111c;--panel:#09131f;--panel2:#0c1826;--panel3:#0f1d2d;
+  --border:#17304a;--border2:#112438;--txt:#e5f0ff;--soft:#9bb4d8;--muted:#5d7696;--faint:#38506a;
+  --blue:#5b8cff;--cyan:#70d7ff;--green:#69db7c;--red:#ff6b7d;--amber:#f7b955;--violet:#b28cff;
+  --shadow:0 10px 30px rgba(0,0,0,.22);
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
 }
-
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+html,body{height:100%;overflow:hidden;background:linear-gradient(180deg,#050b13,#07111b);color:var(--txt);
   font-family:"IBM Plex Sans",sans-serif;-webkit-font-smoothing:antialiased;}
 .mono{font-family:"IBM Plex Mono",monospace;}
-#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;}
 
+#app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;}
 #topbar{
   flex-shrink:0;z-index:20;
   padding:calc(var(--sat)+10px) calc(var(--sar)+14px) 10px calc(var(--sal)+14px);
-  background:rgba(6,12,20,.97);border-bottom:1px solid var(--border2);
+  background:rgba(5,11,19,.92);
+  border-bottom:1px solid var(--border2);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .tb-r{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .brand{display:flex;align-items:center;gap:10px;}
-.b-icon{width:36px;height:36px;border-radius:11px;flex-shrink:0;
-  background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(59,130,246,.06));
-  border:1px solid rgba(59,130,246,.32);display:flex;align-items:center;justify-content:center;
-  color:#93c5fd;font-size:15px;}
-.b-name{font-size:13px;font-weight:800;letter-spacing:.07em;color:#eef4ff;}
+.b-icon{width:38px;height:38px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(91,140,255,.22),rgba(91,140,255,.06));
+  border:1px solid rgba(91,140,255,.30);display:flex;align-items:center;justify-content:center;
+  color:#9fc2ff;font-size:16px;box-shadow:var(--shadow);}
+.b-name{font-size:13px;font-weight:800;letter-spacing:.08em;color:#eef5ff;}
 .b-sub{font-size:10px;color:var(--muted);margin-top:2px;}
 .tb-acts{display:flex;gap:6px;}
-.ib{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);
-  background:var(--panel);color:var(--soft);display:flex;align-items:center;justify-content:center;
-  cursor:pointer;font-size:14px;flex-shrink:0;transition:transform .1s;}
+.ib{width:40px;height:40px;border-radius:12px;border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--soft);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;flex-shrink:0;transition:transform .12s, border-color .12s;}
 .ib:active{transform:scale(.93);}
+.ib:hover{border-color:rgba(91,140,255,.35);}
+.owner-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 7px;
+  border-radius:999px;border:1px solid rgba(91,140,255,.24);
+  background:linear-gradient(135deg,rgba(91,140,255,.12),rgba(91,140,255,.03));
+  font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace;color:#9fc2ff;white-space:nowrap;flex-shrink:0;}
+.owner-badge i{font-size:9px;color:#76a6ff;}
 .chips{display:flex;gap:5px;margin-top:8px;overflow-x:auto;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:99px;
-  border:1px solid var(--border);background:var(--panel);font-size:9px;font-weight:700;
-  color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:6px 9px;border-radius:999px;border:1px solid var(--border);
+  background:linear-gradient(180deg,var(--panel2),var(--panel));font-size:9px;font-weight:700;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
 .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
 
 #screens{flex:1;overflow:hidden;position:relative;}
@@ -55,194 +61,188 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
   padding:10px;display:flex;flex-direction:column;gap:10px;
-  visibility:hidden;opacity:0;pointer-events:none;transform:translateX(40px);
-  transition:opacity .22s ease,transform .22s ease,visibility .22s;will-change:transform,opacity;
+  visibility:hidden;opacity:0;pointer-events:none;transform:translateX(36px);
+  transition:opacity .22s ease,transform .22s ease,visibility .22s;
 }
 .screen.active{visibility:visible;opacity:1;pointer-events:auto;transform:translateX(0);}
-.screen.s-out-l{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(-40px);
-  transition:opacity .18s ease,transform .18s ease,visibility .18s;}
-.screen.s-out-r{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(40px);
-  transition:opacity .18s ease,transform .18s ease,visibility .18s;}
+.screen.s-out-l{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(-36px);transition:opacity .18s ease,transform .18s ease,visibility .18s;}
+.screen.s-out-r{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(36px);transition:opacity .18s ease,transform .18s ease,visibility .18s;}
 
-.footer-credit{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:6px 14px;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace;
-  color:var(--faint);letter-spacing:.04em;border-top:1px solid var(--border2);background:rgba(6,12,20,.6);}
-.footer-credit span{color:var(--muted);}
-.footer-credit strong{color:#4e7aac;font-weight:800;}
-#nav{flex-shrink:0;z-index:20;
-  padding:5px calc(var(--sar)+8px) calc(var(--sab)+5px) calc(var(--sal)+8px);
-  background:rgba(6,12,20,.98);border-top:1px solid var(--border2);
-  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
-.nav-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
-.nb{position:relative;border:1px solid var(--border);background:var(--panel);color:var(--muted);
-  border-radius:13px;min-height:52px;display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .12s;
-  font-family:"IBM Plex Mono",monospace;}
-.nb.on{color:#bfdbfe;border-color:rgba(59,130,246,.35);
-  background:linear-gradient(170deg,rgba(59,130,246,.18),rgba(59,130,246,.07));}
-.nb i{font-size:17px;}
-
-.owner-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 7px;
-  border-radius:99px;border:1px solid rgba(59,130,246,.28);
-  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
-  font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace;
-  color:#93c5fd;white-space:nowrap;flex-shrink:0;}
-.owner-badge i{font-size:9px;color:#60a5fa;}
-
-.card{background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;flex-shrink:0;}
-.ch{padding:11px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;
-  justify-content:space-between;gap:8px;}
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--border);
+  border-radius:18px;overflow:hidden;box-shadow:var(--shadow);flex-shrink:0;}
+.ch{padding:12px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:8px;}
 .cb{padding:12px 14px;}
-.kk{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);
-  font-family:"IBM Plex Mono",monospace;}
-.ht{font-size:15px;font-weight:800;margin-top:3px;line-height:1.2;}
+.kk{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.ht{font-size:15px;font-weight:800;margin-top:4px;line-height:1.2;}
+.subt{font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;margin-top:3px;}
 
-.dbt-type{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;
-  padding:2px 7px;border-radius:5px;white-space:nowrap;}
-.dbt-type.dim{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
-.dbt-type.fact{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);}
-.dbt-type.log{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
+.seg-wrap{display:flex;gap:8px;flex-wrap:wrap;}
+.seg{display:inline-flex;align-items:center;gap:4px;padding:4px;border-radius:14px;border:1px solid var(--border);background:linear-gradient(180deg,var(--panel2),var(--panel));}
+.seg-btn{padding:9px 12px;border-radius:11px;font-size:11px;font-weight:800;color:var(--muted);cursor:pointer;font-family:"IBM Plex Mono",monospace;transition:.12s;}
+.seg-btn.on{background:linear-gradient(180deg,rgba(91,140,255,.22),rgba(91,140,255,.08));color:#dbe8ff;border:1px solid rgba(91,140,255,.28);}
+
+.toolbar{display:flex;flex-direction:column;gap:10px;}
+.toolbar-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.btn-soft{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--soft);cursor:pointer;font-weight:800;font-family:"IBM Plex Mono",monospace;font-size:11px;transition:.12s;}
+.btn-soft:hover{border-color:rgba(91,140,255,.32);color:#dbe8ff;}
+.btn-soft:active{transform:scale(.98);}
+.btn-ghost{padding:9px 13px;border-radius:12px;border:1px solid var(--border2);background:rgba(255,255,255,.02);color:var(--muted);cursor:pointer;font-weight:800;font-family:"IBM Plex Mono",monospace;font-size:11px;}
+.btn-ghost.on{color:#dbe8ff;border-color:rgba(91,140,255,.32);background:rgba(91,140,255,.08);}
+.symbol-list{display:flex;gap:8px;flex-wrap:wrap;}
+.sym-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;border:1px solid var(--border);background:linear-gradient(180deg,var(--panel2),var(--panel));cursor:pointer;font-family:"IBM Plex Mono",monospace;color:var(--soft);font-weight:800;font-size:11px;transition:.12s;}
+.sym-btn:hover{border-color:rgba(91,140,255,.30);}
+.sym-btn.on{background:linear-gradient(180deg,rgba(91,140,255,.16),rgba(91,140,255,.06));border-color:rgba(91,140,255,.34);color:#eaf2ff;}
+.sym-dot{width:10px;height:10px;border-radius:50%;display:inline-block;box-shadow:0 0 0 3px rgba(255,255,255,.03);}
+.c-blue{background:#5b8cff}.c-cyan{background:#70d7ff}.c-green{background:#69db7c}.c-gray{background:#6f7f93}.c-violet{background:#b28cff}.c-amber{background:#f7b955}
+
+.chart-shell{padding:0 12px 12px;}
+.chart-wrap{position:relative;height:360px;border-radius:18px;border:1px solid var(--border2);background:linear-gradient(180deg,#06101c,#071321);padding:12px;}
+.chart-hint{position:absolute;right:10px;top:50%;transform:translateY(-50%) rotate(90deg);font-size:10px;color:var(--faint);font-family:"IBM Plex Mono",monospace;pointer-events:none;}
+@media(max-width:700px){.chart-wrap{height:320px;}}
+.market-foot{display:flex;flex-direction:column;gap:8px;padding:0 12px 12px;}
+.quote-card{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px 14px;border-radius:16px;border:1px solid var(--border2);background:linear-gradient(180deg,var(--panel2),var(--panel));}
+.quote-left{display:flex;align-items:center;gap:10px;min-width:0;}
+.quote-sym{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.quote-price{font-size:14px;font-weight:800;font-family:"IBM Plex Mono",monospace;text-align:right;}
+.quote-chg{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:3px;text-align:right;}
+.up{color:#7df3a2}.down{color:#ff8e9a}.neutral{color:#dfe9fb}
 
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
 @media(max-width:900px){.grid-2{grid-template-columns:1fr;}}
 @media(max-width:680px){.grid-3{grid-template-columns:1fr 1fr;}}
-
-.kpi{background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:10px;}
-.kpi-l{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:"IBM Plex Mono",monospace;}
-.kpi-v{font-size:20px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:4px;}
+.metric{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);border-radius:16px;padding:12px;}
+.metric-k{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.metric-v{font-size:18px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:6px;}
+.metric-s{font-size:10px;color:var(--faint);margin-top:4px;font-family:"IBM Plex Mono",monospace;}
+.stack{display:flex;flex-direction:column;gap:8px;}
+.info-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:12px;border-radius:14px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);}
+.info-main{min-width:0;}
+.info-title{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.info-sub{font-size:10px;color:var(--muted);margin-top:3px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.info-val{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+@media(max-width:760px){.kpi-grid{grid-template-columns:1fr 1fr;}}
+.kpi{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);border-radius:16px;padding:12px;}
+.kpi-l{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-family:"IBM Plex Mono",monospace;}
+.kpi-v{font-size:18px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:6px;}
 .kpi-s{font-size:10px;color:var(--faint);margin-top:4px;font-family:"IBM Plex Mono",monospace;}
 
-.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-@media(max-width:560px){.quick-grid{grid-template-columns:1fr;}}
-.quick-btn{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1px solid var(--border2);background:var(--panel2);cursor:pointer;transition:.12s;}
-.quick-btn:hover{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.06);}
-.quick-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(59,130,246,.12);color:#93c5fd;flex-shrink:0;}
-.quick-t{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
-.quick-s{font-size:10px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
+.status-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+@media(max-width:700px){.status-grid{grid-template-columns:1fr;}}
+.status-item{padding:12px;border-radius:15px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);}
+.status-k{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.status-v{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:6px;word-break:break-word;}
+.status-ok{color:#7df3a2}.status-bad{color:#ff9ba5}.status-warn{color:#ffd285}
 
-.mini-list{display:flex;flex-direction:column;gap:8px;}
-.mini-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 10px;background:var(--panel2);border:1px solid var(--border2);border-radius:12px;}
-.mini-main{min-width:0;}
-.mini-title{font-size:11px;font-weight:800;font-family:"IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mini-sub{font-size:9px;color:var(--muted);margin-top:3px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.mini-val{font-size:11px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:#93c5fd;white-space:nowrap;}
+.dbt-type{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:2px 7px;border-radius:6px;white-space:nowrap;}
+.dbt-type.dim{background:rgba(178,140,255,.15);color:#cfb6ff;border:1px solid rgba(178,140,255,.22);}
+.dbt-type.fact{background:rgba(105,219,124,.12);color:#8def9c;border:1px solid rgba(105,219,124,.20);}
+.dbt-type.log{background:rgba(247,185,85,.12);color:#ffd285;border:1px solid rgba(247,185,85,.20);}
 
-.stat-pills{display:flex;flex-wrap:wrap;gap:6px;}
-.stat-pill{padding:6px 9px;border-radius:99px;border:1px solid var(--border2);background:var(--panel2);font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
-
-.db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;}
-.db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;padding:9px 10px;text-align:center;}
+.db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px;}
+.db-stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);border-radius:14px;padding:10px 12px;text-align:center;}
 .db-stat-val{font-size:18px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
-.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
-.db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:4px;font-family:"IBM Plex Mono",monospace;}
+.db-topbar{display:flex;align-items:center;gap:8px;padding:12px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
 .db-title-row{display:flex;align-items:center;gap:6px;flex:1;}
-.db-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
+.db-badge{background:rgba(91,140,255,.14);border:1px solid rgba(91,140,255,.26);color:#9fc2ff;font-size:9px;font-weight:800;padding:3px 8px;border-radius:999px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
 .db-title{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
-.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
+.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:12px;padding:10px 12px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
 .db-search::placeholder{color:var(--faint);}
-.db-search:focus{border-color:rgba(59,130,246,.45);outline:none;}
-
-.dbl-item{display:grid;grid-template-columns:18px 1fr auto auto 16px;gap:8px;align-items:center;padding:11px 13px;border-radius:12px;background:var(--panel2);border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
+.db-search:focus{border-color:rgba(91,140,255,.45);outline:none;}
+.dbl-item{display:grid;grid-template-columns:18px 1fr auto auto 16px;gap:8px;align-items:center;padding:12px 13px;border-radius:14px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
 .dbl-item:active{transform:scale(.99);}
-.dbl-item:hover{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07);}
-.dbl-icon{font-size:12px;color:#60a5fa;}
+.dbl-item:hover{border-color:rgba(91,140,255,.3);background:rgba(91,140,255,.05);}
+.dbl-icon{font-size:12px;color:#78a8ff;}
 .dbl-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
 .dbl-desc{font-size:9px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dbl-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--faint);white-space:nowrap;}
 .dbl-arrow{font-size:10px;color:var(--faint);}
 
-.tv-hdr-inner{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border2);}
-.tv-back{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
+.tv-hdr-inner{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border2);}
+.tv-back{width:36px;height:36px;border-radius:12px;flex-shrink:0;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
 .tv-back:active{transform:scale(.93);}
 .tv-title{flex:1;min-width:0;}
 .tv-tname{font-size:15px;font-weight:800;color:var(--txt);font-family:"IBM Plex Mono",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.tv-tmeta{font-size:10px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
-
+.tv-tmeta{font-size:10px;color:var(--muted);margin-top:3px;font-family:"IBM Plex Mono",monospace;}
 .tv-qs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border2);}
 .tv-qs-i{padding:8px 10px;border-right:1px solid var(--border2);display:flex;flex-direction:column;gap:2px;}
 .tv-qs-i:last-child{border-right:none;}
 .tv-qs-l{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
 .tv-qs-v{font-size:13px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
 
-.tv-flt-toggle{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;}
+.tv-flt-toggle{display:flex;align-items:center;gap:8px;padding:11px 14px;cursor:pointer;}
 .tv-flt-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
 .tv-flt-arrow.open{transform:rotate(180deg);}
 .tv-flt-body{padding:12px 14px 14px;border-top:1px solid var(--border2);display:flex;flex-direction:column;gap:10px;}
 .tv-flt-row{display:flex;gap:8px;flex-wrap:wrap;}
 .sf-f{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
 .sf-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
-.sf-inp,.sf-sel{background:#050d18;border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:100%;}
-.sf-inp:focus,.sf-sel:focus{outline:none;border-color:rgba(59,130,246,.5);}
+.sf-inp,.sf-sel{background:#06111d;border:1px solid var(--border);border-radius:11px;padding:10px 12px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:100%;}
+.sf-inp:focus,.sf-sel:focus{outline:none;border-color:rgba(91,140,255,.5);}
 .sf-inp::placeholder{color:var(--faint);}
 .flt-btns{display:flex;gap:8px;justify-content:flex-end;}
-.btn-apply{padding:7px 16px;border-radius:9px;background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4);color:#bfdbfe;font-size:10px;font-weight:800;cursor:pointer;font-family:"IBM Plex Mono",monospace;}
-.btn-apply:active{background:rgba(59,130,246,.35);}
-.btn-reset{padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;font-family:"IBM Plex Mono",monospace;}
-.btn-reset:active{background:rgba(255,255,255,.08);}
-.af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;border-radius:99px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.btn-apply{padding:9px 16px;border-radius:12px;background:rgba(91,140,255,.18);border:1px solid rgba(91,140,255,.35);color:#dcebff;font-size:10px;font-weight:800;cursor:pointer;font-family:"IBM Plex Mono",monospace;}
+.btn-reset{padding:9px 14px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;font-family:"IBM Plex Mono",monospace;}
+.af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:4px 8px;border-radius:999px;background:rgba(91,140,255,.14);border:1px solid rgba(91,140,255,.28);color:#9fc2ff;}
 
-.tv-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.tv-toolbar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
 .tv-info{font-size:10px;color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace;flex:1;}
-.tv-search{background:#050d18;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:160px;flex-shrink:0;}
+.tv-search{background:#06111d;border:1px solid var(--border);border-radius:11px;padding:9px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:170px;flex-shrink:0;}
 .tv-search::placeholder{color:var(--faint);}
-.tv-search:focus{outline:none;border-color:rgba(59,130,246,.4);}
+.tv-search:focus{outline:none;border-color:rgba(91,140,255,.4);}
 .pg-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.pg-btn{width:28px;height:28px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;transition:all .1s;}
-.pg-btn:active{background:#111e30;}
+.pg-btn{width:30px;height:30px;border-radius:9px;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;}
 .pg-btn[disabled]{opacity:.3;cursor:default;pointer-events:none;}
 .pg-lbl{font-size:10px;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
-
 .tv-tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:420px;min-height:160px;-webkit-overflow-scrolling:touch;}
 .tv-tbl-wrap::-webkit-scrollbar{height:5px;width:5px;}
 .tv-tbl-wrap::-webkit-scrollbar-track{background:transparent;}
-.tv-tbl-wrap::-webkit-scrollbar-thumb{background:#1b2d42;border-radius:99px;}
+.tv-tbl-wrap::-webkit-scrollbar-thumb{background:#1a314a;border-radius:99px;}
 table.tv-t{border-collapse:collapse;width:max-content;min-width:100%;font-size:11px;font-family:"IBM Plex Mono",monospace;}
-table.tv-t thead th{position:sticky;top:0;z-index:3;background:#05101e;padding:8px 14px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:background .1s;}
-table.tv-t thead th:hover{background:#081525;}
-table.tv-t thead th.s-asc::after{content:" ▲";font-size:8px;color:#60a5fa;}
-table.tv-t thead th.s-desc::after{content:" ▼";font-size:8px;color:#60a5fa;}
-table.tv-t thead th.h-pk{color:#fde68a;}
-table.tv-t thead th.h-fk{color:#93c5fd;}
+table.tv-t thead th{position:sticky;top:0;z-index:3;background:#08131f;padding:8px 14px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+table.tv-t thead th.s-asc::after{content:" ▲";font-size:8px;color:#78a8ff;}
+table.tv-t thead th.s-desc::after{content:" ▼";font-size:8px;color:#78a8ff;}
+table.tv-t thead th.h-pk{color:#ffd285;}
+table.tv-t thead th.h-fk{color:#9fc2ff;}
 table.tv-t tbody tr{border-bottom:1px solid rgba(255,255,255,.03);}
-table.tv-t tbody tr:hover{background:rgba(59,130,246,.07);}
-table.tv-t tbody tr.even{background:rgba(255,255,255,.013);}
-table.tv-t tbody td{padding:6px 14px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
-table.tv-t tbody td.c-pk{color:#fde68a;font-weight:700;}
-table.tv-t tbody td.c-fk{color:#93c5fd;}
+table.tv-t tbody tr:hover{background:rgba(91,140,255,.07);}
+table.tv-t tbody tr.even{background:rgba(255,255,255,.012);}
+table.tv-t tbody td{padding:7px 14px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
+table.tv-t tbody td.c-pk{color:#ffd285;font-weight:700;}
+table.tv-t tbody td.c-fk{color:#9fc2ff;}
 table.tv-t tbody td.c-null{color:var(--faint);font-style:italic;}
-table.tv-t tbody td.c-true{color:#4ade80;}
-table.tv-t tbody td.c-false{color:#f87171;}
-table.tv-t tbody td.c-num{color:#fcd34d;}
-table.tv-t tbody td.c-ts{color:#a5b4fc;}
+table.tv-t tbody td.c-true{color:#7df3a2;}
+table.tv-t tbody td.c-false{color:#ff9ba5;}
+table.tv-t tbody td.c-num{color:#ffe082;}
+table.tv-t tbody td.c-ts{color:#c4cbff;}
 table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
-
 .tv-pages{display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;flex-wrap:wrap;border-top:1px solid var(--border2);}
-.pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:8px;font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;background:var(--panel2);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;}
-.pg-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#bfdbfe;}
-.pg-pill:active{transform:scale(.94);}
+.pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:9px;font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.pg-pill.on{background:rgba(91,140,255,.16);border-color:rgba(91,140,255,.32);color:#dcebff;}
 .pg-dots{font-size:11px;color:var(--faint);padding:0 4px;}
 
 .spin-wrap{display:flex;align-items:center;justify-content:center;gap:8px;padding:40px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;}
-.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:#3b82f6;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:#78a8ff;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.err-box{padding:20px;text-align:center;color:#f87171;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.8;}
+.err-box{padding:20px;text-align:center;color:#ff9ba5;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.8;}
 .err-box i{font-size:20px;display:block;margin-bottom:8px;}
 
-.status-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
-@media(max-width:700px){.status-grid{grid-template-columns:1fr;}}
-.status-item{padding:10px 11px;border-radius:12px;background:var(--panel2);border:1px solid var(--border2);}
-.status-k{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:800;font-family:"IBM Plex Mono",monospace;}
-.status-v{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:5px;word-break:break-word;}
-.status-ok{color:#86efac;}
-.status-warn{color:#fbbf24;}
-.status-bad{color:#fca5a5;}
+.footer-credit{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:6px 14px;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace;color:var(--faint);letter-spacing:.04em;border-top:1px solid var(--border2);background:rgba(5,11,19,.6);}
+.footer-credit span{color:var(--muted);} .footer-credit strong{color:#6993d3;font-weight:800;}
+
+#nav{flex-shrink:0;z-index:20;padding:6px calc(var(--sar)+8px) calc(var(--sab)+6px) calc(var(--sal)+8px);background:rgba(5,11,19,.96);border-top:1px solid var(--border2);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
+.nav-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.nb{border:1px solid var(--border);background:linear-gradient(180deg,var(--panel2),var(--panel));color:var(--muted);border-radius:16px;min-height:62px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .12s;font-family:"IBM Plex Mono",monospace;position:relative;}
+.nb.on{color:#dcebff;border-color:rgba(91,140,255,.35);background:linear-gradient(180deg,rgba(91,140,255,.20),rgba(91,140,255,.06));}
+.nb i{font-size:18px;}
+.nbadge{position:absolute;top:7px;right:8px;min-width:16px;height:16px;border-radius:999px;background:var(--red);color:#fff;font-size:8px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 3px;}
+.nbadge.on{display:flex;}
 
 #toast{position:fixed;top:calc(var(--sat)+62px);left:50%;transform:translateX(-50%) translateY(-8px);z-index:99;opacity:0;transition:all .25s;pointer-events:none;}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast-in{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:99px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);backdrop-filter:blur(14px);font-size:12px;font-weight:700;color:#86efac;white-space:nowrap;}
+.toast-in{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:999px;background:rgba(105,219,124,.15);border:1px solid rgba(105,219,124,.4);backdrop-filter:blur(14px);font-size:12px;font-weight:700;color:#98f3a9;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -256,8 +256,8 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
       <div class="brand">
         <div class="b-icon"><i class="fa-solid fa-chart-line"></i></div>
         <div>
-          <div class="b-name mono">MKT TERMINAL PRO</div>
-          <div class="b-sub mono">Dashboard · Pipeline · Tabellen</div>
+          <div class="b-name mono">MARKET TERMINAL PRO</div>
+          <div class="b-sub mono">Live Market · Insights · Pipeline</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
@@ -270,31 +270,91 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
     <div class="chips">
       <div class="chip"><span class="dot" id="s-dot" style="background:var(--green)"></span><span id="s-lbl">CONNECTED</span></div>
       <div class="chip"><i class="fa-regular fa-clock"></i><span id="s-time">--:--:--</span></div>
-      <div class="chip"><i class="fa-solid fa-table-list"></i><span id="s-tables">-- Tabellen</span></div>
       <div class="chip"><i class="fa-solid fa-wave-square"></i><span id="s-pipe">Pipeline --</span></div>
+      <div class="chip"><i class="fa-solid fa-table-list"></i><span id="s-tables">-- Tabellen</span></div>
       <div class="chip" id="chip-active" style="display:none"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:9px"></i><span id="s-active">Lädt…</span></div>
     </div>
   </div>
 
   <div id="screens">
 
-    <!-- DASHBOARD -->
-    <section class="screen active" id="scr-dashboard">
-      <div class="grid-3">
+    <!-- MARKET -->
+    <section class="screen active" id="scr-market">
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">3 Lines · Mouse/Touch Price</div>
+            <div class="ht">Market</div>
+            <div class="subt" id="market-subline">Live aus Timeseries + Quote</div>
+          </div>
+        </div>
+
+        <div class="cb toolbar">
+          <div class="toolbar-row">
+            <div class="seg">
+              <button class="seg-btn on" id="mode-real">REAL</button>
+              <button class="seg-btn" id="mode-norm">NORMALIZED</button>
+            </div>
+
+            <div class="seg" id="range-seg">
+              <button class="seg-btn on" data-range="24h">24H</button>
+              <button class="seg-btn" data-range="12h">12H</button>
+              <button class="seg-btn" data-range="6h">6H</button>
+              <button class="seg-btn" data-range="3h">3H</button>
+              <button class="seg-btn" data-range="1h">1H</button>
+            </div>
+          </div>
+
+          <div class="toolbar-row">
+            <button class="btn-soft" id="resetZoomBtn"><i class="fa-solid fa-rotate-left"></i> Reset Zoom</button>
+            <button class="btn-soft" id="fitViewBtn"><i class="fa-solid fa-expand"></i> Fit View</button>
+          </div>
+
+          <div class="toolbar-row symbol-list" id="symbol-list">
+            <button class="sym-btn on" data-symbol="AAPL"><span class="sym-dot c-blue"></span>AAPL</button>
+            <button class="sym-btn on" data-symbol="MSFT"><span class="sym-dot c-cyan"></span>MSFT</button>
+            <button class="sym-btn on" data-symbol="NVDA"><span class="sym-dot c-green"></span>NVDA</button>
+            <button class="sym-btn" data-symbol="GOOGL"><span class="sym-dot c-gray"></span>GOOGL</button>
+            <button class="sym-btn" data-symbol="TSLA"><span class="sym-dot c-violet"></span>TSLA</button>
+            <button class="sym-btn" data-symbol="META"><span class="sym-dot c-amber"></span>META</button>
+          </div>
+        </div>
+
+        <div class="chart-shell">
+          <div class="chart-wrap">
+            <canvas id="marketChart"></canvas>
+            <div class="chart-hint mono">swipe</div>
+          </div>
+        </div>
+
+        <div class="market-foot" id="market-cards">
+          <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Marktdaten laden…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section class="screen" id="scr-insights">
+      <div class="kpi-grid">
         <div class="kpi">
-          <div class="kpi-l">Quote Rows</div>
-          <div class="kpi-v" id="kpi-quotes" style="color:#4ade80">--</div>
-          <div class="kpi-s">fact_market_quote</div>
+          <div class="kpi-l">RSI</div>
+          <div class="kpi-v" id="ins-rsi" style="color:#70d7ff">--</div>
+          <div class="kpi-s" id="ins-rsi-signal">Signal --</div>
         </div>
         <div class="kpi">
-          <div class="kpi-l">Timeseries Rows</div>
-          <div class="kpi-v" id="kpi-timeseries" style="color:#93c5fd">--</div>
-          <div class="kpi-s">fact_market_timeseries</div>
+          <div class="kpi-l">MACD</div>
+          <div class="kpi-v" id="ins-macd" style="color:#b28cff">--</div>
+          <div class="kpi-s" id="ins-macd-signal">Signal --</div>
         </div>
         <div class="kpi">
-          <div class="kpi-l">API Log Rows</div>
-          <div class="kpi-v" id="kpi-api" style="color:#fbbf24">--</div>
-          <div class="kpi-s">log_api_call</div>
+          <div class="kpi-l">EMA 20</div>
+          <div class="kpi-v" id="ins-ema" style="color:#69db7c">--</div>
+          <div class="kpi-s">Letzter Wert</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-l">SMA 50</div>
+          <div class="kpi-v" id="ins-sma" style="color:#f7b955">--</div>
+          <div class="kpi-s">Letzter Wert</div>
         </div>
       </div>
 
@@ -302,59 +362,15 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         <div class="card">
           <div class="ch">
             <div>
-              <div class="kk">Quick Access</div>
-              <div class="ht">Wichtige Tabellen</div>
+              <div class="kk">Fundamentals</div>
+              <div class="ht" id="fund-symbol">AAPL</div>
+              <div class="subt">fact_company_fundamental</div>
             </div>
+            <button class="btn-apply" type="button" onclick="openViewer('fact_company_fundamental')">Tabelle</button>
           </div>
           <div class="cb">
-            <div class="quick-grid">
-              <button class="quick-btn" data-open="fact_market_quote">
-                <div class="quick-icon"><i class="fa-solid fa-dollar-sign"></i></div>
-                <div>
-                  <div class="quick-t">Quotes</div>
-                  <div class="quick-s">Live Preise</div>
-                </div>
-              </button>
-
-              <button class="quick-btn" data-open="fact_market_timeseries">
-                <div class="quick-icon"><i class="fa-solid fa-chart-candlestick"></i></div>
-                <div>
-                  <div class="quick-t">Timeseries</div>
-                  <div class="quick-s">OHLCV Candles</div>
-                </div>
-              </button>
-
-              <button class="quick-btn" data-open="fact_market_indicator">
-                <div class="quick-icon"><i class="fa-solid fa-wave-square"></i></div>
-                <div>
-                  <div class="quick-t">Indicators</div>
-                  <div class="quick-s">RSI · MACD · EMA</div>
-                </div>
-              </button>
-
-              <button class="quick-btn" data-open="fact_company_fundamental">
-                <div class="quick-icon"><i class="fa-solid fa-building"></i></div>
-                <div>
-                  <div class="quick-t">Fundamentals</div>
-                  <div class="quick-s">Profil + Kennzahlen</div>
-                </div>
-              </button>
-
-              <button class="quick-btn" data-open="fact_earnings_calendar">
-                <div class="quick-icon"><i class="fa-solid fa-calendar-days"></i></div>
-                <div>
-                  <div class="quick-t">Earnings</div>
-                  <div class="quick-s">Berichtstermine</div>
-                </div>
-              </button>
-
-              <button class="quick-btn" data-open="log_api_call">
-                <div class="quick-icon"><i class="fa-solid fa-server"></i></div>
-                <div>
-                  <div class="quick-t">API Log</div>
-                  <div class="quick-s">Requests + Fehler</div>
-                </div>
-              </button>
+            <div class="stack" id="fund-list">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Fundamentals laden…</div>
             </div>
           </div>
         </div>
@@ -362,55 +378,35 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         <div class="card">
           <div class="ch">
             <div>
-              <div class="kk">Pipeline Snapshot</div>
-              <div class="ht">Aktueller Status</div>
+              <div class="kk">Upcoming / Latest</div>
+              <div class="ht">Earnings</div>
+              <div class="subt">fact_earnings_calendar</div>
             </div>
+            <button class="btn-apply" type="button" onclick="openViewer('fact_earnings_calendar')">Tabelle</button>
           </div>
           <div class="cb">
-            <div class="stat-pills" id="dash-status-pills">
-              <span class="stat-pill">lädt…</span>
-            </div>
-            <div style="height:10px"></div>
-            <div class="mini-list" id="dash-pipeline-list">
-              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Status lädt…</div>
+            <div class="stack" id="earnings-list">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Earnings laden…</div>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="ch">
-            <div>
-              <div class="kk">Neueste Quotes</div>
-              <div class="ht">fact_market_quote</div>
-            </div>
-            <button class="btn-apply" type="button" onclick="openViewer('fact_market_quote')">Öffnen</button>
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">Indicator Details</div>
+            <div class="ht">Letzte Indicator-Werte</div>
+            <div class="subt">fact_market_indicator</div>
           </div>
-          <div class="cb">
-            <div class="mini-list" id="dash-quotes">
-              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Quotes laden…</div>
-            </div>
-          </div>
+          <button class="btn-apply" type="button" onclick="openViewer('fact_market_indicator')">Tabelle</button>
         </div>
-
-        <div class="card">
-          <div class="ch">
-            <div>
-              <div class="kk">Neueste API Calls</div>
-              <div class="ht">log_api_call</div>
-            </div>
-            <button class="btn-apply" type="button" onclick="openViewer('log_api_call')">Öffnen</button>
-          </div>
-          <div class="cb">
-            <div class="mini-list" id="dash-api-log">
-              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>API Log lädt…</div>
-            </div>
+        <div class="cb">
+          <div class="stack" id="indicator-list">
+            <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Indicators laden…</div>
           </div>
         </div>
       </div>
-
-      <div style="height:6px;flex-shrink:0"></div>
     </section>
 
     <!-- PIPELINE -->
@@ -419,7 +415,8 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         <div class="ch">
           <div>
             <div class="kk">Backend Status</div>
-            <div class="ht">Pipeline Monitor</div>
+            <div class="ht">Pipeline</div>
+            <div class="subt">/api/status</div>
           </div>
         </div>
         <div class="cb">
@@ -429,79 +426,87 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         </div>
       </div>
 
-      <div class="card">
-        <div class="ch">
-          <div>
-            <div class="kk">Last Cycle</div>
-            <div class="ht">Zusammenfassung</div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="ch">
+            <div>
+              <div class="kk">Cycle</div>
+              <div class="ht">Last Cycle Summary</div>
+            </div>
+          </div>
+          <div class="cb">
+            <div class="stack" id="pipe-cycle-list">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Cycle lädt…</div>
+            </div>
           </div>
         </div>
-        <div class="cb">
-          <div class="mini-list" id="pipe-cycle-list">
-            <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Cycle lädt…</div>
-          </div>
-        </div>
-      </div>
 
-      <div class="card">
-        <div class="ch">
-          <div>
-            <div class="kk">Fehler / Hinweise</div>
-            <div class="ht">Runtime Info</div>
+        <div class="card">
+          <div class="ch">
+            <div>
+              <div class="kk">Runtime</div>
+              <div class="ht">Error / Warning</div>
+            </div>
           </div>
-        </div>
-        <div class="cb">
-          <div class="mini-list" id="pipe-error-box">
-            <div class="mini-row">
-              <div class="mini-main">
-                <div class="mini-title">Noch keine Daten</div>
-                <div class="mini-sub">/api/status wird abgefragt</div>
-              </div>
+          <div class="cb">
+            <div class="stack" id="pipe-error-box">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Status lädt…</div>
             </div>
           </div>
         </div>
       </div>
-      <div style="height:6px;flex-shrink:0"></div>
+
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">Recent API Calls</div>
+            <div class="ht">log_api_call Preview</div>
+          </div>
+          <button class="btn-apply" type="button" onclick="openViewer('log_api_call')">Tabelle</button>
+        </div>
+        <div class="cb">
+          <div class="stack" id="pipe-api-preview">
+            <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>API Log lädt…</div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- SCHEMA -->
-    <section class="screen" id="scr-schema">
+    <!-- TABLES -->
+    <section class="screen" id="scr-tables">
       <div class="card">
         <div class="db-stats">
           <div class="db-stat">
-            <div class="db-stat-val" id="cnt-dim" style="color:#c084fc">--</div>
+            <div class="db-stat-val" id="cnt-dim" style="color:#cfb6ff">--</div>
             <div class="db-stat-lbl">DIM</div>
           </div>
           <div class="db-stat">
-            <div class="db-stat-val" id="cnt-fact" style="color:#4ade80">--</div>
+            <div class="db-stat-val" id="cnt-fact" style="color:#8def9c">--</div>
             <div class="db-stat-lbl">FACT</div>
           </div>
           <div class="db-stat">
-            <div class="db-stat-val" id="cnt-log" style="color:#fbbf24">--</div>
+            <div class="db-stat-val" id="cnt-log" style="color:#ffd285">--</div>
             <div class="db-stat-lbl">LOG</div>
           </div>
         </div>
       </div>
 
-      <div class="card">
+      <div class="card" id="tables-list-card">
         <div class="db-topbar">
           <div class="db-title-row">
-            <i class="fa-solid fa-database" style="color:#60a5fa;font-size:13px"></i>
+            <i class="fa-solid fa-database" style="color:#78a8ff;font-size:13px"></i>
             <span class="db-title">market_db</span>
             <span class="db-badge">PostgreSQL</span>
           </div>
           <input class="db-search" id="db-search" placeholder="Tabelle suchen…" type="text"/>
         </div>
-        <div id="db-tree" style="display:flex;flex-direction:column;gap:3px;padding:8px 10px">
+        <div id="db-tree" style="display:flex;flex-direction:column;gap:4px;padding:10px 10px 12px">
           <div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>
         </div>
       </div>
-      <div style="height:6px;flex-shrink:0"></div>
-    </section>
 
-    <!-- VIEWER -->
-    <section class="screen" id="scr-viewer">
-      <div class="card">
+      <!-- VIEWER INSIDE TABLES TAB -->
+      <div class="card" id="tables-viewer-card" style="display:none">
         <div class="tv-hdr-inner">
           <button class="tv-back" id="tv-back"><i class="fa-solid fa-arrow-left"></i></button>
           <div class="tv-title">
@@ -511,30 +516,28 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
           <div id="tv-badge" class="dbt-type fact">FACT</div>
         </div>
         <div class="tv-qs" id="tv-qs">
-          <div class="tv-qs-i"><div class="tv-qs-l">Records</div><div class="tv-qs-v" id="qs-rows" style="color:#4ade80">--</div></div>
-          <div class="tv-qs-i"><div class="tv-qs-l">Spalten</div><div class="tv-qs-v" id="qs-cols" style="color:#93c5fd">--</div></div>
-          <div class="tv-qs-i"><div class="tv-qs-l">Seite</div><div class="tv-qs-v" id="qs-page" style="color:#fbbf24">--</div></div>
-          <div class="tv-qs-i"><div class="tv-qs-l">Zeige</div><div class="tv-qs-v" id="qs-show" style="color:#c084fc">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Records</div><div class="tv-qs-v" id="qs-rows" style="color:#8def9c">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Spalten</div><div class="tv-qs-v" id="qs-cols" style="color:#9fc2ff">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Seite</div><div class="tv-qs-v" id="qs-page" style="color:#ffd285">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Zeige</div><div class="tv-qs-v" id="qs-show" style="color:#cfb6ff">--</div></div>
         </div>
-      </div>
 
-      <div class="card" id="tv-flt-card">
-        <div class="tv-flt-toggle" id="tv-flt-toggle">
-          <i class="fa-solid fa-filter" style="color:#60a5fa;font-size:11px"></i>
-          <span class="kk" style="color:var(--soft)">Filter</span>
-          <div id="tv-af-tags" style="display:flex;gap:4px;flex-wrap:wrap;flex:1;margin-left:4px"></div>
-          <i class="fa-solid fa-chevron-down tv-flt-arrow" id="tv-flt-arrow"></i>
-        </div>
-        <div class="tv-flt-body" id="tv-flt-body" style="display:none">
-          <div class="tv-flt-row" id="tv-flt-fields"></div>
-          <div class="flt-btns">
-            <button class="btn-reset" id="tv-flt-reset">↺ Zurücksetzen</button>
-            <button class="btn-apply" id="tv-flt-apply">▶ Filtern</button>
+        <div class="card" id="tv-flt-card" style="margin:10px;border-radius:16px">
+          <div class="tv-flt-toggle" id="tv-flt-toggle">
+            <i class="fa-solid fa-filter" style="color:#78a8ff;font-size:11px"></i>
+            <span class="kk" style="color:var(--soft)">Filter</span>
+            <div id="tv-af-tags" style="display:flex;gap:4px;flex-wrap:wrap;flex:1;margin-left:4px"></div>
+            <i class="fa-solid fa-chevron-down tv-flt-arrow" id="tv-flt-arrow"></i>
+          </div>
+          <div class="tv-flt-body" id="tv-flt-body" style="display:none">
+            <div class="tv-flt-row" id="tv-flt-fields"></div>
+            <div class="flt-btns">
+              <button class="btn-reset" id="tv-flt-reset">↺ Zurücksetzen</button>
+              <button class="btn-apply" id="tv-flt-apply">▶ Filtern</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div class="card" style="overflow:hidden;flex-shrink:0">
         <div class="tv-toolbar">
           <span class="tv-info" id="tv-info">-- Zeilen</span>
           <input class="tv-search" id="tv-search" placeholder="Schnellsuche…" type="text"/>
@@ -549,23 +552,22 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         </div>
         <div class="tv-pages" id="tv-pages"></div>
       </div>
-      <div style="height:6px;flex-shrink:0"></div>
     </section>
 
   </div>
 
   <div class="footer-credit">
-    <i class="fa-regular fa-copyright" style="font-size:10px;color:#3b82f6"></i>
+    <i class="fa-regular fa-copyright" style="font-size:10px;color:#5b8cff"></i>
     <strong>Milan Bikineh</strong>
     <span>· All Rights Reserved · 2025</span>
   </div>
 
   <div id="nav">
     <div class="nav-inner">
-      <div class="nb on" id="nav-dashboard" data-nav="dashboard"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></div>
-      <div class="nb" id="nav-pipeline" data-nav="pipeline"><i class="fa-solid fa-wave-square"></i><span>Pipeline</span></div>
-      <div class="nb" id="nav-schema" data-nav="schema"><i class="fa-solid fa-database"></i><span>Schema</span></div>
-      <div class="nb" id="nav-api" data-nav="api"><i class="fa-solid fa-server"></i><span>API Log</span></div>
+      <div class="nb on" id="nav-market" data-nav="market"><i class="fa-solid fa-chart-line"></i><span>Market</span></div>
+      <div class="nb" id="nav-insights" data-nav="insights"><i class="fa-solid fa-chart-pie"></i><span>Insights</span></div>
+      <div class="nb" id="nav-pipeline" data-nav="pipeline"><i class="fa-solid fa-cloud-arrow-up"></i><span>Pipeline</span></div>
+      <div class="nb" id="nav-tables" data-nav="tables"><i class="fa-solid fa-star"></i><span>Tables</span></div>
     </div>
   </div>
 
@@ -575,12 +577,23 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
 'use strict';
 const API = '';
 
-let activeScreen = 'dashboard';
-let busy = false;
-let lastTables = [];
-let pipelineData = null;
+const APP = {
+  activeScreen: 'market',
+  busy: false,
+  lastTables: [],
+  pipeline: null,
+  quotes: [],
+  timeseriesRows: [],
+  indicatorRows: [],
+  fundamentalRows: [],
+  earningsRows: [],
+  marketMode: 'real',
+  marketRange: '24h',
+  visibleSymbols: new Set(['AAPL','MSFT','NVDA']),
+  chart: null,
+};
 
-let TV = {
+const TV = {
   table: null,
   cols: [],
   page: 1,
@@ -593,6 +606,15 @@ let TV = {
   filters: {},
 };
 
+const SYMBOL_COLORS = {
+  AAPL: '#5b8cff',
+  MSFT: '#70d7ff',
+  NVDA: '#69db7c',
+  GOOGL: '#6f7f93',
+  TSLA: '#b28cff',
+  META: '#f7b955'
+};
+
 let toastT = null;
 function toast(msg, ok=true){
   clearTimeout(toastT);
@@ -600,12 +622,12 @@ function toast(msg, ok=true){
   const ic = el.querySelector('i');
   const sp = document.getElementById('toast-msg');
   ic.className = ok ? 'fa-solid fa-check' : 'fa-solid fa-triangle-exclamation';
-  el.querySelector('.toast-in').style.background = ok ? 'rgba(34,197,94,.15)' : 'rgba(239,68,68,.15)';
-  el.querySelector('.toast-in').style.borderColor = ok ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)';
-  el.querySelector('.toast-in').style.color = ok ? '#86efac' : '#fca5a5';
+  el.querySelector('.toast-in').style.background = ok ? 'rgba(105,219,124,.15)' : 'rgba(255,107,125,.15)';
+  el.querySelector('.toast-in').style.borderColor = ok ? 'rgba(105,219,124,.4)' : 'rgba(255,107,125,.4)';
+  el.querySelector('.toast-in').style.color = ok ? '#98f3a9' : '#ffb2bb';
   sp.textContent = msg;
   el.classList.add('on');
-  toastT = setTimeout(()=>el.classList.remove('on'), 2800);
+  toastT = setTimeout(()=>el.classList.remove('on'), 2600);
 }
 
 function setLoading(show, label='Lädt…'){
@@ -615,25 +637,24 @@ function setLoading(show, label='Lädt…'){
   lbl.textContent = label;
 }
 
-function fmtNum(v){
+function fmtNum(v, digits=null){
   if(v === null || v === undefined || v === '') return '--';
   const n = Number(v);
-  return Number.isFinite(n) ? n.toLocaleString('de-DE') : String(v);
+  if(!Number.isFinite(n)) return String(v);
+  return digits === null ? n.toLocaleString('de-DE') : n.toLocaleString('de-DE',{minimumFractionDigits:digits,maximumFractionDigits:digits});
 }
-
-function fmtText(v){
-  return (v === null || v === undefined || v === '') ? '--' : String(v);
+function fmtPrice(v){ return v === null || v === undefined || v === '' ? '--' : '$' + fmtNum(v, 2); }
+function fmtPct(v){
+  if(v === null || v === undefined || v === '') return '--';
+  const n = Number(v);
+  if(!Number.isFinite(n)) return String(v);
+  return (n > 0 ? '+' : '') + n.toFixed(2) + '%';
 }
-
+function fmtText(v){ return (v === null || v === undefined || v === '') ? '--' : String(v); }
 function fmtDate(v){
   if(!v) return '--';
-  try{
-    return new Date(v).toLocaleString('de-DE');
-  }catch{
-    return String(v);
-  }
+  try{return new Date(v).toLocaleString('de-DE');}catch{return String(v);}
 }
-
 function dtCls(dtype=''){
   const d = String(dtype || '').toLowerCase();
   if(d.includes('int') || d.includes('serial') || d.includes('bigint')) return 'c-num';
@@ -643,59 +664,20 @@ function dtCls(dtype=''){
   if(d.includes('json')) return 'c-json';
   return '';
 }
-
-function setNav(id){
-  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
-  const nav = document.getElementById('nav-' + id);
-  if(nav) nav.classList.add('on');
+function pctClass(val){
+  const n = Number(val);
+  if(!Number.isFinite(n)) return 'neutral';
+  return n > 0 ? 'up' : n < 0 ? 'down' : 'neutral';
 }
-
-function goTo(id){
-  if(id === activeScreen || busy) return;
-  busy = true;
-
-  const prev = document.getElementById('scr-' + activeScreen);
-  const next = document.getElementById('scr-' + id);
-  if(!prev || !next){ busy = false; return; }
-
-  const fwd = 1;
-  prev.classList.remove('active');
-  prev.classList.add(fwd === 1 ? 's-out-l' : 's-out-r');
-
-  next.style.transition = 'none';
-  next.style.opacity = '0';
-  next.style.transform = `translateX(${fwd > 0 ? 40 : -40}px)`;
-  next.style.visibility = 'hidden';
-  next.classList.add('active');
-
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    next.style.transition = '';
-    next.style.opacity = '';
-    next.style.transform = '';
-    next.style.visibility = '';
-  }));
-
-  setTimeout(()=>{
-    prev.classList.remove('s-out-l','s-out-r');
-    busy = false;
-  }, 240);
-
-  activeScreen = id;
-
-  if(id === 'dashboard') setNav('dashboard');
-  else if(id === 'pipeline') setNav('pipeline');
-  else if(id === 'schema') setNav('schema');
+function truthy(v){
+  if(v === true || v === false) return v;
+  if(v === 'true') return true;
+  if(v === 'false') return false;
+  return !!v;
 }
-
-document.getElementById('nav-dashboard').addEventListener('click', ()=>goTo('dashboard'));
-document.getElementById('nav-pipeline').addEventListener('click', async ()=>{ goTo('pipeline'); await loadPipelineStatus(); });
-document.getElementById('nav-schema').addEventListener('click', ()=>goTo('schema'));
-document.getElementById('nav-api').addEventListener('click', ()=>openViewer('log_api_call'));
-document.getElementById('tv-back').addEventListener('click', ()=>goTo('dashboard'));
-
-document.querySelectorAll('[data-open]').forEach(btn=>{
-  btn.addEventListener('click', ()=>openViewer(btn.dataset.open));
-});
+function toggleSet(set, value){
+  if(set.has(value)) set.delete(value); else set.add(value);
+}
 
 async function apiFetch(path){
   try{
@@ -708,239 +690,452 @@ async function apiFetch(path){
   }
 }
 
-/* DASHBOARD + SCHEMA */
-async function loadSchema(filter=''){
-  const tree = document.getElementById('db-tree');
-  if(!filter) tree.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>';
-  setLoading(true, 'Verbinde DB…');
+function setNav(id){
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
+  const nav = document.getElementById('nav-' + id);
+  if(nav) nav.classList.add('on');
+}
+function goTo(id){
+  if(id === APP.activeScreen || APP.busy) return;
+  APP.busy = true;
 
+  const prev = document.getElementById('scr-' + APP.activeScreen);
+  const next = document.getElementById('scr-' + id);
+  if(!prev || !next){ APP.busy = false; return; }
+
+  prev.classList.remove('active');
+  prev.classList.add('s-out-l');
+  next.style.transition = 'none';
+  next.style.opacity = '0';
+  next.style.transform = 'translateX(36px)';
+  next.style.visibility = 'hidden';
+  next.classList.add('active');
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    next.style.transition = '';
+    next.style.opacity = '';
+    next.style.transform = '';
+    next.style.visibility = '';
+  }));
+
+  setTimeout(()=>{
+    prev.classList.remove('s-out-l','s-out-r');
+    APP.busy = false;
+  }, 240);
+
+  APP.activeScreen = id;
+  setNav(id);
+}
+
+document.getElementById('nav-market').addEventListener('click', ()=>goTo('market'));
+document.getElementById('nav-insights').addEventListener('click', ()=>goTo('insights'));
+document.getElementById('nav-pipeline').addEventListener('click', ()=>goTo('pipeline'));
+document.getElementById('nav-tables').addEventListener('click', ()=>goTo('tables'));
+
+document.getElementById('mode-real').addEventListener('click', ()=>{
+  APP.marketMode = 'real';
+  document.getElementById('mode-real').classList.add('on');
+  document.getElementById('mode-norm').classList.remove('on');
+  renderMarketChart();
+});
+document.getElementById('mode-norm').addEventListener('click', ()=>{
+  APP.marketMode = 'normalized';
+  document.getElementById('mode-norm').classList.add('on');
+  document.getElementById('mode-real').classList.remove('on');
+  renderMarketChart();
+});
+document.querySelectorAll('#range-seg .seg-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#range-seg .seg-btn').forEach(x=>x.classList.remove('on'));
+    btn.classList.add('on');
+    APP.marketRange = btn.dataset.range;
+    renderMarketChart();
+  });
+});
+document.querySelectorAll('#symbol-list .sym-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    toggleSet(APP.visibleSymbols, btn.dataset.symbol);
+    btn.classList.toggle('on', APP.visibleSymbols.has(btn.dataset.symbol));
+    renderMarketChart();
+  });
+});
+document.getElementById('fitViewBtn').addEventListener('click', ()=>renderMarketChart());
+document.getElementById('resetZoomBtn').addEventListener('click', ()=>renderMarketChart());
+
+async function loadTables(){
+  const tree = document.getElementById('db-tree');
+  if(!document.getElementById('db-search').value.trim()){
+    tree.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>';
+  }
   const data = await apiFetch('/api/tables');
-  setLoading(false);
 
   if(!data || !data.tables){
-    tree.innerHTML = `<div class="err-box">
-      <i class="fa-solid fa-triangle-exclamation"></i>
-      Verbindung zur Datenbank fehlgeschlagen.<br>
-      <small style="color:var(--faint)">Bitte API-Server prüfen</small>
-    </div>`;
+    tree.innerHTML = `<div class="err-box"><i class="fa-solid fa-triangle-exclamation"></i>Verbindung zur Datenbank fehlgeschlagen</div>`;
     document.getElementById('s-dot').style.background = 'var(--red)';
     document.getElementById('s-lbl').textContent = 'OFFLINE';
     return;
   }
 
-  lastTables = data.tables || [];
+  APP.lastTables = data.tables || [];
   document.getElementById('s-dot').style.background = 'var(--green)';
   document.getElementById('s-lbl').textContent = 'CONNECTED';
-  document.getElementById('s-tables').textContent = lastTables.length + ' Tabellen';
+  document.getElementById('s-tables').textContent = APP.lastTables.length + ' Tabellen';
 
-  const dims  = lastTables.filter(t=>t.type==='dim').length;
-  const facts = lastTables.filter(t=>t.type==='fact').length;
-  const logs  = lastTables.filter(t=>t.type==='log').length;
-  document.getElementById('cnt-dim').textContent  = dims;
+  const dims  = APP.lastTables.filter(t=>t.type==='dim').length;
+  const facts = APP.lastTables.filter(t=>t.type==='fact').length;
+  const logs  = APP.lastTables.filter(t=>t.type==='log').length;
+  document.getElementById('cnt-dim').textContent = dims;
   document.getElementById('cnt-fact').textContent = facts;
-  document.getElementById('cnt-log').textContent  = logs;
+  document.getElementById('cnt-log').textContent = logs;
 
-  const q = filter.toLowerCase().trim();
-  const list = q ? lastTables.filter(t=>t.name.toLowerCase().includes(q)) : lastTables;
+  const filter = document.getElementById('db-search').value.toLowerCase().trim();
+  const list = filter ? APP.lastTables.filter(t=>t.name.toLowerCase().includes(filter)) : APP.lastTables;
 
   if(!list.length){
-    tree.innerHTML = `<div style="padding:20px;text-align:center;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:11px">Keine Treffer</div>`;
-  }else{
-    tree.innerHTML = list.map(t=>{
-      const tl = t.type==='dim'?'DIM':t.type==='fact'?'FACT':'LOG';
-      const rows = typeof t.row_count==='number' ? t.row_count.toLocaleString('de-DE') : (t.row_count||'?');
-      const desc = t.description ? t.description : '';
-      return `<div class="dbl-item" data-t="${t.name}">
-        <i class="fa-solid fa-table-cells dbl-icon"></i>
-        <div style="min-width:0">
-          <div class="dbl-name">${t.name}</div>
-          <div class="dbl-desc">${desc ? desc + ' · ' : ''}${t.column_count||'?'} Spalten</div>
-        </div>
-        <span class="dbt-type ${t.type}">${tl}</span>
-        <span class="dbl-count">${rows}</span>
-        <i class="fa-solid fa-chevron-right dbl-arrow"></i>
-      </div>`;
-    }).join('');
-
-    tree.querySelectorAll('.dbl-item').forEach(el=>{
-      el.addEventListener('click', ()=> openViewer(el.dataset.t));
-    });
-  }
-
-  fillDashboardKPIs();
-}
-
-function fillDashboardKPIs(){
-  const byName = Object.fromEntries(lastTables.map(t=>[t.name,t]));
-  document.getElementById('kpi-quotes').textContent = fmtNum(byName.fact_market_quote?.row_count);
-  document.getElementById('kpi-timeseries').textContent = fmtNum(byName.fact_market_timeseries?.row_count);
-  document.getElementById('kpi-api').textContent = fmtNum(byName.log_api_call?.row_count);
-}
-
-document.getElementById('db-search').addEventListener('input', e=> loadSchema(e.target.value));
-
-/* PIPELINE */
-async function loadPipelineStatus(){
-  const data = await apiFetch('/api/status');
-  pipelineData = data;
-
-  if(!data){
-    document.getElementById('s-pipe').textContent = 'Pipeline OFF';
-    document.getElementById('dash-status-pills').innerHTML = `<span class="stat-pill">Status nicht erreichbar</span>`;
-    document.getElementById('dash-pipeline-list').innerHTML = `<div class="mini-row"><div class="mini-main"><div class="mini-title">/api/status nicht erreichbar</div><div class="mini-sub">Backend prüfen</div></div></div>`;
-    document.getElementById('pipe-status-grid').innerHTML = `<div class="status-item"><div class="status-k">Status</div><div class="status-v status-bad">nicht erreichbar</div></div>`;
-    document.getElementById('pipe-cycle-list').innerHTML = `<div class="mini-row"><div class="mini-main"><div class="mini-title">Keine Cycle-Daten</div><div class="mini-sub">Status-Endpunkt liefert nichts</div></div></div>`;
-    document.getElementById('pipe-error-box').innerHTML = `<div class="mini-row"><div class="mini-main"><div class="mini-title">Verbindungsproblem</div><div class="mini-sub">Bitte Flask/Render prüfen</div></div></div>`;
+    tree.innerHTML = `<div class="spin-wrap">Keine Treffer</div>`;
     return;
   }
 
-  const running = !!data.running;
-  const phase = fmtText(data.phase);
-  document.getElementById('s-pipe').textContent = running ? `Pipeline ${phase}` : 'Pipeline STOP';
+  tree.innerHTML = list.map(t=>{
+    const tl = t.type==='dim'?'DIM':t.type==='fact'?'FACT':'LOG';
+    const rows = typeof t.row_count==='number' ? t.row_count.toLocaleString('de-DE') : (t.row_count||'?');
+    return `<div class="dbl-item" data-t="${t.name}">
+      <i class="fa-solid fa-table-cells dbl-icon"></i>
+      <div style="min-width:0">
+        <div class="dbl-name">${t.name}</div>
+        <div class="dbl-desc">${t.column_count || '?'} Spalten</div>
+      </div>
+      <span class="dbt-type ${t.type}">${tl}</span>
+      <span class="dbl-count">${rows}</span>
+      <i class="fa-solid fa-chevron-right dbl-arrow"></i>
+    </div>`;
+  }).join('');
 
-  const pills = [
-    `<span class="stat-pill">${running ? 'RUNNING' : 'STOPPED'}</span>`,
-    `<span class="stat-pill">phase: ${phase}</span>`,
-    `<span class="stat-pill">cycle: ${fmtText(data.cycle_num)}</span>`,
-    `<span class="stat-pill">thread: ${data.thread_alive ? 'alive' : 'down'}</span>`
-  ];
-  if(data.current_symbol) pills.push(`<span class="stat-pill">symbol: ${data.current_symbol}</span>`);
-  document.getElementById('dash-status-pills').innerHTML = pills.join('');
+  tree.querySelectorAll('.dbl-item').forEach(el=>{
+    el.addEventListener('click', ()=>openViewer(el.dataset.t));
+  });
+}
+document.getElementById('db-search').addEventListener('input', ()=>loadTables());
 
-  document.getElementById('dash-pipeline-list').innerHTML = `
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Running</div>
-        <div class="mini-sub">Thread + Pipeline Status</div>
-      </div>
-      <div class="mini-val" style="color:${running ? '#86efac' : '#fca5a5'}">${running ? 'YES' : 'NO'}</div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Aktuelles Symbol</div>
-        <div class="mini-sub">current_symbol</div>
-      </div>
-      <div class="mini-val">${fmtText(data.current_symbol)}</div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Last Successful Cycle</div>
-        <div class="mini-sub">last_successful_cycle_at</div>
-      </div>
-      <div class="mini-val">${fmtDate(data.last_successful_cycle_at)}</div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Last Cycle At</div>
-        <div class="mini-sub">last_cycle_at</div>
-      </div>
-      <div class="mini-val">${fmtDate(data.last_cycle_at)}</div>
-    </div>
-  `;
+async function loadQuotes(){
+  const data = await apiFetch('/api/table/fact_market_quote?page=1&page_size=200&sort_col=quote_time_utc&sort_dir=desc');
+  APP.quotes = data?.rows || [];
+  renderQuoteCards();
+}
+async function loadTimeseries(){
+  const data = await apiFetch('/api/table/fact_market_timeseries?page=1&page_size=500&sort_col=candle_time_utc&sort_dir=desc');
+  APP.timeseriesRows = data?.rows || [];
+  renderMarketChart();
+}
+async function loadIndicators(){
+  const data = await apiFetch('/api/table/fact_market_indicator?page=1&page_size=400&sort_col=candle_time_utc&sort_dir=desc');
+  APP.indicatorRows = data?.rows || [];
+  renderInsights();
+}
+async function loadFundamentals(){
+  const data = await apiFetch('/api/table/fact_company_fundamental?page=1&page_size=80&sort_col=fetched_at_utc&sort_dir=desc');
+  APP.fundamentalRows = data?.rows || [];
+  renderInsights();
+}
+async function loadEarnings(){
+  const data = await apiFetch('/api/table/fact_earnings_calendar?page=1&page_size=80&sort_col=report_date&sort_dir=desc');
+  APP.earningsRows = data?.rows || [];
+  renderInsights();
+}
+async function loadPipeline(){
+  const data = await apiFetch('/api/status');
+  APP.pipeline = data;
 
-  const last = data.last_cycle_result || {};
+  if(!data){
+    document.getElementById('s-pipe').textContent = 'Pipeline OFF';
+    document.getElementById('pipe-status-grid').innerHTML = `<div class="status-item"><div class="status-k">Status</div><div class="status-v status-bad">nicht erreichbar</div></div>`;
+    document.getElementById('pipe-cycle-list').innerHTML = `<div class="info-row"><div class="info-main"><div class="info-title">Keine Cycle-Daten</div><div class="info-sub">/api/status nicht erreichbar</div></div></div>`;
+    document.getElementById('pipe-error-box').innerHTML = `<div class="info-row"><div class="info-main"><div class="info-title">Backend prüfen</div><div class="info-sub">Status-Endpunkt liefert nichts</div></div></div>`;
+    return;
+  }
+
+  const running = truthy(data.running);
+  document.getElementById('s-pipe').textContent = running ? `Pipeline ${fmtText(data.phase)}` : 'Pipeline STOP';
+
   document.getElementById('pipe-status-grid').innerHTML = `
-    <div class="status-item"><div class="status-k">Running</div><div class="status-v ${running ? 'status-ok':'status-bad'}">${running ? 'true':'false'}</div></div>
-    <div class="status-item"><div class="status-k">Phase</div><div class="status-v">${phase}</div></div>
+    <div class="status-item"><div class="status-k">Running</div><div class="status-v ${running?'status-ok':'status-bad'}">${running}</div></div>
+    <div class="status-item"><div class="status-k">Phase</div><div class="status-v">${fmtText(data.phase)}</div></div>
     <div class="status-item"><div class="status-k">Current Symbol</div><div class="status-v">${fmtText(data.current_symbol)}</div></div>
-    <div class="status-item"><div class="status-k">Current Symbol Index</div><div class="status-v">${fmtText(data.current_symbol_index)}</div></div>
-    <div class="status-item"><div class="status-k">Symbols Total</div><div class="status-v">${fmtText(data.symbols_total)}</div></div>
+    <div class="status-item"><div class="status-k">Current Index</div><div class="status-v">${fmtText(data.current_symbol_index)}</div></div>
     <div class="status-item"><div class="status-k">Cycle Num</div><div class="status-v">${fmtText(data.cycle_num)}</div></div>
-    <div class="status-item"><div class="status-k">Last Cycle At</div><div class="status-v">${fmtDate(data.last_cycle_at)}</div></div>
+    <div class="status-item"><div class="status-k">Symbols Total</div><div class="status-v">${fmtText(data.symbols_total)}</div></div>
+    <div class="status-item"><div class="status-k">Last Cycle</div><div class="status-v">${fmtDate(data.last_cycle_at)}</div></div>
     <div class="status-item"><div class="status-k">Last Successful</div><div class="status-v">${fmtDate(data.last_successful_cycle_at)}</div></div>
-    <div class="status-item"><div class="status-k">Thread Alive</div><div class="status-v ${data.thread_alive ? 'status-ok':'status-bad'}">${data.thread_alive ? 'true':'false'}</div></div>
+    <div class="status-item"><div class="status-k">Thread Alive</div><div class="status-v ${data.thread_alive?'status-ok':'status-bad'}">${fmtText(data.thread_alive)}</div></div>
     <div class="status-item"><div class="status-k">Sleep Seconds</div><div class="status-v">${fmtText(data.sleep_seconds)}</div></div>
   `;
 
+  const lc = data.last_cycle_result || {};
   document.getElementById('pipe-cycle-list').innerHTML = `
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Cycle Duration</div>
-        <div class="mini-sub">cycle_duration_seconds</div>
-      </div>
-      <div class="mini-val">${fmtText(last.cycle_duration_seconds)}</div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Symbols OK</div>
-        <div class="mini-sub">symbols_ok</div>
-      </div>
-      <div class="mini-val" style="color:#86efac">${fmtText(last.symbols_ok)}</div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Symbols Failed</div>
-        <div class="mini-sub">symbols_failed</div>
-      </div>
-      <div class="mini-val" style="color:#fca5a5">${fmtText(last.symbols_failed)}</div>
-    </div>
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Fetch Indicators</div>
-        <div class="mini-sub">fetch_indicators</div>
-      </div>
-      <div class="mini-val">${fmtText(last.fetch_indicators)}</div>
-    </div>
+    <div class="info-row"><div class="info-main"><div class="info-title">Cycle Duration</div><div class="info-sub">cycle_duration_seconds</div></div><div class="info-val">${fmtText(lc.cycle_duration_seconds)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">Symbols OK</div><div class="info-sub">symbols_ok</div></div><div class="info-val up">${fmtText(lc.symbols_ok)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">Symbols Failed</div><div class="info-sub">symbols_failed</div></div><div class="info-val down">${fmtText(lc.symbols_failed)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">Fetch Indicators</div><div class="info-sub">fetch_indicators</div></div><div class="info-val">${fmtText(lc.fetch_indicators)}</div></div>
   `;
 
   document.getElementById('pipe-error-box').innerHTML = `
-    <div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">Last Error</div>
-        <div class="mini-sub">${fmtText(data.last_error || data.error || last.error)}</div>
+    <div class="info-row">
+      <div class="info-main">
+        <div class="info-title">Last Error</div>
+        <div class="info-sub">${fmtText(data.last_error || data.error || lc.error)}</div>
       </div>
     </div>
   `;
-}
 
-/* DASHBOARD PREVIEWS */
-async function loadDashboardPreviews(){
-  const quotes = await apiFetch('/api/table/fact_market_quote?page=1&page_size=5&sort_col=quote_id&sort_dir=desc');
-  const apiLog = await apiFetch('/api/table/log_api_call?page=1&page_size=5&sort_col=log_id&sort_dir=desc');
-
-  document.getElementById('dash-quotes').innerHTML = renderMiniRows(
-    quotes?.rows,
-    row => ({
-      title: `symbol_id ${fmtText(row.symbol_id)} · price ${fmtText(row.price)}`,
-      sub: `${fmtText(row.quote_time_utc)} · change_pct ${fmtText(row.change_pct)}`
-    }),
-    'Keine Quotes'
-  );
-
-  document.getElementById('dash-api-log').innerHTML = renderMiniRows(
-    apiLog?.rows,
-    row => ({
-      title: `${fmtText(row.endpoint)} · status ${fmtText(row.http_status)}`,
-      sub: `${fmtText(row.called_at_utc)} · ms ${fmtText(row.response_ms)}`
-    }),
-    'Keine API-Logs'
-  );
-}
-
-function renderMiniRows(rows, mapFn, emptyText='Keine Daten'){
-  if(!rows || !rows.length){
-    return `<div class="mini-row"><div class="mini-main"><div class="mini-title">${emptyText}</div></div></div>`;
-  }
-  return rows.map(row=>{
-    const x = mapFn(row);
-    return `<div class="mini-row">
-      <div class="mini-main">
-        <div class="mini-title">${x.title}</div>
-        <div class="mini-sub">${x.sub || ''}</div>
+  const apiPreview = await apiFetch('/api/table/log_api_call?page=1&page_size=6&sort_col=log_id&sort_dir=desc');
+  const rows = apiPreview?.rows || [];
+  document.getElementById('pipe-api-preview').innerHTML = rows.length ? rows.map(r=>`
+    <div class="info-row">
+      <div class="info-main">
+        <div class="info-title">${fmtText(r.endpoint)} · ${fmtText(r.http_status)}</div>
+        <div class="info-sub">${fmtDate(r.called_at_utc)} · ${fmtText(r.response_ms)} ms</div>
       </div>
-    </div>`;
+      <div class="info-val ${r.http_status >= 400 ? 'down':'up'}">${fmtText(r.symbol_id)}</div>
+    </div>
+  `).join('') : `<div class="info-row"><div class="info-main"><div class="info-title">Keine API Calls</div></div></div>`;
+}
+
+function latestQuotesBySymbol(){
+  const map = new Map();
+  for(const row of APP.quotes){
+    const sym = guessSymbol(row.symbol_id);
+    if(sym && !map.has(sym)) map.set(sym, row);
+  }
+  return map;
+}
+function guessSymbol(symbolId){
+  const id = Number(symbolId);
+  const common = {1:'AAPL',2:'MSFT',3:'NVDA',4:'GOOGL',5:'TSLA',6:'META'};
+  return common[id] || null;
+}
+
+function renderQuoteCards(){
+  const wrap = document.getElementById('market-cards');
+  const latest = latestQuotesBySymbol();
+  const chosen = ['AAPL','MSFT','NVDA','GOOGL','TSLA','META'].filter(s=>latest.has(s));
+  if(!chosen.length){
+    wrap.innerHTML = `<div class="spin-wrap" style="padding:16px">Keine Quote-Daten</div>`;
+    return;
+  }
+  wrap.innerHTML = chosen.slice(0,6).map(sym=>{
+    const q = latest.get(sym);
+    const cls = pctClass(q.change_pct);
+    const colorClass = sym==='AAPL'?'c-blue':sym==='MSFT'?'c-cyan':sym==='NVDA'?'c-green':sym==='GOOGL'?'c-gray':sym==='TSLA'?'c-violet':'c-amber';
+    return `
+      <div class="quote-card">
+        <div class="quote-left">
+          <span class="sym-dot ${colorClass}"></span>
+          <div>
+            <div class="quote-sym">${sym}</div>
+          </div>
+        </div>
+        <div>
+          <div class="quote-price">${fmtPrice(q.price)}</div>
+          <div class="quote-chg ${cls}">${fmtPct(q.change_pct)}</div>
+        </div>
+      </div>
+    `;
   }).join('');
 }
 
-/* TABLE VIEWER */
+function getFilteredSeriesData(){
+  const rows = APP.timeseriesRows || [];
+  if(!rows.length) return [];
+  const now = Date.now();
+  const hoursMap = {'24h':24,'12h':12,'6h':6,'3h':3,'1h':1};
+  const hours = hoursMap[APP.marketRange] || 24;
+  const minTime = now - hours * 3600 * 1000;
+
+  const mapped = rows
+    .map(r=>({...r, _sym: guessSymbol(r.symbol_id), _ts: new Date(r.candle_time_utc).getTime()}))
+    .filter(r=>r._sym && APP.visibleSymbols.has(r._sym) && Number.isFinite(r._ts) && r._ts >= minTime)
+    .sort((a,b)=>a._ts - b._ts);
+
+  const bySym = {};
+  for(const r of mapped){
+    if(!bySym[r._sym]) bySym[r._sym] = [];
+    bySym[r._sym].push(r);
+  }
+  return bySym;
+}
+
+function normalizeSeries(arr){
+  if(!arr.length) return arr;
+  const first = Number(arr[0].close);
+  if(!Number.isFinite(first) || first === 0) return arr.map(x=>Number(x.close));
+  return arr.map(x=>((Number(x.close) / first) * 100));
+}
+
+function renderMarketChart(){
+  const ctx = document.getElementById('marketChart');
+  if(!ctx) return;
+
+  const bySym = getFilteredSeriesData();
+  const datasets = [];
+  const labelsSet = new Set();
+
+  Object.entries(bySym).forEach(([sym, arr])=>{
+    arr.forEach(x=>labelsSet.add(x._ts));
+    const values = APP.marketMode === 'normalized' ? normalizeSeries(arr) : arr.map(x=>Number(x.close));
+    datasets.push({
+      label: sym,
+      data: arr.map((x, i)=>({x: x._ts, y: values[i]})),
+      borderColor: SYMBOL_COLORS[sym] || '#9fc2ff',
+      backgroundColor: SYMBOL_COLORS[sym] || '#9fc2ff',
+      borderWidth: 3,
+      tension: .35,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      pointHitRadius: 14
+    });
+  });
+
+  if(APP.chart){ APP.chart.destroy(); APP.chart = null; }
+
+  APP.chart = new Chart(ctx, {
+    type: 'line',
+    data: { datasets },
+    options: {
+      animation: false,
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(6,12,20,.95)',
+          borderColor: 'rgba(91,140,255,.28)',
+          borderWidth: 1,
+          titleColor: '#eef5ff',
+          bodyColor: '#dce9ff',
+          displayColors: true,
+          callbacks: {
+            title(items){
+              if(!items?.length) return '';
+              return new Date(items[0].parsed.x).toLocaleString('de-DE',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+            },
+            label(item){
+              const prefix = APP.marketMode === 'normalized' ? '' : '$';
+              const suffix = APP.marketMode === 'normalized' ? '' : '';
+              return `${item.dataset.label}  ${prefix}${Number(item.parsed.y).toFixed(2)}${suffix}`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          grid: { color: 'rgba(255,255,255,.06)' },
+          ticks: {
+            color: '#6f88aa',
+            callback(value){
+              return new Date(value).toLocaleTimeString('de-DE',{hour:'numeric',minute:'2-digit'});
+            }
+          }
+        },
+        y: {
+          grid: { color: 'rgba(255,255,255,.06)' },
+          ticks: {
+            color: '#6f88aa',
+            callback(value){
+              return APP.marketMode === 'normalized' ? Number(value).toFixed(0) : '$' + Number(value).toFixed(0);
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+function pickLatestIndicator(symbol, indicatorId){
+  const sid = symbolToId(symbol);
+  return APP.indicatorRows.find(r=>Number(r.symbol_id)===sid && Number(r.indicator_id)===indicatorId);
+}
+function symbolToId(sym){
+  const map = {AAPL:1,MSFT:2,NVDA:3,GOOGL:4,TSLA:5,META:6};
+  return map[sym] || 1;
+}
+function renderInsights(){
+  const baseSymbol = Array.from(APP.visibleSymbols)[0] || 'AAPL';
+  document.getElementById('fund-symbol').textContent = baseSymbol;
+
+  const rsi  = pickLatestIndicator(baseSymbol, 1);
+  const macd = pickLatestIndicator(baseSymbol, 2);
+  const ema  = pickLatestIndicator(baseSymbol, 3);
+  const sma  = pickLatestIndicator(baseSymbol, 4);
+
+  document.getElementById('ins-rsi').textContent = fmtNum(rsi?.value, 2);
+  document.getElementById('ins-rsi-signal').textContent = rsi ? (Number(rsi.value) >= 70 ? 'Overbought' : Number(rsi.value) <= 30 ? 'Oversold' : 'Neutral') : 'Signal --';
+  document.getElementById('ins-macd').textContent = fmtNum(macd?.macd ?? macd?.value, 2);
+  document.getElementById('ins-macd-signal').textContent = macd ? ((Number(macd.macd) > Number(macd.macd_signal)) ? 'Bullish' : (Number(macd.macd) < Number(macd.macd_signal) ? 'Bearish' : 'Neutral')) : 'Signal --';
+  document.getElementById('ins-ema').textContent = fmtNum(ema?.value, 2);
+  document.getElementById('ins-sma').textContent = fmtNum(sma?.value, 2);
+
+  const fundRow = APP.fundamentalRows.find(r=>Number(r.symbol_id)===symbolToId(baseSymbol)) || APP.fundamentalRows[0];
+  document.getElementById('fund-list').innerHTML = fundRow ? `
+    <div class="info-row"><div class="info-main"><div class="info-title">Market Cap</div><div class="info-sub">market_cap</div></div><div class="info-val">${fmtNum(fundRow.market_cap)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">P/E Ratio</div><div class="info-sub">pe_ratio</div></div><div class="info-val">${fmtNum(fundRow.pe_ratio,2)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">EPS TTM</div><div class="info-sub">eps_ttm</div></div><div class="info-val">${fmtNum(fundRow.eps_ttm,2)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">Beta</div><div class="info-sub">beta</div></div><div class="info-val">${fmtNum(fundRow.beta,2)}</div></div>
+    <div class="info-row"><div class="info-main"><div class="info-title">52W High / Low</div><div class="info-sub">week_52_high / week_52_low</div></div><div class="info-val">${fmtNum(fundRow.week_52_high,2)} / ${fmtNum(fundRow.week_52_low,2)}</div></div>
+  ` : `<div class="info-row"><div class="info-main"><div class="info-title">Keine Fundamental-Daten</div></div></div>`;
+
+  const earnRows = (APP.earningsRows || []).slice(0,5);
+  document.getElementById('earnings-list').innerHTML = earnRows.length ? earnRows.map(r=>`
+    <div class="info-row">
+      <div class="info-main">
+        <div class="info-title">${guessSymbol(r.symbol_id) || ('ID ' + fmtText(r.symbol_id))} · ${fmtText(r.hour)}</div>
+        <div class="info-sub">${fmtText(r.report_date)} · EPS est ${fmtText(r.eps_estimate)}</div>
+      </div>
+      <div class="info-val">${fmtText(r.revenue_estimate)}</div>
+    </div>
+  `).join('') : `<div class="info-row"><div class="info-main"><div class="info-title">Keine Earnings-Daten</div></div></div>`;
+
+  const latestIndicators = [];
+  ['AAPL','MSFT','NVDA'].forEach(sym=>{
+    const rs = pickLatestIndicator(sym,1);
+    const mc = pickLatestIndicator(sym,2);
+    if(rs) latestIndicators.push({sym, title:`${sym} RSI`, sub:fmtDate(rs.candle_time_utc), val:fmtNum(rs.value,2)});
+    if(mc) latestIndicators.push({sym, title:`${sym} MACD`, sub:fmtDate(mc.candle_time_utc), val:fmtNum(mc.macd ?? mc.value,2)});
+  });
+  document.getElementById('indicator-list').innerHTML = latestIndicators.length ? latestIndicators.map(x=>`
+    <div class="info-row">
+      <div class="info-main">
+        <div class="info-title">${x.title}</div>
+        <div class="info-sub">${x.sub}</div>
+      </div>
+      <div class="info-val">${x.val}</div>
+    </div>
+  `).join('') : `<div class="info-row"><div class="info-main"><div class="info-title">Keine Indicator-Daten</div></div></div>`;
+}
+
+/* TABLE VIEWER INSIDE TABLES TAB */
+function showTablesList(){
+  document.getElementById('tables-list-card').style.display = '';
+  document.getElementById('tables-viewer-card').style.display = 'none';
+}
+function showTablesViewer(){
+  document.getElementById('tables-list-card').style.display = 'none';
+  document.getElementById('tables-viewer-card').style.display = '';
+}
+document.getElementById('tv-back').addEventListener('click', showTablesList);
+
 async function openViewer(tableName){
-  TV.table    = tableName;
-  TV.page     = 1;
-  TV.search   = '';
-  TV.sortCol  = null;
-  TV.sortDir  = 'desc';
-  TV.filters  = {};
-  TV.cols     = [];
+  goTo('tables');
+  showTablesViewer();
+
+  TV.table = tableName;
+  TV.page = 1;
+  TV.search = '';
+  TV.sortCol = null;
+  TV.sortDir = 'desc';
+  TV.filters = {};
+  TV.cols = [];
 
   document.getElementById('tv-tname').textContent = tableName;
   document.getElementById('tv-tmeta').textContent = 'Lädt…';
@@ -954,8 +1149,6 @@ async function openViewer(tableName){
   buildFilterPanel(tableName);
   document.getElementById('tv-search').value = '';
   document.getElementById('tv-af-tags').innerHTML = '';
-
-  goTo('viewer');
   await loadData();
 }
 
@@ -972,30 +1165,20 @@ function buildFilterPanel(tName){
     <input class="sf-inp" type="date" id="fv-to" value=""/>
   </div>`;
 
-  const hasSym = ['fact_company_fundamental','fact_earnings_calendar',
-                  'fact_market_indicator','fact_market_quote','fact_market_timeseries','log_api_call'].includes(tName);
+  const hasSym = ['fact_company_fundamental','fact_earnings_calendar','fact_market_indicator','fact_market_quote','fact_market_timeseries','log_api_call'].includes(tName);
   if(hasSym){
-    html += `<div class="sf-f"><div class="sf-lbl">Symbol ID</div>
-      <input class="sf-inp" type="number" id="fv-sym" placeholder="z. B. 1"/></div>`;
+    html += `<div class="sf-f"><div class="sf-lbl">Symbol ID</div><input class="sf-inp" type="number" id="fv-sym" placeholder="z. B. 1"/></div>`;
   }
-
   if(tName === 'fact_market_indicator'){
-    html += `<div class="sf-f"><div class="sf-lbl">Indicator ID</div>
-      <input class="sf-inp" type="number" id="fv-ind" placeholder="z. B. 1"/></div>`;
+    html += `<div class="sf-f"><div class="sf-lbl">Indicator ID</div><input class="sf-inp" type="number" id="fv-ind" placeholder="z. B. 1"/></div>`;
   }
-
   if(['fact_market_indicator','fact_market_timeseries'].includes(tName)){
-    html += `<div class="sf-f"><div class="sf-lbl">Interval ID</div>
-      <input class="sf-inp" type="number" id="fv-itv" placeholder="z. B. 6"/></div>`;
+    html += `<div class="sf-f"><div class="sf-lbl">Interval ID</div><input class="sf-inp" type="number" id="fv-itv" placeholder="z. B. 6"/></div>`;
   }
-
   if(tName === 'log_api_call'){
-    html += `<div class="sf-f"><div class="sf-lbl">Endpoint</div>
-      <input class="sf-inp" id="fv-ep" placeholder="/quote …"/></div>`;
-    html += `<div class="sf-f"><div class="sf-lbl">HTTP Status</div>
-      <input class="sf-inp" type="number" id="fv-st" placeholder="200"/></div>`;
+    html += `<div class="sf-f"><div class="sf-lbl">Endpoint</div><input class="sf-inp" id="fv-ep" placeholder="/quote …"/></div>`;
+    html += `<div class="sf-f"><div class="sf-lbl">HTTP Status</div><input class="sf-inp" type="number" id="fv-st" placeholder="200"/></div>`;
   }
-
   fields.innerHTML = html;
 }
 
@@ -1004,17 +1187,14 @@ async function loadData(){
   wrap.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Daten…</div>';
   setLoading(true, TV.table + ' lädt…');
 
-  const params = new URLSearchParams({
-    page: TV.page,
-    page_size: TV.pageSize,
-  });
-  if(TV.search)              params.set('search', TV.search);
-  if(TV.sortCol)             params.set('sort_col', TV.sortCol);
-  if(TV.sortDir)             params.set('sort_dir', TV.sortDir);
-  if(TV.filters.date_from)   params.set('date_from', TV.filters.date_from);
-  if(TV.filters.date_to)     params.set('date_to', TV.filters.date_to);
-  if(TV.filters.symbol_id)   params.set('symbol_id', TV.filters.symbol_id);
-  if(TV.filters.endpoint)    params.set('endpoint', TV.filters.endpoint);
+  const params = new URLSearchParams({ page: TV.page, page_size: TV.pageSize });
+  if(TV.search) params.set('search', TV.search);
+  if(TV.sortCol) params.set('sort_col', TV.sortCol);
+  if(TV.sortDir) params.set('sort_dir', TV.sortDir);
+  if(TV.filters.date_from) params.set('date_from', TV.filters.date_from);
+  if(TV.filters.date_to) params.set('date_to', TV.filters.date_to);
+  if(TV.filters.symbol_id) params.set('symbol_id', TV.filters.symbol_id);
+  if(TV.filters.endpoint) params.set('endpoint', TV.filters.endpoint);
   if(TV.filters.http_status) params.set('http_status', TV.filters.http_status);
 
   const data = await apiFetch(`/api/table/${TV.table}?${params}`);
@@ -1025,10 +1205,10 @@ async function loadData(){
     return;
   }
 
-  TV.cols       = data.columns || [];
-  TV.totalRows  = data.total || 0;
+  TV.cols = data.columns || [];
+  TV.totalRows = data.total || 0;
   TV.totalPages = data.total_pages || Math.max(1, Math.ceil(TV.totalRows / TV.pageSize));
-  TV.page       = Math.min(TV.page, TV.totalPages);
+  TV.page = Math.min(TV.page, TV.totalPages);
 
   const st = TV.totalRows ? ((TV.page-1)*TV.pageSize + 1) : 0;
   const en = Math.min(TV.page*TV.pageSize, TV.totalRows);
@@ -1065,19 +1245,12 @@ function renderTable(data){
     const cells = data.columns.map(c=>{
       const val = row[c.name];
       let txt, cls = '';
-      if(val === null || val === undefined){
-        txt = 'NULL'; cls = 'c-null';
-      } else if(typeof val === 'boolean'){
-        txt = val ? 'true' : 'false'; cls = val ? 'c-true' : 'c-false';
-      } else if(typeof val === 'object'){
-        txt = JSON.stringify(val); cls = 'c-json';
-      } else {
-        txt = String(val);
-        cls = c.is_pk ? 'c-pk' : c.is_fk ? 'c-fk' : dtCls(c.dtype || '');
-      }
+      if(val === null || val === undefined){ txt = 'NULL'; cls = 'c-null'; }
+      else if(typeof val === 'boolean'){ txt = val ? 'true' : 'false'; cls = val ? 'c-true' : 'c-false'; }
+      else if(typeof val === 'object'){ txt = JSON.stringify(val); cls = 'c-json'; }
+      else { txt = String(val); cls = c.is_pk ? 'c-pk' : c.is_fk ? 'c-fk' : dtCls(c.dtype || ''); }
       const disp = txt.length > 80 ? txt.slice(0,77)+'…' : txt;
-      const safeTitle = txt.replace(/"/g,'&quot;');
-      return `<td class="${cls}" title="${safeTitle}">${disp}</td>`;
+      return `<td class="${cls}" title="${txt.replace(/"/g,'&quot;')}">${disp}</td>`;
     }).join('');
     return `<tr class="${ri%2===0?'':'even'}">${cells}</tr>`;
   }).join('') || `<tr><td colspan="${data.columns.length}" style="text-align:center;color:var(--faint);padding:20px">Keine Daten</td></tr>`;
@@ -1103,7 +1276,6 @@ function renderPages(){
   let pills = [];
   const add = n=>{ if(n<1||n>tp) return; pills.push(`<button class="pg-pill${n===p?' on':''}" data-p="${n}">${n}</button>`); };
   const dots = ()=> pills.push(`<span class="pg-dots">…</span>`);
-
   add(1);
   if(p > 4) dots();
   for(let i=Math.max(2,p-2); i<=Math.min(tp-1,p+2); i++) add(i);
@@ -1116,23 +1288,21 @@ function renderPages(){
   });
 }
 
-/* EVENTS */
 document.getElementById('tv-flt-toggle').addEventListener('click', ()=>{
-  const body  = document.getElementById('tv-flt-body');
+  const body = document.getElementById('tv-flt-body');
   const arrow = document.getElementById('tv-flt-arrow');
-  const open  = body.style.display === 'flex';
+  const open = body.style.display === 'flex';
   body.style.display = open ? 'none' : 'flex';
   arrow.classList.toggle('open', !open);
 });
-
 document.getElementById('tv-flt-apply').addEventListener('click', ()=>{
   TV.filters = {};
   TV.page = 1;
 
   const from = document.getElementById('fv-from')?.value;
-  const to   = document.getElementById('fv-to')?.value;
+  const to = document.getElementById('fv-to')?.value;
   if(from) TV.filters.date_from = from;
-  if(to)   TV.filters.date_to = to;
+  if(to) TV.filters.date_to = to;
 
   const sym = document.getElementById('fv-sym')?.value;
   if(sym) TV.filters.symbol_id = sym;
@@ -1143,21 +1313,17 @@ document.getElementById('tv-flt-apply').addEventListener('click', ()=>{
   const st = document.getElementById('fv-st')?.value;
   if(st) TV.filters.http_status = st;
 
-  const tags = Object.entries(TV.filters).map(([k,v])=>`<span class="af-tag">${k}: ${v}</span>`).join('');
-  document.getElementById('tv-af-tags').innerHTML = tags;
-
+  document.getElementById('tv-af-tags').innerHTML = Object.entries(TV.filters)
+    .map(([k,v])=>`<span class="af-tag">${k}: ${v}</span>`).join('');
   loadData();
 });
-
 document.getElementById('tv-flt-reset').addEventListener('click', ()=>{
   document.querySelectorAll('#tv-flt-fields .sf-inp').forEach(el=>el.value='');
-  document.querySelectorAll('#tv-flt-fields .sf-sel').forEach(el=>el.selectedIndex=0);
   TV.filters = {};
   TV.page = 1;
   document.getElementById('tv-af-tags').innerHTML = '';
   loadData();
 });
-
 let searchTimer = null;
 document.getElementById('tv-search').addEventListener('input', e=>{
   clearTimeout(searchTimer);
@@ -1167,13 +1333,8 @@ document.getElementById('tv-search').addEventListener('input', e=>{
     loadData();
   }, 350);
 });
-
-document.getElementById('pg-prev').addEventListener('click', ()=>{
-  if(TV.page > 1){ TV.page--; loadData(); }
-});
-document.getElementById('pg-next').addEventListener('click', ()=>{
-  if(TV.page < TV.totalPages){ TV.page++; loadData(); }
-});
+document.getElementById('pg-prev').addEventListener('click', ()=>{ if(TV.page > 1){ TV.page--; loadData(); }});
+document.getElementById('pg-next').addEventListener('click', ()=>{ if(TV.page < TV.totalPages){ TV.page++; loadData(); }});
 
 let spinning = false;
 document.getElementById('refreshBtn').addEventListener('click', async ()=>{
@@ -1181,36 +1342,38 @@ document.getElementById('refreshBtn').addEventListener('click', async ()=>{
   spinning = true;
   const ic = document.getElementById('ref-ic');
   ic.style.transition = 'transform .6s';
-  ic.style.transform  = 'rotate(360deg)';
+  ic.style.transform = 'rotate(360deg)';
 
-  if(activeScreen === 'dashboard'){
-    await Promise.all([loadSchema(document.getElementById('db-search').value || ''), loadPipelineStatus(), loadDashboardPreviews()]);
-  }else if(activeScreen === 'pipeline'){
-    await loadPipelineStatus();
-  }else if(activeScreen === 'schema'){
-    await loadSchema(document.getElementById('db-search').value || '');
-  }else if(activeScreen === 'viewer'){
-    await loadData();
-  }
+  await refreshAll();
 
   setTimeout(()=>{ ic.style.transform=''; ic.style.transition=''; spinning=false; }, 700);
   toast('Aktualisiert');
 });
+
+async function refreshAll(){
+  setLoading(true, 'Aktualisiere…');
+  await Promise.all([
+    loadTables(),
+    loadQuotes(),
+    loadTimeseries(),
+    loadIndicators(),
+    loadFundamentals(),
+    loadEarnings(),
+    loadPipeline()
+  ]);
+  setLoading(false);
+}
 
 setInterval(()=>{
   document.getElementById('s-time').textContent =
     new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }, 1000);
 
-setInterval(async ()=>{
-  await loadPipelineStatus();
-}, 15000);
+setInterval(async ()=>{ await loadPipeline(); }, 15000);
 
-/* BOOT */
 (async function boot(){
-  await loadSchema();
-  await loadPipelineStatus();
-  await loadDashboardPreviews();
+  showTablesList();
+  await refreshAll();
 })();
 </script>
 </body>

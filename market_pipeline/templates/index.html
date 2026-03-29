@@ -7,16 +7,14 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <style>
-/* ══ RESET ══ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 button,select,input{font-family:inherit;outline:none;-webkit-appearance:none;border:none;background:none;}
 
-/* ══ TOKENS ══ */
 :root{
   --bg:#060c14;--bg2:#081018;--panel:#0a1520;--panel2:#0d1a28;
   --border:#1b2d42;--border2:#132030;
   --txt:#e0ecff;--soft:#8aa4c8;--muted:#4e6886;--faint:#344d66;
-  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;--violet:#a855f7;
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
 }
@@ -24,11 +22,8 @@ button,select,input{font-family:inherit;outline:none;-webkit-appearance:none;bor
 html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   font-family:"IBM Plex Sans",sans-serif;-webkit-font-smoothing:antialiased;}
 .mono{font-family:"IBM Plex Mono",monospace;}
-
-/* ══ SHELL ══ */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;}
 
-/* ══ TOPBAR ══ */
 #topbar{
   flex-shrink:0;z-index:20;
   padding:calc(var(--sat)+10px) calc(var(--sar)+14px) 10px calc(var(--sal)+14px);
@@ -55,7 +50,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
 .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
 
-/* ══ SCREENS ══ */
 #screens{flex:1;overflow:hidden;position:relative;}
 .screen{
   position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
@@ -70,7 +64,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
 .screen.s-out-r{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(40px);
   transition:opacity .18s ease,transform .18s ease,visibility .18s;}
 
-/* ══ FOOTER + NAV ══ */
 .footer-credit{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;
   padding:6px 14px;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace;
   color:var(--faint);letter-spacing:.04em;border-top:1px solid var(--border2);background:rgba(6,12,20,.6);}
@@ -80,8 +73,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   padding:5px calc(var(--sar)+8px) calc(var(--sab)+5px) calc(var(--sal)+8px);
   background:rgba(6,12,20,.98);border-top:1px solid var(--border2);
   backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
-.nav-inner{display:grid;grid-template-columns:repeat(1,1fr);gap:5px;}
-.nb{border:1px solid var(--border);background:var(--panel);color:var(--muted);
+.nav-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
+.nb{position:relative;border:1px solid var(--border);background:var(--panel);color:var(--muted);
   border-radius:13px;min-height:52px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:800;
   text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .12s;
@@ -89,12 +82,7 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
 .nb.on{color:#bfdbfe;border-color:rgba(59,130,246,.35);
   background:linear-gradient(170deg,rgba(59,130,246,.18),rgba(59,130,246,.07));}
 .nb i{font-size:17px;}
-.nbadge{position:absolute;top:6px;right:8px;min-width:16px;height:16px;border-radius:99px;
-  background:var(--red);color:#fff;font-size:8px;font-weight:800;display:none;
-  align-items:center;justify-content:center;padding:0 3px;}
-.nbadge.on{display:flex;}
 
-/* ══ OWNER BADGE ══ */
 .owner-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 7px;
   border-radius:99px;border:1px solid rgba(59,130,246,.28);
   background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
@@ -102,7 +90,6 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   color:#93c5fd;white-space:nowrap;flex-shrink:0;}
 .owner-badge i{font-size:9px;color:#60a5fa;}
 
-/* ══ CARDS ══ */
 .card{background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--border);
   border-radius:16px;overflow:hidden;flex-shrink:0;}
 .ch{padding:11px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;
@@ -112,122 +99,108 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
   font-family:"IBM Plex Mono",monospace;}
 .ht{font-size:15px;font-weight:800;margin-top:3px;line-height:1.2;}
 
-/* ══ TYPE BADGES ══ */
 .dbt-type{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;
   padding:2px 7px;border-radius:5px;white-space:nowrap;}
 .dbt-type.dim{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
 .dbt-type.fact{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);}
 .dbt-type.log{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
 
-/* ══ DB SCHEMA SCREEN ══ */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+@media(max-width:900px){.grid-2{grid-template-columns:1fr;}}
+@media(max-width:680px){.grid-3{grid-template-columns:1fr 1fr;}}
+
+.kpi{background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:10px;}
+.kpi-l{font-size:9px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-family:"IBM Plex Mono",monospace;}
+.kpi-v{font-size:20px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:4px;}
+.kpi-s{font-size:10px;color:var(--faint);margin-top:4px;font-family:"IBM Plex Mono",monospace;}
+
+.quick-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+@media(max-width:560px){.quick-grid{grid-template-columns:1fr;}}
+.quick-btn{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;border:1px solid var(--border2);background:var(--panel2);cursor:pointer;transition:.12s;}
+.quick-btn:hover{border-color:rgba(59,130,246,.35);background:rgba(59,130,246,.06);}
+.quick-icon{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(59,130,246,.12);color:#93c5fd;flex-shrink:0;}
+.quick-t{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.quick-s{font-size:10px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
+
+.mini-list{display:flex;flex-direction:column;gap:8px;}
+.mini-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;padding:9px 10px;background:var(--panel2);border:1px solid var(--border2);border-radius:12px;}
+.mini-main{min-width:0;}
+.mini-title{font-size:11px;font-weight:800;font-family:"IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-sub{font-size:9px;color:var(--muted);margin-top:3px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mini-val{font-size:11px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:#93c5fd;white-space:nowrap;}
+
+.stat-pills{display:flex;flex-wrap:wrap;gap:6px;}
+.stat-pill{padding:6px 9px;border-radius:99px;border:1px solid var(--border2);background:var(--panel2);font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
+
 .db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;}
-.db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;
-  padding:9px 10px;text-align:center;}
+.db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;padding:9px 10px;text-align:center;}
 .db-stat-val{font-size:18px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
-.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;
-  letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
-.db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;
-  border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
+.db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
 .db-title-row{display:flex;align-items:center;gap:6px;flex:1;}
-.db-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;
-  font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;
-  font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
+.db-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
 .db-title{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
-.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);
-  border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;
-  font-family:"IBM Plex Mono",monospace;}
+.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
 .db-search::placeholder{color:var(--faint);}
 .db-search:focus{border-color:rgba(59,130,246,.45);outline:none;}
 
-/* Table list items */
-.dbl-item{display:grid;grid-template-columns:18px 1fr auto auto 16px;
-  gap:8px;align-items:center;padding:11px 13px;border-radius:12px;
-  background:var(--panel2);border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
+.dbl-item{display:grid;grid-template-columns:18px 1fr auto auto 16px;gap:8px;align-items:center;padding:11px 13px;border-radius:12px;background:var(--panel2);border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
 .dbl-item:active{transform:scale(.99);}
 .dbl-item:hover{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07);}
 .dbl-icon{font-size:12px;color:#60a5fa;}
 .dbl-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
-.dbl-desc{font-size:9px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dbl-desc{font-size:9px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .dbl-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--faint);white-space:nowrap;}
 .dbl-arrow{font-size:10px;color:var(--faint);}
 
-/* ══ TABLE VIEWER SCREEN ══ */
-/* Header */
-.tv-hdr-inner{display:flex;align-items:center;gap:10px;padding:11px 14px;
-  border-bottom:1px solid var(--border2);}
-.tv-back{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--panel2);
-  border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;
-  justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
+.tv-hdr-inner{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border2);}
+.tv-back{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
 .tv-back:active{transform:scale(.93);}
 .tv-title{flex:1;min-width:0;}
-.tv-tname{font-size:15px;font-weight:800;color:var(--txt);font-family:"IBM Plex Mono",monospace;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tv-tname{font-size:15px;font-weight:800;color:var(--txt);font-family:"IBM Plex Mono",monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .tv-tmeta{font-size:10px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
 
-/* Quick stats */
 .tv-qs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border2);}
 .tv-qs-i{padding:8px 10px;border-right:1px solid var(--border2);display:flex;flex-direction:column;gap:2px;}
 .tv-qs-i:last-child{border-right:none;}
-.tv-qs-l{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
-  color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.tv-qs-l{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
 .tv-qs-v{font-size:13px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
 
-/* Filter panel */
 .tv-flt-toggle{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;}
 .tv-flt-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
 .tv-flt-arrow.open{transform:rotate(180deg);}
-.tv-flt-body{padding:12px 14px 14px;border-top:1px solid var(--border2);
-  display:flex;flex-direction:column;gap:10px;}
+.tv-flt-body{padding:12px 14px 14px;border-top:1px solid var(--border2);display:flex;flex-direction:column;gap:10px;}
 .tv-flt-row{display:flex;gap:8px;flex-wrap:wrap;}
 .sf-f{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
-.sf-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
-  color:var(--muted);font-family:"IBM Plex Mono",monospace;}
-.sf-inp,.sf-sel{background:#050d18;border:1px solid var(--border);border-radius:8px;
-  padding:7px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:100%;}
+.sf-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.sf-inp,.sf-sel{background:#050d18;border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:100%;}
 .sf-inp:focus,.sf-sel:focus{outline:none;border-color:rgba(59,130,246,.5);}
 .sf-inp::placeholder{color:var(--faint);}
 .flt-btns{display:flex;gap:8px;justify-content:flex-end;}
-.btn-apply{padding:7px 16px;border-radius:9px;background:rgba(59,130,246,.22);
-  border:1px solid rgba(59,130,246,.4);color:#bfdbfe;font-size:10px;font-weight:800;
-  cursor:pointer;font-family:"IBM Plex Mono",monospace;}
+.btn-apply{padding:7px 16px;border-radius:9px;background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4);color:#bfdbfe;font-size:10px;font-weight:800;cursor:pointer;font-family:"IBM Plex Mono",monospace;}
 .btn-apply:active{background:rgba(59,130,246,.35);}
-.btn-reset{padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.04);
-  border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;
-  cursor:pointer;font-family:"IBM Plex Mono",monospace;}
+.btn-reset{padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;font-family:"IBM Plex Mono",monospace;}
 .btn-reset:active{background:rgba(255,255,255,.08);}
-.af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;
-  border-radius:99px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+.af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;border-radius:99px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
 
-/* Data toolbar */
-.tv-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;
-  border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.tv-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
 .tv-info{font-size:10px;color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace;flex:1;}
-.tv-search{background:#050d18;border:1px solid var(--border);border-radius:8px;
-  padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;
-  width:160px;flex-shrink:0;}
+.tv-search{background:#050d18;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:160px;flex-shrink:0;}
 .tv-search::placeholder{color:var(--faint);}
 .tv-search:focus{outline:none;border-color:rgba(59,130,246,.4);}
 .pg-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.pg-btn{width:28px;height:28px;border-radius:8px;background:var(--panel2);
-  border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;
-  justify-content:center;cursor:pointer;font-size:11px;transition:all .1s;}
+.pg-btn{width:28px;height:28px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;transition:all .1s;}
 .pg-btn:active{background:#111e30;}
 .pg-btn[disabled]{opacity:.3;cursor:default;pointer-events:none;}
 .pg-lbl{font-size:10px;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
 
-/* Data table */
-.tv-tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:380px;min-height:160px;
-  -webkit-overflow-scrolling:touch;}
+.tv-tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:420px;min-height:160px;-webkit-overflow-scrolling:touch;}
 .tv-tbl-wrap::-webkit-scrollbar{height:5px;width:5px;}
 .tv-tbl-wrap::-webkit-scrollbar-track{background:transparent;}
 .tv-tbl-wrap::-webkit-scrollbar-thumb{background:#1b2d42;border-radius:99px;}
-table.tv-t{border-collapse:collapse;width:max-content;min-width:100%;
-  font-size:11px;font-family:"IBM Plex Mono",monospace;}
-table.tv-t thead th{position:sticky;top:0;z-index:3;background:#05101e;
-  padding:8px 14px;text-align:left;font-size:9px;font-weight:800;
-  text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--border);
-  white-space:nowrap;cursor:pointer;user-select:none;transition:background .1s;}
+table.tv-t{border-collapse:collapse;width:max-content;min-width:100%;font-size:11px;font-family:"IBM Plex Mono",monospace;}
+table.tv-t thead th{position:sticky;top:0;z-index:3;background:#05101e;padding:8px 14px;text-align:left;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;transition:background .1s;}
 table.tv-t thead th:hover{background:#081525;}
 table.tv-t thead th.s-asc::after{content:" ▲";font-size:8px;color:#60a5fa;}
 table.tv-t thead th.s-desc::after{content:" ▼";font-size:8px;color:#60a5fa;}
@@ -236,8 +209,7 @@ table.tv-t thead th.h-fk{color:#93c5fd;}
 table.tv-t tbody tr{border-bottom:1px solid rgba(255,255,255,.03);}
 table.tv-t tbody tr:hover{background:rgba(59,130,246,.07);}
 table.tv-t tbody tr.even{background:rgba(255,255,255,.013);}
-table.tv-t tbody td{padding:6px 14px;white-space:nowrap;max-width:240px;
-  overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
+table.tv-t tbody td{padding:6px 14px;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
 table.tv-t tbody td.c-pk{color:#fde68a;font-weight:700;}
 table.tv-t tbody td.c-fk{color:#93c5fd;}
 table.tv-t tbody td.c-null{color:var(--faint);font-style:italic;}
@@ -247,35 +219,30 @@ table.tv-t tbody td.c-num{color:#fcd34d;}
 table.tv-t tbody td.c-ts{color:#a5b4fc;}
 table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
 
-/* Pagination */
-.tv-pages{display:flex;align-items:center;justify-content:center;gap:4px;
-  padding:10px;flex-wrap:wrap;border-top:1px solid var(--border2);}
-.pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:8px;font-size:10px;
-  font-weight:800;font-family:"IBM Plex Mono",monospace;background:var(--panel2);
-  border:1px solid var(--border);color:var(--muted);cursor:pointer;
-  display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.tv-pages{display:flex;align-items:center;justify-content:center;gap:4px;padding:10px;flex-wrap:wrap;border-top:1px solid var(--border2);}
+.pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:8px;font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;background:var(--panel2);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;}
 .pg-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#bfdbfe;}
 .pg-pill:active{transform:scale(.94);}
 .pg-dots{font-size:11px;color:var(--faint);padding:0 4px;}
 
-/* ══ LOADING / ERROR ══ */
-.spin-wrap{display:flex;align-items:center;justify-content:center;gap:8px;
-  padding:40px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;}
-.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:#3b82f6;
-  border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
+.spin-wrap{display:flex;align-items:center;justify-content:center;gap:8px;padding:40px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:#3b82f6;border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
-.err-box{padding:20px;text-align:center;color:#f87171;
-  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.8;}
+.err-box{padding:20px;text-align:center;color:#f87171;font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.8;}
 .err-box i{font-size:20px;display:block;margin-bottom:8px;}
 
-/* ══ TOAST ══ */
-#toast{position:fixed;top:calc(var(--sat)+62px);left:50%;
-  transform:translateX(-50%) translateY(-8px);z-index:99;opacity:0;
-  transition:all .25s;pointer-events:none;}
+.status-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+@media(max-width:700px){.status-grid{grid-template-columns:1fr;}}
+.status-item{padding:10px 11px;border-radius:12px;background:var(--panel2);border:1px solid var(--border2);}
+.status-k{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.status-v{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;margin-top:5px;word-break:break-word;}
+.status-ok{color:#86efac;}
+.status-warn{color:#fbbf24;}
+.status-bad{color:#fca5a5;}
+
+#toast{position:fixed;top:calc(var(--sat)+62px);left:50%;transform:translateX(-50%) translateY(-8px);z-index:99;opacity:0;transition:all .25s;pointer-events:none;}
 #toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
-.toast-in{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;
-  border-radius:99px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);
-  backdrop-filter:blur(14px);font-size:12px;font-weight:700;color:#86efac;white-space:nowrap;}
+.toast-in{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:99px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);backdrop-filter:blur(14px);font-size:12px;font-weight:700;color:#86efac;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -284,14 +251,13 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
 
 <div id="app">
 
-  <!-- ══ TOPBAR ══ -->
   <div id="topbar">
     <div class="tb-r">
       <div class="brand">
-        <div class="b-icon"><i class="fa-solid fa-database"></i></div>
+        <div class="b-icon"><i class="fa-solid fa-chart-line"></i></div>
         <div>
-          <div class="b-name mono">MKT TERMINAL</div>
-          <div class="b-sub mono">Live DB · Real-time Data</div>
+          <div class="b-name mono">MKT TERMINAL PRO</div>
+          <div class="b-sub mono">Dashboard · Pipeline · Tabellen</div>
         </div>
       </div>
       <div style="display:flex;align-items:center;gap:6px">
@@ -305,16 +271,201 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
       <div class="chip"><span class="dot" id="s-dot" style="background:var(--green)"></span><span id="s-lbl">CONNECTED</span></div>
       <div class="chip"><i class="fa-regular fa-clock"></i><span id="s-time">--:--:--</span></div>
       <div class="chip"><i class="fa-solid fa-table-list"></i><span id="s-tables">-- Tabellen</span></div>
+      <div class="chip"><i class="fa-solid fa-wave-square"></i><span id="s-pipe">Pipeline --</span></div>
       <div class="chip" id="chip-active" style="display:none"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:9px"></i><span id="s-active">Lädt…</span></div>
     </div>
   </div>
 
-  <!-- ══ SCREENS ══ -->
   <div id="screens">
 
-    <!-- SCREEN 1: Schema / Tabellenliste -->
-    <section class="screen active" id="scr-schema">
-      <!-- Stats -->
+    <!-- DASHBOARD -->
+    <section class="screen active" id="scr-dashboard">
+      <div class="grid-3">
+        <div class="kpi">
+          <div class="kpi-l">Quote Rows</div>
+          <div class="kpi-v" id="kpi-quotes" style="color:#4ade80">--</div>
+          <div class="kpi-s">fact_market_quote</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-l">Timeseries Rows</div>
+          <div class="kpi-v" id="kpi-timeseries" style="color:#93c5fd">--</div>
+          <div class="kpi-s">fact_market_timeseries</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-l">API Log Rows</div>
+          <div class="kpi-v" id="kpi-api" style="color:#fbbf24">--</div>
+          <div class="kpi-s">log_api_call</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="ch">
+            <div>
+              <div class="kk">Quick Access</div>
+              <div class="ht">Wichtige Tabellen</div>
+            </div>
+          </div>
+          <div class="cb">
+            <div class="quick-grid">
+              <button class="quick-btn" data-open="fact_market_quote">
+                <div class="quick-icon"><i class="fa-solid fa-dollar-sign"></i></div>
+                <div>
+                  <div class="quick-t">Quotes</div>
+                  <div class="quick-s">Live Preise</div>
+                </div>
+              </button>
+
+              <button class="quick-btn" data-open="fact_market_timeseries">
+                <div class="quick-icon"><i class="fa-solid fa-chart-candlestick"></i></div>
+                <div>
+                  <div class="quick-t">Timeseries</div>
+                  <div class="quick-s">OHLCV Candles</div>
+                </div>
+              </button>
+
+              <button class="quick-btn" data-open="fact_market_indicator">
+                <div class="quick-icon"><i class="fa-solid fa-wave-square"></i></div>
+                <div>
+                  <div class="quick-t">Indicators</div>
+                  <div class="quick-s">RSI · MACD · EMA</div>
+                </div>
+              </button>
+
+              <button class="quick-btn" data-open="fact_company_fundamental">
+                <div class="quick-icon"><i class="fa-solid fa-building"></i></div>
+                <div>
+                  <div class="quick-t">Fundamentals</div>
+                  <div class="quick-s">Profil + Kennzahlen</div>
+                </div>
+              </button>
+
+              <button class="quick-btn" data-open="fact_earnings_calendar">
+                <div class="quick-icon"><i class="fa-solid fa-calendar-days"></i></div>
+                <div>
+                  <div class="quick-t">Earnings</div>
+                  <div class="quick-s">Berichtstermine</div>
+                </div>
+              </button>
+
+              <button class="quick-btn" data-open="log_api_call">
+                <div class="quick-icon"><i class="fa-solid fa-server"></i></div>
+                <div>
+                  <div class="quick-t">API Log</div>
+                  <div class="quick-s">Requests + Fehler</div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch">
+            <div>
+              <div class="kk">Pipeline Snapshot</div>
+              <div class="ht">Aktueller Status</div>
+            </div>
+          </div>
+          <div class="cb">
+            <div class="stat-pills" id="dash-status-pills">
+              <span class="stat-pill">lädt…</span>
+            </div>
+            <div style="height:10px"></div>
+            <div class="mini-list" id="dash-pipeline-list">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Status lädt…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="ch">
+            <div>
+              <div class="kk">Neueste Quotes</div>
+              <div class="ht">fact_market_quote</div>
+            </div>
+            <button class="btn-apply" type="button" onclick="openViewer('fact_market_quote')">Öffnen</button>
+          </div>
+          <div class="cb">
+            <div class="mini-list" id="dash-quotes">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Quotes laden…</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="ch">
+            <div>
+              <div class="kk">Neueste API Calls</div>
+              <div class="ht">log_api_call</div>
+            </div>
+            <button class="btn-apply" type="button" onclick="openViewer('log_api_call')">Öffnen</button>
+          </div>
+          <div class="cb">
+            <div class="mini-list" id="dash-api-log">
+              <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>API Log lädt…</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="height:6px;flex-shrink:0"></div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section class="screen" id="scr-pipeline">
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">Backend Status</div>
+            <div class="ht">Pipeline Monitor</div>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="status-grid" id="pipe-status-grid">
+            <div class="status-item"><div class="status-k">Status</div><div class="status-v">lädt…</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">Last Cycle</div>
+            <div class="ht">Zusammenfassung</div>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="mini-list" id="pipe-cycle-list">
+            <div class="spin-wrap" style="padding:16px"><div class="spinner"></div>Cycle lädt…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">Fehler / Hinweise</div>
+            <div class="ht">Runtime Info</div>
+          </div>
+        </div>
+        <div class="cb">
+          <div class="mini-list" id="pipe-error-box">
+            <div class="mini-row">
+              <div class="mini-main">
+                <div class="mini-title">Noch keine Daten</div>
+                <div class="mini-sub">/api/status wird abgefragt</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="height:6px;flex-shrink:0"></div>
+    </section>
+
+    <!-- SCHEMA -->
+    <section class="screen" id="scr-schema">
       <div class="card">
         <div class="db-stats">
           <div class="db-stat">
@@ -332,7 +483,6 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         </div>
       </div>
 
-      <!-- Tabellenliste -->
       <div class="card">
         <div class="db-topbar">
           <div class="db-title-row">
@@ -349,10 +499,8 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
       <div style="height:6px;flex-shrink:0"></div>
     </section>
 
-    <!-- SCREEN 2: Table Viewer -->
+    <!-- VIEWER -->
     <section class="screen" id="scr-viewer">
-
-      <!-- Header Card -->
       <div class="card">
         <div class="tv-hdr-inner">
           <button class="tv-back" id="tv-back"><i class="fa-solid fa-arrow-left"></i></button>
@@ -370,7 +518,6 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         </div>
       </div>
 
-      <!-- Filter Card -->
       <div class="card" id="tv-flt-card">
         <div class="tv-flt-toggle" id="tv-flt-toggle">
           <i class="fa-solid fa-filter" style="color:#60a5fa;font-size:11px"></i>
@@ -379,9 +526,7 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
           <i class="fa-solid fa-chevron-down tv-flt-arrow" id="tv-flt-arrow"></i>
         </div>
         <div class="tv-flt-body" id="tv-flt-body" style="display:none">
-          <div class="tv-flt-row" id="tv-flt-fields">
-            <!-- dynamisch befüllt -->
-          </div>
+          <div class="tv-flt-row" id="tv-flt-fields"></div>
           <div class="flt-btns">
             <button class="btn-reset" id="tv-flt-reset">↺ Zurücksetzen</button>
             <button class="btn-apply" id="tv-flt-apply">▶ Filtern</button>
@@ -389,7 +534,6 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         </div>
       </div>
 
-      <!-- Data Card -->
       <div class="card" style="overflow:hidden;flex-shrink:0">
         <div class="tv-toolbar">
           <span class="tv-info" id="tv-info">-- Zeilen</span>
@@ -405,42 +549,37 @@ table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
         </div>
         <div class="tv-pages" id="tv-pages"></div>
       </div>
-
       <div style="height:6px;flex-shrink:0"></div>
     </section>
 
-  </div><!-- /screens -->
+  </div>
 
-  <!-- FOOTER -->
   <div class="footer-credit">
     <i class="fa-regular fa-copyright" style="font-size:10px;color:#3b82f6"></i>
     <strong>Milan Bikineh</strong>
     <span>· All Rights Reserved · 2025</span>
   </div>
 
-  <!-- NAV -->
   <div id="nav">
     <div class="nav-inner">
-      <div class="nb on" id="nav-schema" data-nav="schema">
-        <i class="fa-solid fa-database"></i><span>Schema</span>
-      </div>
+      <div class="nb on" id="nav-dashboard" data-nav="dashboard"><i class="fa-solid fa-gauge-high"></i><span>Dashboard</span></div>
+      <div class="nb" id="nav-pipeline" data-nav="pipeline"><i class="fa-solid fa-wave-square"></i><span>Pipeline</span></div>
+      <div class="nb" id="nav-schema" data-nav="schema"><i class="fa-solid fa-database"></i><span>Schema</span></div>
+      <div class="nb" id="nav-api" data-nav="api"><i class="fa-solid fa-server"></i><span>API Log</span></div>
     </div>
   </div>
 
-</div><!-- /app -->
+</div>
 
 <script>
 'use strict';
-/* ══════════════════════════════════════
-   CONFIG
-══════════════════════════════════════ */
-const API = '';   // leer = gleicher Host (Render.com); oder: 'http://localhost:8080'
+const API = '';
 
-/* ══════════════════════════════════════
-   STATE
-══════════════════════════════════════ */
-let activeScreen = 'schema';
+let activeScreen = 'dashboard';
 let busy = false;
+let lastTables = [];
+let pipelineData = null;
+
 let TV = {
   table: null,
   cols: [],
@@ -454,9 +593,6 @@ let TV = {
   filters: {},
 };
 
-/* ══════════════════════════════════════
-   UTILS
-══════════════════════════════════════ */
 let toastT = null;
 function toast(msg, ok=true){
   clearTimeout(toastT);
@@ -464,14 +600,12 @@ function toast(msg, ok=true){
   const ic = el.querySelector('i');
   const sp = document.getElementById('toast-msg');
   ic.className = ok ? 'fa-solid fa-check' : 'fa-solid fa-triangle-exclamation';
-  el.querySelector('.toast-in').style.background = ok
-    ? 'rgba(34,197,94,.15)' : 'rgba(239,68,68,.15)';
-  el.querySelector('.toast-in').style.borderColor = ok
-    ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)';
+  el.querySelector('.toast-in').style.background = ok ? 'rgba(34,197,94,.15)' : 'rgba(239,68,68,.15)';
+  el.querySelector('.toast-in').style.borderColor = ok ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)';
   el.querySelector('.toast-in').style.color = ok ? '#86efac' : '#fca5a5';
   sp.textContent = msg;
   el.classList.add('on');
-  toastT = setTimeout(()=>el.classList.remove('on'), 3000);
+  toastT = setTimeout(()=>el.classList.remove('on'), 2800);
 }
 
 function setLoading(show, label='Lädt…'){
@@ -481,8 +615,27 @@ function setLoading(show, label='Lädt…'){
   lbl.textContent = label;
 }
 
+function fmtNum(v){
+  if(v === null || v === undefined || v === '') return '--';
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toLocaleString('de-DE') : String(v);
+}
+
+function fmtText(v){
+  return (v === null || v === undefined || v === '') ? '--' : String(v);
+}
+
+function fmtDate(v){
+  if(!v) return '--';
+  try{
+    return new Date(v).toLocaleString('de-DE');
+  }catch{
+    return String(v);
+  }
+}
+
 function dtCls(dtype=''){
-  const d = dtype.toLowerCase();
+  const d = String(dtype || '').toLowerCase();
   if(d.includes('int') || d.includes('serial') || d.includes('bigint')) return 'c-num';
   if(d.includes('numeric') || d.includes('float') || d.includes('decimal')) return 'c-num';
   if(d.includes('timestamp') || d.includes('time zone') || d.includes('date')) return 'c-ts';
@@ -491,9 +644,12 @@ function dtCls(dtype=''){
   return '';
 }
 
-/* ══════════════════════════════════════
-   NAVIGATION
-══════════════════════════════════════ */
+function setNav(id){
+  document.querySelectorAll('.nb').forEach(x=>x.classList.remove('on'));
+  const nav = document.getElementById('nav-' + id);
+  if(nav) nav.classList.add('on');
+}
+
 function goTo(id){
   if(id === activeScreen || busy) return;
   busy = true;
@@ -502,7 +658,7 @@ function goTo(id){
   const next = document.getElementById('scr-' + id);
   if(!prev || !next){ busy = false; return; }
 
-  const fwd = id === 'viewer' ? 1 : -1;
+  const fwd = 1;
   prev.classList.remove('active');
   prev.classList.add(fwd === 1 ? 's-out-l' : 's-out-r');
 
@@ -525,27 +681,34 @@ function goTo(id){
   }, 240);
 
   activeScreen = id;
+
+  if(id === 'dashboard') setNav('dashboard');
+  else if(id === 'pipeline') setNav('pipeline');
+  else if(id === 'schema') setNav('schema');
 }
 
-document.getElementById('tv-back').addEventListener('click', ()=> goTo('schema'));
+document.getElementById('nav-dashboard').addEventListener('click', ()=>goTo('dashboard'));
+document.getElementById('nav-pipeline').addEventListener('click', async ()=>{ goTo('pipeline'); await loadPipelineStatus(); });
+document.getElementById('nav-schema').addEventListener('click', ()=>goTo('schema'));
+document.getElementById('nav-api').addEventListener('click', ()=>openViewer('log_api_call'));
+document.getElementById('tv-back').addEventListener('click', ()=>goTo('dashboard'));
 
-/* ══════════════════════════════════════
-   API
-══════════════════════════════════════ */
+document.querySelectorAll('[data-open]').forEach(btn=>{
+  btn.addEventListener('click', ()=>openViewer(btn.dataset.open));
+});
+
 async function apiFetch(path){
-  try {
+  try{
     const r = await fetch(API + path);
     if(!r.ok) throw new Error(`HTTP ${r.status}`);
     return await r.json();
-  } catch(e) {
+  }catch(e){
     console.error('API Error:', path, e);
     return null;
   }
 }
 
-/* ══════════════════════════════════════
-   SCHEMA SCREEN
-══════════════════════════════════════ */
+/* DASHBOARD + SCHEMA */
 async function loadSchema(filter=''){
   const tree = document.getElementById('db-tree');
   if(!filter) tree.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>';
@@ -565,51 +728,211 @@ async function loadSchema(filter=''){
     return;
   }
 
+  lastTables = data.tables || [];
   document.getElementById('s-dot').style.background = 'var(--green)';
   document.getElementById('s-lbl').textContent = 'CONNECTED';
-  document.getElementById('s-tables').textContent = data.tables.length + ' Tabellen';
+  document.getElementById('s-tables').textContent = lastTables.length + ' Tabellen';
 
-  const dims  = data.tables.filter(t=>t.type==='dim').length;
-  const facts = data.tables.filter(t=>t.type==='fact').length;
-  const logs  = data.tables.filter(t=>t.type==='log').length;
+  const dims  = lastTables.filter(t=>t.type==='dim').length;
+  const facts = lastTables.filter(t=>t.type==='fact').length;
+  const logs  = lastTables.filter(t=>t.type==='log').length;
   document.getElementById('cnt-dim').textContent  = dims;
   document.getElementById('cnt-fact').textContent = facts;
   document.getElementById('cnt-log').textContent  = logs;
 
   const q = filter.toLowerCase().trim();
-  const list = q ? data.tables.filter(t=>t.name.toLowerCase().includes(q)) : data.tables;
+  const list = q ? lastTables.filter(t=>t.name.toLowerCase().includes(q)) : lastTables;
 
   if(!list.length){
     tree.innerHTML = `<div style="padding:20px;text-align:center;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:11px">Keine Treffer</div>`;
-    return;
+  }else{
+    tree.innerHTML = list.map(t=>{
+      const tl = t.type==='dim'?'DIM':t.type==='fact'?'FACT':'LOG';
+      const rows = typeof t.row_count==='number' ? t.row_count.toLocaleString('de-DE') : (t.row_count||'?');
+      const desc = t.description ? t.description : '';
+      return `<div class="dbl-item" data-t="${t.name}">
+        <i class="fa-solid fa-table-cells dbl-icon"></i>
+        <div style="min-width:0">
+          <div class="dbl-name">${t.name}</div>
+          <div class="dbl-desc">${desc ? desc + ' · ' : ''}${t.column_count||'?'} Spalten</div>
+        </div>
+        <span class="dbt-type ${t.type}">${tl}</span>
+        <span class="dbl-count">${rows}</span>
+        <i class="fa-solid fa-chevron-right dbl-arrow"></i>
+      </div>`;
+    }).join('');
+
+    tree.querySelectorAll('.dbl-item').forEach(el=>{
+      el.addEventListener('click', ()=> openViewer(el.dataset.t));
+    });
   }
 
-  tree.innerHTML = list.map(t=>{
-    const tl = t.type==='dim'?'DIM':t.type==='fact'?'FACT':'LOG';
-    const rows = typeof t.row_count==='number' ? t.row_count.toLocaleString('de-DE') : (t.row_count||'?');
-    const desc = t.description ? t.description : '';
-    return `<div class="dbl-item" data-t="${t.name}">
-      <i class="fa-solid fa-table-cells dbl-icon"></i>
-      <div style="min-width:0">
-        <div class="dbl-name">${t.name}</div>
-        <div class="dbl-desc">${desc ? desc + ' · ' : ''}${t.column_count||'?'} Spalten</div>
-      </div>
-      <span class="dbt-type ${t.type}">${tl}</span>
-      <span class="dbl-count">${rows}</span>
-      <i class="fa-solid fa-chevron-right dbl-arrow"></i>
-    </div>`;
-  }).join('');
+  fillDashboardKPIs();
+}
 
-  tree.querySelectorAll('.dbl-item').forEach(el=>{
-    el.addEventListener('click', ()=> openViewer(el.dataset.t));
-  });
+function fillDashboardKPIs(){
+  const byName = Object.fromEntries(lastTables.map(t=>[t.name,t]));
+  document.getElementById('kpi-quotes').textContent = fmtNum(byName.fact_market_quote?.row_count);
+  document.getElementById('kpi-timeseries').textContent = fmtNum(byName.fact_market_timeseries?.row_count);
+  document.getElementById('kpi-api').textContent = fmtNum(byName.log_api_call?.row_count);
 }
 
 document.getElementById('db-search').addEventListener('input', e=> loadSchema(e.target.value));
 
-/* ══════════════════════════════════════
-   TABLE VIEWER
-══════════════════════════════════════ */
+/* PIPELINE */
+async function loadPipelineStatus(){
+  const data = await apiFetch('/api/status');
+  pipelineData = data;
+
+  if(!data){
+    document.getElementById('s-pipe').textContent = 'Pipeline OFF';
+    document.getElementById('dash-status-pills').innerHTML = `<span class="stat-pill">Status nicht erreichbar</span>`;
+    document.getElementById('dash-pipeline-list').innerHTML = `<div class="mini-row"><div class="mini-main"><div class="mini-title">/api/status nicht erreichbar</div><div class="mini-sub">Backend prüfen</div></div></div>`;
+    document.getElementById('pipe-status-grid').innerHTML = `<div class="status-item"><div class="status-k">Status</div><div class="status-v status-bad">nicht erreichbar</div></div>`;
+    document.getElementById('pipe-cycle-list').innerHTML = `<div class="mini-row"><div class="mini-main"><div class="mini-title">Keine Cycle-Daten</div><div class="mini-sub">Status-Endpunkt liefert nichts</div></div></div>`;
+    document.getElementById('pipe-error-box').innerHTML = `<div class="mini-row"><div class="mini-main"><div class="mini-title">Verbindungsproblem</div><div class="mini-sub">Bitte Flask/Render prüfen</div></div></div>`;
+    return;
+  }
+
+  const running = !!data.running;
+  const phase = fmtText(data.phase);
+  document.getElementById('s-pipe').textContent = running ? `Pipeline ${phase}` : 'Pipeline STOP';
+
+  const pills = [
+    `<span class="stat-pill">${running ? 'RUNNING' : 'STOPPED'}</span>`,
+    `<span class="stat-pill">phase: ${phase}</span>`,
+    `<span class="stat-pill">cycle: ${fmtText(data.cycle_num)}</span>`,
+    `<span class="stat-pill">thread: ${data.thread_alive ? 'alive' : 'down'}</span>`
+  ];
+  if(data.current_symbol) pills.push(`<span class="stat-pill">symbol: ${data.current_symbol}</span>`);
+  document.getElementById('dash-status-pills').innerHTML = pills.join('');
+
+  document.getElementById('dash-pipeline-list').innerHTML = `
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Running</div>
+        <div class="mini-sub">Thread + Pipeline Status</div>
+      </div>
+      <div class="mini-val" style="color:${running ? '#86efac' : '#fca5a5'}">${running ? 'YES' : 'NO'}</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Aktuelles Symbol</div>
+        <div class="mini-sub">current_symbol</div>
+      </div>
+      <div class="mini-val">${fmtText(data.current_symbol)}</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Last Successful Cycle</div>
+        <div class="mini-sub">last_successful_cycle_at</div>
+      </div>
+      <div class="mini-val">${fmtDate(data.last_successful_cycle_at)}</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Last Cycle At</div>
+        <div class="mini-sub">last_cycle_at</div>
+      </div>
+      <div class="mini-val">${fmtDate(data.last_cycle_at)}</div>
+    </div>
+  `;
+
+  const last = data.last_cycle_result || {};
+  document.getElementById('pipe-status-grid').innerHTML = `
+    <div class="status-item"><div class="status-k">Running</div><div class="status-v ${running ? 'status-ok':'status-bad'}">${running ? 'true':'false'}</div></div>
+    <div class="status-item"><div class="status-k">Phase</div><div class="status-v">${phase}</div></div>
+    <div class="status-item"><div class="status-k">Current Symbol</div><div class="status-v">${fmtText(data.current_symbol)}</div></div>
+    <div class="status-item"><div class="status-k">Current Symbol Index</div><div class="status-v">${fmtText(data.current_symbol_index)}</div></div>
+    <div class="status-item"><div class="status-k">Symbols Total</div><div class="status-v">${fmtText(data.symbols_total)}</div></div>
+    <div class="status-item"><div class="status-k">Cycle Num</div><div class="status-v">${fmtText(data.cycle_num)}</div></div>
+    <div class="status-item"><div class="status-k">Last Cycle At</div><div class="status-v">${fmtDate(data.last_cycle_at)}</div></div>
+    <div class="status-item"><div class="status-k">Last Successful</div><div class="status-v">${fmtDate(data.last_successful_cycle_at)}</div></div>
+    <div class="status-item"><div class="status-k">Thread Alive</div><div class="status-v ${data.thread_alive ? 'status-ok':'status-bad'}">${data.thread_alive ? 'true':'false'}</div></div>
+    <div class="status-item"><div class="status-k">Sleep Seconds</div><div class="status-v">${fmtText(data.sleep_seconds)}</div></div>
+  `;
+
+  document.getElementById('pipe-cycle-list').innerHTML = `
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Cycle Duration</div>
+        <div class="mini-sub">cycle_duration_seconds</div>
+      </div>
+      <div class="mini-val">${fmtText(last.cycle_duration_seconds)}</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Symbols OK</div>
+        <div class="mini-sub">symbols_ok</div>
+      </div>
+      <div class="mini-val" style="color:#86efac">${fmtText(last.symbols_ok)}</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Symbols Failed</div>
+        <div class="mini-sub">symbols_failed</div>
+      </div>
+      <div class="mini-val" style="color:#fca5a5">${fmtText(last.symbols_failed)}</div>
+    </div>
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Fetch Indicators</div>
+        <div class="mini-sub">fetch_indicators</div>
+      </div>
+      <div class="mini-val">${fmtText(last.fetch_indicators)}</div>
+    </div>
+  `;
+
+  document.getElementById('pipe-error-box').innerHTML = `
+    <div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">Last Error</div>
+        <div class="mini-sub">${fmtText(data.last_error || data.error || last.error)}</div>
+      </div>
+    </div>
+  `;
+}
+
+/* DASHBOARD PREVIEWS */
+async function loadDashboardPreviews(){
+  const quotes = await apiFetch('/api/table/fact_market_quote?page=1&page_size=5&sort_col=quote_id&sort_dir=desc');
+  const apiLog = await apiFetch('/api/table/log_api_call?page=1&page_size=5&sort_col=log_id&sort_dir=desc');
+
+  document.getElementById('dash-quotes').innerHTML = renderMiniRows(
+    quotes?.rows,
+    row => ({
+      title: `symbol_id ${fmtText(row.symbol_id)} · price ${fmtText(row.price)}`,
+      sub: `${fmtText(row.quote_time_utc)} · change_pct ${fmtText(row.change_pct)}`
+    }),
+    'Keine Quotes'
+  );
+
+  document.getElementById('dash-api-log').innerHTML = renderMiniRows(
+    apiLog?.rows,
+    row => ({
+      title: `${fmtText(row.endpoint)} · status ${fmtText(row.http_status)}`,
+      sub: `${fmtText(row.called_at_utc)} · ms ${fmtText(row.response_ms)}`
+    }),
+    'Keine API-Logs'
+  );
+}
+
+function renderMiniRows(rows, mapFn, emptyText='Keine Daten'){
+  if(!rows || !rows.length){
+    return `<div class="mini-row"><div class="mini-main"><div class="mini-title">${emptyText}</div></div></div>`;
+  }
+  return rows.map(row=>{
+    const x = mapFn(row);
+    return `<div class="mini-row">
+      <div class="mini-main">
+        <div class="mini-title">${x.title}</div>
+        <div class="mini-sub">${x.sub || ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* TABLE VIEWER */
 async function openViewer(tableName){
   TV.table    = tableName;
   TV.page     = 1;
@@ -619,65 +942,52 @@ async function openViewer(tableName){
   TV.filters  = {};
   TV.cols     = [];
 
-  // Header sofort setzen
   document.getElementById('tv-tname').textContent = tableName;
   document.getElementById('tv-tmeta').textContent = 'Lädt…';
-  const tl = tableName.startsWith('dim_')?'DIM':tableName.startsWith('log_')?'LOG':'FACT';
-  const tc = tableName.startsWith('dim_')?'dim':tableName.startsWith('log_')?'log':'fact';
+
+  const tl = tableName.startsWith('dim_') ? 'DIM' : tableName.startsWith('log_') ? 'LOG' : 'FACT';
+  const tc = tableName.startsWith('dim_') ? 'dim' : tableName.startsWith('log_') ? 'log' : 'fact';
   const badge = document.getElementById('tv-badge');
   badge.textContent = tl;
   badge.className = 'dbt-type ' + tc;
 
-  // Filter-Panel aufbauen
   buildFilterPanel(tableName);
-
-  // Search leeren
   document.getElementById('tv-search').value = '';
   document.getElementById('tv-af-tags').innerHTML = '';
 
-  // Zum Viewer navigieren
   goTo('viewer');
-
-  // Daten laden
   await loadData();
 }
 
-/* ── Filter Panel ── */
 function buildFilterPanel(tName){
   const fields = document.getElementById('tv-flt-fields');
   let html = '';
 
-  // Zeitraum — immer
   html += `<div class="sf-f" style="flex:1;min-width:140px">
     <div class="sf-lbl">Von Datum</div>
-    <input class="sf-inp" type="date" id="fv-from" value="2024-01-01"/>
+    <input class="sf-inp" type="date" id="fv-from" value=""/>
   </div>
   <div class="sf-f" style="flex:1;min-width:140px">
     <div class="sf-lbl">Bis Datum</div>
-    <input class="sf-inp" type="date" id="fv-to" value="${new Date().toISOString().slice(0,10)}"/>
+    <input class="sf-inp" type="date" id="fv-to" value=""/>
   </div>`;
 
-  // Tabellen-spezifische Filter
   const hasSym = ['fact_company_fundamental','fact_earnings_calendar',
-                  'fact_market_indicator','fact_market_quote','fact_market_timeseries'].includes(tName);
-  if(hasSym)
+                  'fact_market_indicator','fact_market_quote','fact_market_timeseries','log_api_call'].includes(tName);
+  if(hasSym){
     html += `<div class="sf-f"><div class="sf-lbl">Symbol ID</div>
       <input class="sf-inp" type="number" id="fv-sym" placeholder="z. B. 1"/></div>`;
+  }
 
-  if(tName === 'fact_earnings_calendar')
-    html += `<div class="sf-f"><div class="sf-lbl">Quartal</div>
-      <select class="sf-sel" id="fv-quarter">
-        <option value="">-- Alle --</option>
-        <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
-      </select></div>`;
-
-  if(tName === 'fact_market_indicator')
+  if(tName === 'fact_market_indicator'){
     html += `<div class="sf-f"><div class="sf-lbl">Indicator ID</div>
       <input class="sf-inp" type="number" id="fv-ind" placeholder="z. B. 1"/></div>`;
+  }
 
-  if(['fact_market_indicator','fact_market_timeseries'].includes(tName))
+  if(['fact_market_indicator','fact_market_timeseries'].includes(tName)){
     html += `<div class="sf-f"><div class="sf-lbl">Interval ID</div>
       <input class="sf-inp" type="number" id="fv-itv" placeholder="z. B. 6"/></div>`;
+  }
 
   if(tName === 'log_api_call'){
     html += `<div class="sf-f"><div class="sf-lbl">Endpoint</div>
@@ -689,7 +999,6 @@ function buildFilterPanel(tName){
   fields.innerHTML = html;
 }
 
-/* ── Lade Tabellendaten von API ── */
 async function loadData(){
   const wrap = document.getElementById('tv-tbl-wrap');
   wrap.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Daten…</div>';
@@ -703,9 +1012,9 @@ async function loadData(){
   if(TV.sortCol)             params.set('sort_col', TV.sortCol);
   if(TV.sortDir)             params.set('sort_dir', TV.sortDir);
   if(TV.filters.date_from)   params.set('date_from', TV.filters.date_from);
-  if(TV.filters.date_to)     params.set('date_to',   TV.filters.date_to);
+  if(TV.filters.date_to)     params.set('date_to', TV.filters.date_to);
   if(TV.filters.symbol_id)   params.set('symbol_id', TV.filters.symbol_id);
-  if(TV.filters.endpoint)    params.set('endpoint',  TV.filters.endpoint);
+  if(TV.filters.endpoint)    params.set('endpoint', TV.filters.endpoint);
   if(TV.filters.http_status) params.set('http_status', TV.filters.http_status);
 
   const data = await apiFetch(`/api/table/${TV.table}?${params}`);
@@ -717,35 +1026,27 @@ async function loadData(){
   }
 
   TV.cols       = data.columns || [];
-  TV.totalRows  = data.total   || 0;
-  TV.totalPages = data.total_pages || Math.max(1, Math.ceil(data.total / TV.pageSize));
+  TV.totalRows  = data.total || 0;
+  TV.totalPages = data.total_pages || Math.max(1, Math.ceil(TV.totalRows / TV.pageSize));
   TV.page       = Math.min(TV.page, TV.totalPages);
 
-  // Meta
-  const st = (TV.page-1)*TV.pageSize + 1;
+  const st = TV.totalRows ? ((TV.page-1)*TV.pageSize + 1) : 0;
   const en = Math.min(TV.page*TV.pageSize, TV.totalRows);
-  document.getElementById('tv-tmeta').textContent =
-    `${TV.totalRows.toLocaleString('de-DE')} Zeilen · ${TV.cols.length} Spalten`;
 
-  // Quick stats
+  document.getElementById('tv-tmeta').textContent = `${TV.totalRows.toLocaleString('de-DE')} Zeilen · ${TV.cols.length} Spalten`;
   document.getElementById('qs-rows').textContent = TV.totalRows.toLocaleString('de-DE');
   document.getElementById('qs-cols').textContent = TV.cols.length;
   document.getElementById('qs-page').textContent = `${TV.page}/${TV.totalPages}`;
   document.getElementById('qs-show').textContent = data.rows ? data.rows.length : 0;
-
-  // Toolbar
-  document.getElementById('tv-info').textContent =
-    `${TV.totalRows.toLocaleString('de-DE')} Zeilen · Seite ${TV.page}/${TV.totalPages} · ${st}–${en}`;
+  document.getElementById('tv-info').textContent = `${TV.totalRows.toLocaleString('de-DE')} Zeilen · Seite ${TV.page}/${TV.totalPages} · ${st}–${en}`;
   document.getElementById('pg-lbl').textContent = `${TV.page} / ${TV.totalPages}`;
   document.getElementById('pg-prev').disabled = TV.page <= 1;
   document.getElementById('pg-next').disabled = TV.page >= TV.totalPages;
 
-  // Render
   renderTable(data);
   renderPages();
 }
 
-/* ── Tabelle rendern ── */
 function renderTable(data){
   const wrap = document.getElementById('tv-tbl-wrap');
   if(!data.rows || !data.columns){
@@ -774,15 +1075,15 @@ function renderTable(data){
         txt = String(val);
         cls = c.is_pk ? 'c-pk' : c.is_fk ? 'c-fk' : dtCls(c.dtype || '');
       }
-      const disp = txt.length > 60 ? txt.slice(0,57)+'…' : txt;
-      return `<td class="${cls}" title="${txt.replace(/"/g,'&quot;')}">${disp}</td>`;
+      const disp = txt.length > 80 ? txt.slice(0,77)+'…' : txt;
+      const safeTitle = txt.replace(/"/g,'&quot;');
+      return `<td class="${cls}" title="${safeTitle}">${disp}</td>`;
     }).join('');
     return `<tr class="${ri%2===0?'':'even'}">${cells}</tr>`;
   }).join('') || `<tr><td colspan="${data.columns.length}" style="text-align:center;color:var(--faint);padding:20px">Keine Daten</td></tr>`;
 
   wrap.innerHTML = `<table class="tv-t"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
 
-  // Sort
   wrap.querySelectorAll('th[data-col]').forEach(th=>{
     th.addEventListener('click', ()=>{
       const col = th.dataset.col;
@@ -794,7 +1095,6 @@ function renderTable(data){
   });
 }
 
-/* ── Pagination rendern ── */
 function renderPages(){
   const el = document.getElementById('tv-pages');
   const p = TV.page, tp = TV.totalPages;
@@ -812,13 +1112,11 @@ function renderPages(){
 
   el.innerHTML = pills.join('');
   el.querySelectorAll('.pg-pill[data-p]').forEach(btn=>{
-    btn.addEventListener('click',()=>{ TV.page=+btn.dataset.p; loadData(); });
+    btn.addEventListener('click', ()=>{ TV.page = +btn.dataset.p; loadData(); });
   });
 }
 
-/* ══════════════════════════════════════
-   FILTER EVENTS
-══════════════════════════════════════ */
+/* EVENTS */
 document.getElementById('tv-flt-toggle').addEventListener('click', ()=>{
   const body  = document.getElementById('tv-flt-body');
   const arrow = document.getElementById('tv-flt-arrow');
@@ -834,30 +1132,25 @@ document.getElementById('tv-flt-apply').addEventListener('click', ()=>{
   const from = document.getElementById('fv-from')?.value;
   const to   = document.getElementById('fv-to')?.value;
   if(from) TV.filters.date_from = from;
-  if(to)   TV.filters.date_to   = to;
+  if(to)   TV.filters.date_to = to;
 
   const sym = document.getElementById('fv-sym')?.value;
   if(sym) TV.filters.symbol_id = sym;
 
-  const ep  = document.getElementById('fv-ep')?.value;
+  const ep = document.getElementById('fv-ep')?.value;
   if(ep) TV.filters.endpoint = ep;
 
   const st = document.getElementById('fv-st')?.value;
   if(st) TV.filters.http_status = st;
 
-  // Tags anzeigen
-  const tags = Object.entries(TV.filters)
-    .map(([k,v])=>`<span class="af-tag">${k}: ${v}</span>`).join('');
+  const tags = Object.entries(TV.filters).map(([k,v])=>`<span class="af-tag">${k}: ${v}</span>`).join('');
   document.getElementById('tv-af-tags').innerHTML = tags;
 
   loadData();
 });
 
 document.getElementById('tv-flt-reset').addEventListener('click', ()=>{
-  document.querySelectorAll('#tv-flt-fields .sf-inp').forEach(el=>{
-    if(el.type==='date') el.value = '';
-    else el.value = '';
-  });
+  document.querySelectorAll('#tv-flt-fields .sf-inp').forEach(el=>el.value='');
   document.querySelectorAll('#tv-flt-fields .sf-sel').forEach(el=>el.selectedIndex=0);
   TV.filters = {};
   TV.page = 1;
@@ -865,9 +1158,6 @@ document.getElementById('tv-flt-reset').addEventListener('click', ()=>{
   loadData();
 });
 
-/* ══════════════════════════════════════
-   SEARCH + PAGINATION EVENTS
-══════════════════════════════════════ */
 let searchTimer = null;
 document.getElementById('tv-search').addEventListener('input', e=>{
   clearTimeout(searchTimer);
@@ -885,33 +1175,43 @@ document.getElementById('pg-next').addEventListener('click', ()=>{
   if(TV.page < TV.totalPages){ TV.page++; loadData(); }
 });
 
-/* ══════════════════════════════════════
-   REFRESH BUTTON
-══════════════════════════════════════ */
 let spinning = false;
-document.getElementById('refreshBtn').addEventListener('click', ()=>{
+document.getElementById('refreshBtn').addEventListener('click', async ()=>{
   if(spinning) return;
   spinning = true;
   const ic = document.getElementById('ref-ic');
   ic.style.transition = 'transform .6s';
   ic.style.transform  = 'rotate(360deg)';
-  if(activeScreen === 'schema') loadSchema();
-  else if(activeScreen === 'viewer') loadData();
+
+  if(activeScreen === 'dashboard'){
+    await Promise.all([loadSchema(document.getElementById('db-search').value || ''), loadPipelineStatus(), loadDashboardPreviews()]);
+  }else if(activeScreen === 'pipeline'){
+    await loadPipelineStatus();
+  }else if(activeScreen === 'schema'){
+    await loadSchema(document.getElementById('db-search').value || '');
+  }else if(activeScreen === 'viewer'){
+    await loadData();
+  }
+
   setTimeout(()=>{ ic.style.transform=''; ic.style.transition=''; spinning=false; }, 700);
+  toast('Aktualisiert');
 });
 
-/* ══════════════════════════════════════
-   CLOCK
-══════════════════════════════════════ */
 setInterval(()=>{
   document.getElementById('s-time').textContent =
     new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }, 1000);
 
-/* ══════════════════════════════════════
-   BOOT
-══════════════════════════════════════ */
-loadSchema();
+setInterval(async ()=>{
+  await loadPipelineStatus();
+}, 15000);
+
+/* BOOT */
+(async function boot(){
+  await loadSchema();
+  await loadPipelineStatus();
+  await loadDashboardPreviews();
+})();
 </script>
 </body>
 </html>

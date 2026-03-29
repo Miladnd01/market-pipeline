@@ -14,7 +14,6 @@ def get_connection():
         password=os.getenv("PGPASSWORD"),
     )
     return conn
-
 DDL = """
 -- 1. DIMENSION TABLES
 CREATE TABLE IF NOT EXISTS dim_source (
@@ -48,7 +47,7 @@ CREATE TABLE IF NOT EXISTS dim_indicator (
     category       TEXT
 );
 
--- 2. FACT TABLES (TIMESTAMPTZ = UTC in DB)
+-- 2. FACT TABLES
 CREATE TABLE IF NOT EXISTS fact_market_quote (
     quote_id        BIGSERIAL PRIMARY KEY,
     symbol_id       INT NOT NULL REFERENCES dim_symbol(symbol_id),
@@ -81,14 +80,56 @@ CREATE TABLE IF NOT EXISTS fact_market_timeseries (
     CONSTRAINT uq_fact_timeseries UNIQUE (symbol_id, interval_id, candle_time_utc)
 );
 
+CREATE TABLE IF NOT EXISTS fact_market_indicator (
+    indicator_fact_id BIGSERIAL PRIMARY KEY,
+    symbol_id         INT NOT NULL REFERENCES dim_symbol(symbol_id),
+    source_id         INT NOT NULL REFERENCES dim_source(source_id),
+    indicator_id      INT NOT NULL REFERENCES dim_indicator(indicator_id),
+    interval_id       INT REFERENCES dim_interval(interval_id),
+    candle_time_utc   TIMESTAMPTZ NOT NULL,
+    value             NUMERIC(18,6),
+    macd              NUMERIC(18,6),
+    macd_signal       NUMERIC(18,6),
+    macd_hist         NUMERIC(18,6),
+    raw_payload       JSONB,
+    CONSTRAINT uq_fact_indicator UNIQUE (symbol_id, indicator_id, interval_id, candle_time_utc)
+);
+
 CREATE TABLE IF NOT EXISTS fact_company_fundamental (
     fundamental_id    BIGSERIAL PRIMARY KEY,
     symbol_id         INT NOT NULL REFERENCES dim_symbol(symbol_id),
     source_id         INT NOT NULL REFERENCES dim_source(source_id),
     fetched_at_utc    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ipo_date          DATE,
     market_cap        NUMERIC(22,2),
+    share_outstanding NUMERIC(18,2),
+    pe_ratio          NUMERIC(12,4),
+    eps_ttm           NUMERIC(12,4),
+    gross_margin      NUMERIC(10,4),
+    net_margin        NUMERIC(10,4),
+    roe               NUMERIC(10,4),
+    debt_to_equity    NUMERIC(10,4),
+    current_ratio     NUMERIC(10,4),
+    beta              NUMERIC(10,4),
+    week_52_high      NUMERIC(18,6),
+    week_52_low       NUMERIC(18,6),
     raw_profile       JSONB,
     raw_metrics       JSONB
+);
+
+CREATE TABLE IF NOT EXISTS fact_earnings_calendar (
+    earnings_id      BIGSERIAL PRIMARY KEY,
+    symbol_id        INT NOT NULL REFERENCES dim_symbol(symbol_id),
+    source_id        INT NOT NULL REFERENCES dim_source(source_id),
+    fetched_at_utc   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    report_date      DATE,
+    hour             TEXT,
+    eps_estimate     NUMERIC(12,4),
+    eps_actual       NUMERIC(12,4),
+    revenue_estimate NUMERIC(22,2),
+    revenue_actual   NUMERIC(22,2),
+    raw_payload      JSONB,
+    CONSTRAINT uq_fact_earnings UNIQUE (symbol_id, report_date)
 );
 
 CREATE TABLE IF NOT EXISTS log_api_call (
@@ -117,7 +158,10 @@ INSERT INTO dim_indicator (indicator_name, description, category) VALUES
 ON CONFLICT (indicator_name) DO NOTHING;
 
 INSERT INTO dim_interval (interval_code, interval_type) VALUES
-    ('1min','intraday'), ('5min','intraday'), ('1day','daily'), ('daily','daily')
+    ('1min','intraday'),
+    ('5min','intraday'),
+    ('1day','daily'),
+    ('daily','daily')
 ON CONFLICT (interval_code) DO NOTHING;
 """
 

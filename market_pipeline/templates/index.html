@@ -4,733 +4,914 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no"/>
 <title>© Milan Bikineh · Market Terminal Pro</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <style>
+/* ══ RESET ══ */
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 button,select,input{font-family:inherit;outline:none;-webkit-appearance:none;border:none;background:none;}
 
+/* ══ TOKENS ══ */
 :root{
   --bg:#060c14;--bg2:#081018;--panel:#0a1520;--panel2:#0d1a28;
   --border:#1b2d42;--border2:#132030;
   --txt:#e0ecff;--soft:#8aa4c8;--muted:#4e6886;--faint:#344d66;
-  --blue:#3b82f6;--cyan:#22d3ee;--green:#22c55e;--red:#ef4444;
+  --blue:#3b82f6;--green:#22c55e;--red:#ef4444;--amber:#f59e0b;
   --sat:env(safe-area-inset-top,0px);--sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
 }
 
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);font-family:"IBM Plex Sans",sans-serif;-webkit-font-smoothing:antialiased;}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+  font-family:"IBM Plex Sans",sans-serif;-webkit-font-smoothing:antialiased;}
 .mono{font-family:"IBM Plex Mono",monospace;}
 
+/* ══ SHELL ══ */
 #app{position:fixed;inset:0;display:flex;flex-direction:column;overflow:hidden;}
 
-/* TOPBAR */
+/* ══ TOPBAR ══ */
 #topbar{
   flex-shrink:0;z-index:20;
-  padding:calc(var(--sat) + 10px) calc(var(--sar) + 14px) 10px calc(var(--sal) + 14px);
+  padding:calc(var(--sat)+10px) calc(var(--sar)+14px) 10px calc(var(--sal)+14px);
   background:rgba(6,12,20,.97);border-bottom:1px solid var(--border2);
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
 }
 .tb-r{display:flex;align-items:center;justify-content:space-between;gap:10px;}
 .brand{display:flex;align-items:center;gap:10px;}
-.b-icon{width:36px;height:36px;border-radius:11px;flex-shrink:0;background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(59,130,246,.06));border:1px solid rgba(59,130,246,.32);display:flex;align-items:center;justify-content:center;color:#93c5fd;font-size:15px;}
+.b-icon{width:36px;height:36px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,rgba(59,130,246,.22),rgba(59,130,246,.06));
+  border:1px solid rgba(59,130,246,.32);display:flex;align-items:center;justify-content:center;
+  color:#93c5fd;font-size:15px;}
 .b-name{font-size:13px;font-weight:800;letter-spacing:.07em;color:#eef4ff;}
 .b-sub{font-size:10px;color:var(--muted);margin-top:2px;}
 .tb-acts{display:flex;gap:6px;}
-.ib{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);background:var(--panel);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;flex-shrink:0;transition:transform .1s;}
+.ib{width:38px;height:38px;border-radius:11px;border:1px solid var(--border);
+  background:var(--panel);color:var(--soft);display:flex;align-items:center;justify-content:center;
+  cursor:pointer;font-size:14px;flex-shrink:0;transition:transform .1s;}
 .ib:active{transform:scale(.93);}
 .chips{display:flex;gap:5px;margin-top:8px;overflow-x:auto;scrollbar-width:none;}
 .chips::-webkit-scrollbar{display:none;}
-.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:99px;border:1px solid var(--border);background:var(--panel);font-size:9px;font-weight:700;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:99px;
+  border:1px solid var(--border);background:var(--panel);font-size:9px;font-weight:700;
+  color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
 .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
 
-/* SCREEN CONTAINER */
+/* ══ SCREENS ══ */
 #screens{flex:1;overflow:hidden;position:relative;}
 .screen{
-  position:absolute;inset:0;
-  overflow-y:auto;overflow-x:hidden;
+  position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;
   -webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  padding:10px;
-  display:flex;flex-direction:column;gap:10px;
-  visibility:hidden;opacity:0;pointer-events:none;
-  transform:translateX(40px);
-  transition:opacity .22s ease,transform .22s ease,visibility .22s;
+  padding:10px;display:flex;flex-direction:column;gap:10px;
+  visibility:hidden;opacity:0;pointer-events:none;transform:translateX(40px);
+  transition:opacity .22s ease,transform .22s ease,visibility .22s;will-change:transform,opacity;
 }
 .screen.active{visibility:visible;opacity:1;pointer-events:auto;transform:translateX(0);}
+.screen.s-out-l{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(-40px);
+  transition:opacity .18s ease,transform .18s ease,visibility .18s;}
+.screen.s-out-r{visibility:hidden;opacity:0;pointer-events:none;transform:translateX(40px);
+  transition:opacity .18s ease,transform .18s ease,visibility .18s;}
 
-/* BOTTOM NAV */
-#nav{
-  flex-shrink:0;z-index:20;
-  padding:5px calc(var(--sar) + 8px) calc(var(--sab) + 5px) calc(var(--sal) + 8px);
-  background:rgba(6,12,20,.98);border-top:1px solid var(--border2);
-  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-}
-.nav-inner{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;}
-.nb{border:1px solid var(--border);background:var(--panel);color:var(--muted);border-radius:13px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .12s;font-family:"IBM Plex Mono",monospace;}
-.nb:active{transform:scale(.96);}
-.nb.on{color:#bfdbfe;border-color:rgba(59,130,246,.35);background:linear-gradient(170deg,rgba(59,130,246,.18),rgba(59,130,246,.07));}
-.nb i{font-size:17px;}
-
-/* CARDS */
-.card{background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--border);border-radius:16px;overflow:hidden;flex-shrink:0;}
-.ch{padding:11px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:8px;}
-.cb{padding:12px 14px;}
-.kk{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
-.ht{font-size:15px;font-weight:800;margin-top:3px;line-height:1.2;}
-
-/* OWNER BADGE */
-.owner-badge{
-  display:inline-flex;align-items:center;gap:6px;
-  padding:4px 10px 4px 7px;border-radius:99px;
-  border:1px solid rgba(59,130,246,.28);
-  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
-  font-size:10px;font-weight:700;
-  font-family:"IBM Plex Mono",monospace;
-  color:#93c5fd;white-space:nowrap;flex-shrink:0;
-}
-.owner-badge i{font-size:9px;color:#60a5fa;}
-
-/* FOOTER CREDIT */
-.footer-credit{
-  flex-shrink:0;
-  display:flex;align-items:center;justify-content:center;gap:6px;
-  padding:8px 14px calc(4px);
-  font-size:10px;font-weight:600;
-  font-family:"IBM Plex Mono",monospace;
-  color:var(--faint);letter-spacing:.04em;
-  border-top:1px solid var(--border2);
-  background:rgba(6,12,20,.6);
-}
+/* ══ FOOTER + NAV ══ */
+.footer-credit{flex-shrink:0;display:flex;align-items:center;justify-content:center;gap:6px;
+  padding:6px 14px;font-size:10px;font-weight:600;font-family:"IBM Plex Mono",monospace;
+  color:var(--faint);letter-spacing:.04em;border-top:1px solid var(--border2);background:rgba(6,12,20,.6);}
 .footer-credit span{color:var(--muted);}
 .footer-credit strong{color:#4e7aac;font-weight:800;}
+#nav{flex-shrink:0;z-index:20;
+  padding:5px calc(var(--sar)+8px) calc(var(--sab)+5px) calc(var(--sal)+8px);
+  background:rgba(6,12,20,.98);border-top:1px solid var(--border2);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);}
+.nav-inner{display:grid;grid-template-columns:repeat(1,1fr);gap:5px;}
+.nb{border:1px solid var(--border);background:var(--panel);color:var(--muted);
+  border-radius:13px;min-height:52px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.04em;cursor:pointer;transition:all .12s;
+  font-family:"IBM Plex Mono",monospace;}
+.nb.on{color:#bfdbfe;border-color:rgba(59,130,246,.35);
+  background:linear-gradient(170deg,rgba(59,130,246,.18),rgba(59,130,246,.07));}
+.nb i{font-size:17px;}
+.nbadge{position:absolute;top:6px;right:8px;min-width:16px;height:16px;border-radius:99px;
+  background:var(--red);color:#fff;font-size:8px;font-weight:800;display:none;
+  align-items:center;justify-content:center;padding:0 3px;}
+.nbadge.on{display:flex;}
 
-/* ══════════ TABLE VIEWER ══════════ */
-.tv-header{overflow:visible !important;}
-.tv-header-inner{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--border2);}
-.tv-back-btn{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
-.tv-back-btn:active{transform:scale(.93);}
-.tv-title-block{flex:1;min-width:0;}
-.tv-table-name{font-size:15px;font-weight:800;color:var(--txt);}
-.tv-meta{font-size:10px;color:var(--muted);margin-top:2px;}
-.tv-type-badge{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 9px;border-radius:99px;flex-shrink:0;}
-.tv-quickstats{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-top:1px solid var(--border2);}
-.tv-qs-item{padding:9px 12px;border-right:1px solid var(--border2);display:flex;flex-direction:column;gap:2px;}
-.tv-qs-item:last-child{border-right:none;}
-.tv-qs-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
-.tv-qs-val{font-size:14px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+/* ══ OWNER BADGE ══ */
+.owner-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px 4px 7px;
+  border-radius:99px;border:1px solid rgba(59,130,246,.28);
+  background:linear-gradient(135deg,rgba(59,130,246,.12),rgba(59,130,246,.04));
+  font-size:10px;font-weight:700;font-family:"IBM Plex Mono",monospace;
+  color:#93c5fd;white-space:nowrap;flex-shrink:0;}
+.owner-badge i{font-size:9px;color:#60a5fa;}
 
-/* Filter-Panel */
-.tv-filter-toggle{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;}
-.tv-toggle-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
-.tv-toggle-arrow.open{transform:rotate(180deg);}
-.tv-filter-body{padding:12px 14px 14px;border-top:1px solid var(--border2);flex-direction:column;gap:10px;}
-.tv-filter-fields{display:flex;gap:8px;flex-wrap:wrap;}
-.tv-filter-btns{display:flex;gap:8px;justify-content:flex-end;}
-.tv-af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;border-radius:99px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;display:inline-flex;align-items:center;gap:4px;}
+/* ══ CARDS ══ */
+.card{background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--border);
+  border-radius:16px;overflow:hidden;flex-shrink:0;}
+.ch{padding:11px 14px;border-bottom:1px solid var(--border2);display:flex;align-items:center;
+  justify-content:space-between;gap:8px;}
+.cb{padding:12px 14px;}
+.kk{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--muted);
+  font-family:"IBM Plex Mono",monospace;}
+.ht{font-size:15px;font-weight:800;margin-top:3px;line-height:1.2;}
 
-.tv-data-card{overflow:hidden;}
-.tv-data-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
-.tv-data-info{font-size:10px;color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
-.tv-data-search{flex:1;min-width:120px;background:#050d18;border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
-.tv-data-search::placeholder{color:var(--faint);}
-.tv-data-search:focus{outline:none;border-color:rgba(59,130,246,.4);}
-.tv-page-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.tv-pg-btn{width:28px;height:28px;border-radius:8px;background:var(--panel2);border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:11px;transition:all .1s;}
-.tv-pg-btn:active{background:#111e30;} 
-.tv-pg-btn:disabled{opacity:.3;cursor:default;}
-.tv-pg-num{font-size:10px;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
-.tv-table-wrap{overflow-x:auto;overflow-y:auto;max-height:400px;min-height:160px;-webkit-overflow-scrolling:touch;}
-.tv-table-wrap::-webkit-scrollbar{height:4px;width:4px;}
-.tv-table-wrap::-webkit-scrollbar-thumb{background:#1b2d42;border-radius:99px;}
-
-table.tv-tbl{border-collapse:collapse;width:max-content;min-width:100%;font-size:11px;font-family:"IBM Plex Mono",monospace;}
-table.tv-tbl thead th{
-  position:sticky;top:0;z-index:3;
-  background:#06101c;padding:8px 14px;text-align:left;
-  font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
-  border-bottom:2px solid var(--border);white-space:nowrap;
-  cursor:pointer;transition:background .1s;user-select:none;
-}
-table.tv-tbl thead th:hover{background:#091525;}
-table.tv-tbl thead th.sort-asc::after{content:" ▲";font-size:8px;color:#60a5fa;}
-table.tv-tbl thead th.sort-desc::after{content:" ▼";font-size:8px;color:#60a5fa;}
-table.tv-tbl thead th.th-pk{color:#fde68a;} 
-table.tv-tbl thead th.th-fk{color:#93c5fd;}
-table.tv-tbl tbody tr{border-bottom:1px solid rgba(255,255,255,.03);transition:background .06s;}
-table.tv-tbl tbody tr:hover{background:rgba(59,130,246,.07);}
-table.tv-tbl tbody tr.tr-even{background:rgba(255,255,255,.012);}
-table.tv-tbl tbody td{padding:7px 14px;white-space:nowrap;max-width:220px;overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
-table.tv-tbl tbody td.td-pk{color:#fde68a;font-weight:700;} 
-table.tv-tbl tbody td.td-fk{color:#93c5fd;} 
-table.tv-tbl tbody td.td-null{color:var(--faint);font-style:italic;} 
-table.tv-tbl tbody td.td-true{color:#4ade80;} 
-table.tv-tbl tbody td.td-false{color:#f87171;} 
-table.tv-tbl tbody td.td-num{color:#fcd34d;}
-
-.tv-pagination{display:flex;align-items:center;justify-content:center;gap:5px;padding:10px;flex-wrap:wrap;border-top:1px solid var(--border2);}
-.tv-pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:8px;font-size:10px;font-weight:800;font-family:"IBM Plex Mono",monospace;background:var(--panel2);border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;}
-.tv-pg-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#bfdbfe;}
-.tv-pg-dots{font-size:11px;color:var(--faint);padding:0 4px;}
-
-.dbl-item{display:grid;grid-template-columns:20px 1fr auto auto 20px;gap:8px;align-items:center;padding:11px 13px;border-radius:12px;background:var(--panel2);border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
-.dbl-item:active{transform:scale(.99);}
-.dbl-item:hover{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07);}
-.dbl-icon{font-size:12px;color:#60a5fa;}
-.dbl-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
-.dbl-desc{font-size:9px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
-.dbl-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--faint);white-space:nowrap;}
-.dbl-arrow{font-size:11px;color:var(--faint);}
-
-/* DB EXPLORER */
-.db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;border-bottom:1px solid var(--border2);flex-wrap:wrap;}
-.db-title-row{display:flex;align-items:center;gap:6px;flex:1;}
-.db-pg-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
-.db-title{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
-.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;}
-.db-search::placeholder{color:var(--faint);}
-.db-search:focus{border-color:rgba(59,130,246,.45);outline:none;}
-
-.db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;}
-.db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;padding:9px 10px;text-align:center;}
-.db-stat-val{font-size:16px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
-.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
-
-/* Filter fields */
-.sf-field{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
-.sf-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
-.sf-input,.sf-select{
-  background:#050d18;border:1px solid var(--border);border-radius:8px;
-  padding:7px 10px;color:var(--txt);font-size:11px;
-  font-family:"IBM Plex Mono",monospace;width:100%;
-  transition:border-color .12s;
-}
-.sf-input:focus,.sf-select:focus{outline:none;border-color:rgba(59,130,246,.5);}
-.sf-input::placeholder{color:var(--faint);}
-.sf-date-row{display:flex;gap:6px;align-items:center;}
-.sf-date-row span{font-size:10px;color:var(--muted);font-family:"IBM Plex Mono",monospace;}
-.sf-btn-row{display:flex;gap:8px;justify-content:flex-end;padding-top:4px;}
-.sf-btn-apply{
-  padding:7px 16px;border-radius:9px;
-  background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4);
-  color:#bfdbfe;font-size:10px;font-weight:800;cursor:pointer;
-  font-family:"IBM Plex Mono",monospace;transition:background .1s;
-}
-.sf-btn-apply:active{background:rgba(59,130,246,.35);}
-.sf-btn-reset{
-  padding:7px 14px;border-radius:9px;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);
-  color:var(--muted);font-size:10px;font-weight:800;cursor:pointer;
-  font-family:"IBM Plex Mono",monospace;transition:background .1s;
-}
-.sf-btn-reset:active{background:rgba(255,255,255,.08);}
-
+/* ══ TYPE BADGES ══ */
+.dbt-type{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;
+  padding:2px 7px;border-radius:5px;white-space:nowrap;}
 .dbt-type.dim{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
 .dbt-type.fact{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.22);}
 .dbt-type.log{background:rgba(245,158,11,.12);color:#fbbf24;border:1px solid rgba(245,158,11,.22);}
 
-/* Loading Spinner */
-.loading-spinner{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;gap:8px;}
-.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:#3b82f6;border-radius:50%;animation:spin 0.6s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
+/* ══ DB SCHEMA SCREEN ══ */
+.db-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:10px;}
+.db-stat{background:var(--panel2);border:1px solid var(--border2);border-radius:11px;
+  padding:9px 10px;text-align:center;}
+.db-stat-val{font-size:18px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+.db-stat-lbl{font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.1em;margin-top:3px;font-family:"IBM Plex Mono",monospace;}
+.db-topbar{display:flex;align-items:center;gap:7px;padding:10px 12px 9px;
+  border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.db-title-row{display:flex;align-items:center;gap:6px;flex:1;}
+.db-badge{background:rgba(59,130,246,.18);border:1px solid rgba(59,130,246,.3);color:#93c5fd;
+  font-size:9px;font-weight:800;padding:2px 7px;border-radius:99px;
+  font-family:"IBM Plex Mono",monospace;white-space:nowrap;}
+.db-title{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--soft);}
+.db-search{flex:1;min-width:0;background:var(--panel2);border:1px solid var(--border);
+  border-radius:8px;padding:6px 10px;color:var(--txt);font-size:11px;
+  font-family:"IBM Plex Mono",monospace;}
+.db-search::placeholder{color:var(--faint);}
+.db-search:focus{border-color:rgba(59,130,246,.45);outline:none;}
 
-.error-msg{padding:20px;text-align:center;color:#f87171;font-family:"IBM Plex Mono",monospace;font-size:11px;}
+/* Table list items */
+.dbl-item{display:grid;grid-template-columns:18px 1fr auto auto 16px;
+  gap:8px;align-items:center;padding:11px 13px;border-radius:12px;
+  background:var(--panel2);border:1px solid var(--border2);cursor:pointer;transition:all .12s;}
+.dbl-item:active{transform:scale(.99);}
+.dbl-item:hover{border-color:rgba(59,130,246,.3);background:rgba(59,130,246,.07);}
+.dbl-icon{font-size:12px;color:#60a5fa;}
+.dbl-name{font-size:12px;font-weight:800;font-family:"IBM Plex Mono",monospace;color:var(--txt);}
+.dbl-desc{font-size:9px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.dbl-count{font-size:9px;font-family:"IBM Plex Mono",monospace;color:var(--faint);white-space:nowrap;}
+.dbl-arrow{font-size:10px;color:var(--faint);}
+
+/* ══ TABLE VIEWER SCREEN ══ */
+/* Header */
+.tv-hdr-inner{display:flex;align-items:center;gap:10px;padding:11px 14px;
+  border-bottom:1px solid var(--border2);}
+.tv-back{width:34px;height:34px;border-radius:10px;flex-shrink:0;background:var(--panel2);
+  border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;
+  justify-content:center;cursor:pointer;font-size:14px;transition:all .1s;}
+.tv-back:active{transform:scale(.93);}
+.tv-title{flex:1;min-width:0;}
+.tv-tname{font-size:15px;font-weight:800;color:var(--txt);font-family:"IBM Plex Mono",monospace;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.tv-tmeta{font-size:10px;color:var(--muted);margin-top:2px;font-family:"IBM Plex Mono",monospace;}
+
+/* Quick stats */
+.tv-qs{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--border2);}
+.tv-qs-i{padding:8px 10px;border-right:1px solid var(--border2);display:flex;flex-direction:column;gap:2px;}
+.tv-qs-i:last-child{border-right:none;}
+.tv-qs-l{font-size:8px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.tv-qs-v{font-size:13px;font-weight:800;font-family:"IBM Plex Mono",monospace;}
+
+/* Filter panel */
+.tv-flt-toggle{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;}
+.tv-flt-arrow{font-size:10px;color:var(--muted);transition:transform .18s;flex-shrink:0;}
+.tv-flt-arrow.open{transform:rotate(180deg);}
+.tv-flt-body{padding:12px 14px 14px;border-top:1px solid var(--border2);
+  display:flex;flex-direction:column;gap:10px;}
+.tv-flt-row{display:flex;gap:8px;flex-wrap:wrap;}
+.sf-f{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px;}
+.sf-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;
+  color:var(--muted);font-family:"IBM Plex Mono",monospace;}
+.sf-inp,.sf-sel{background:#050d18;border:1px solid var(--border);border-radius:8px;
+  padding:7px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;width:100%;}
+.sf-inp:focus,.sf-sel:focus{outline:none;border-color:rgba(59,130,246,.5);}
+.sf-inp::placeholder{color:var(--faint);}
+.flt-btns{display:flex;gap:8px;justify-content:flex-end;}
+.btn-apply{padding:7px 16px;border-radius:9px;background:rgba(59,130,246,.22);
+  border:1px solid rgba(59,130,246,.4);color:#bfdbfe;font-size:10px;font-weight:800;
+  cursor:pointer;font-family:"IBM Plex Mono",monospace;}
+.btn-apply:active{background:rgba(59,130,246,.35);}
+.btn-reset{padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.04);
+  border:1px solid var(--border);color:var(--muted);font-size:10px;font-weight:800;
+  cursor:pointer;font-family:"IBM Plex Mono",monospace;}
+.btn-reset:active{background:rgba(255,255,255,.08);}
+.af-tag{font-size:9px;font-weight:800;font-family:"IBM Plex Mono",monospace;padding:3px 8px;
+  border-radius:99px;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#93c5fd;}
+
+/* Data toolbar */
+.tv-toolbar{display:flex;align-items:center;gap:8px;padding:9px 12px;
+  border-bottom:1px solid var(--border2);flex-wrap:wrap;}
+.tv-info{font-size:10px;color:var(--muted);white-space:nowrap;font-family:"IBM Plex Mono",monospace;flex:1;}
+.tv-search{background:#050d18;border:1px solid var(--border);border-radius:8px;
+  padding:6px 10px;color:var(--txt);font-size:11px;font-family:"IBM Plex Mono",monospace;
+  width:160px;flex-shrink:0;}
+.tv-search::placeholder{color:var(--faint);}
+.tv-search:focus{outline:none;border-color:rgba(59,130,246,.4);}
+.pg-ctrl{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.pg-btn{width:28px;height:28px;border-radius:8px;background:var(--panel2);
+  border:1px solid var(--border);color:var(--soft);display:flex;align-items:center;
+  justify-content:center;cursor:pointer;font-size:11px;transition:all .1s;}
+.pg-btn:active{background:#111e30;}
+.pg-btn[disabled]{opacity:.3;cursor:default;pointer-events:none;}
+.pg-lbl{font-size:10px;color:var(--soft);white-space:nowrap;font-family:"IBM Plex Mono",monospace;}
+
+/* Data table */
+.tv-tbl-wrap{overflow-x:auto;overflow-y:auto;max-height:380px;min-height:160px;
+  -webkit-overflow-scrolling:touch;}
+.tv-tbl-wrap::-webkit-scrollbar{height:5px;width:5px;}
+.tv-tbl-wrap::-webkit-scrollbar-track{background:transparent;}
+.tv-tbl-wrap::-webkit-scrollbar-thumb{background:#1b2d42;border-radius:99px;}
+table.tv-t{border-collapse:collapse;width:max-content;min-width:100%;
+  font-size:11px;font-family:"IBM Plex Mono",monospace;}
+table.tv-t thead th{position:sticky;top:0;z-index:3;background:#05101e;
+  padding:8px 14px;text-align:left;font-size:9px;font-weight:800;
+  text-transform:uppercase;letter-spacing:.1em;border-bottom:2px solid var(--border);
+  white-space:nowrap;cursor:pointer;user-select:none;transition:background .1s;}
+table.tv-t thead th:hover{background:#081525;}
+table.tv-t thead th.s-asc::after{content:" ▲";font-size:8px;color:#60a5fa;}
+table.tv-t thead th.s-desc::after{content:" ▼";font-size:8px;color:#60a5fa;}
+table.tv-t thead th.h-pk{color:#fde68a;}
+table.tv-t thead th.h-fk{color:#93c5fd;}
+table.tv-t tbody tr{border-bottom:1px solid rgba(255,255,255,.03);}
+table.tv-t tbody tr:hover{background:rgba(59,130,246,.07);}
+table.tv-t tbody tr.even{background:rgba(255,255,255,.013);}
+table.tv-t tbody td{padding:6px 14px;white-space:nowrap;max-width:240px;
+  overflow:hidden;text-overflow:ellipsis;color:var(--soft);}
+table.tv-t tbody td.c-pk{color:#fde68a;font-weight:700;}
+table.tv-t tbody td.c-fk{color:#93c5fd;}
+table.tv-t tbody td.c-null{color:var(--faint);font-style:italic;}
+table.tv-t tbody td.c-true{color:#4ade80;}
+table.tv-t tbody td.c-false{color:#f87171;}
+table.tv-t tbody td.c-num{color:#fcd34d;}
+table.tv-t tbody td.c-ts{color:#a5b4fc;}
+table.tv-t tbody td.c-json{color:#94a3b8;font-size:9px;}
+
+/* Pagination */
+.tv-pages{display:flex;align-items:center;justify-content:center;gap:4px;
+  padding:10px;flex-wrap:wrap;border-top:1px solid var(--border2);}
+.pg-pill{min-width:30px;height:28px;padding:0 8px;border-radius:8px;font-size:10px;
+  font-weight:800;font-family:"IBM Plex Mono",monospace;background:var(--panel2);
+  border:1px solid var(--border);color:var(--muted);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .1s;}
+.pg-pill.on{background:rgba(59,130,246,.2);border-color:rgba(59,130,246,.4);color:#bfdbfe;}
+.pg-pill:active{transform:scale(.94);}
+.pg-dots{font-size:11px;color:var(--faint);padding:0 4px;}
+
+/* ══ LOADING / ERROR ══ */
+.spin-wrap{display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:40px;color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:11px;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:#3b82f6;
+  border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.err-box{padding:20px;text-align:center;color:#f87171;
+  font-family:"IBM Plex Mono",monospace;font-size:11px;line-height:1.8;}
+.err-box i{font-size:20px;display:block;margin-bottom:8px;}
+
+/* ══ TOAST ══ */
+#toast{position:fixed;top:calc(var(--sat)+62px);left:50%;
+  transform:translateX(-50%) translateY(-8px);z-index:99;opacity:0;
+  transition:all .25s;pointer-events:none;}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast-in{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;
+  border-radius:99px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);
+  backdrop-filter:blur(14px);font-size:12px;font-weight:700;color:#86efac;white-space:nowrap;}
 </style>
 </head>
 <body>
 
+<div id="toast"><div class="toast-in"><i class="fa-solid fa-check"></i><span id="toast-msg"></span></div></div>
+
 <div id="app">
+
+  <!-- ══ TOPBAR ══ -->
   <div id="topbar">
     <div class="tb-r">
       <div class="brand">
-        <div class="b-icon"><i class="fa-solid fa-chart-column"></i></div>
+        <div class="b-icon"><i class="fa-solid fa-database"></i></div>
         <div>
           <div class="b-name mono">MKT TERMINAL</div>
           <div class="b-sub mono">Live DB · Real-time Data</div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;gap:6px;">
+      <div style="display:flex;align-items:center;gap:6px">
         <div class="owner-badge"><i class="fa-regular fa-copyright"></i>Milan Bikineh</div>
         <div class="tb-acts">
-          <button class="ib" id="refreshBtn"><i class="fa-solid fa-rotate-right" id="ref-ic"></i></button>
+          <button class="ib" id="refreshBtn" title="Refresh"><i class="fa-solid fa-rotate-right" id="ref-ic"></i></button>
         </div>
       </div>
     </div>
     <div class="chips">
       <div class="chip"><span class="dot" id="s-dot" style="background:var(--green)"></span><span id="s-lbl">CONNECTED</span></div>
-      <div class="chip"><i class="fa-regular fa-clock"></i><span id="s-time">--</span></div>
-      <div class="chip"><i class="fa-solid fa-database"></i><span id="s-db">PostgreSQL</span></div>
+      <div class="chip"><i class="fa-regular fa-clock"></i><span id="s-time">--:--:--</span></div>
+      <div class="chip"><i class="fa-solid fa-table-list"></i><span id="s-tables">-- Tabellen</span></div>
+      <div class="chip" id="chip-active" style="display:none"><i class="fa-solid fa-circle-notch fa-spin" style="font-size:9px"></i><span id="s-active">Lädt…</span></div>
     </div>
   </div>
 
+  <!-- ══ SCREENS ══ -->
   <div id="screens">
-    <!-- SCREEN: DATABASE — Tabellen-Auswahl -->
-    <section class="screen active" id="scr-watch">
+
+    <!-- SCREEN 1: Schema / Tabellenliste -->
+    <section class="screen active" id="scr-schema">
+      <!-- Stats -->
       <div class="card">
         <div class="db-stats">
-          <div class="db-stat"><div class="db-stat-val mono" style="color:#c084fc" id="dim-count">--</div><div class="db-stat-lbl">DIM</div></div>
-          <div class="db-stat"><div class="db-stat-val mono" style="color:#4ade80" id="fact-count">--</div><div class="db-stat-lbl">FACT</div></div>
-          <div class="db-stat"><div class="db-stat-val mono" style="color:#fbbf24" id="log-count">--</div><div class="db-stat-lbl">LOG</div></div>
+          <div class="db-stat">
+            <div class="db-stat-val" id="cnt-dim" style="color:#c084fc">--</div>
+            <div class="db-stat-lbl">DIM</div>
+          </div>
+          <div class="db-stat">
+            <div class="db-stat-val" id="cnt-fact" style="color:#4ade80">--</div>
+            <div class="db-stat-lbl">FACT</div>
+          </div>
+          <div class="db-stat">
+            <div class="db-stat-val" id="cnt-log" style="color:#fbbf24">--</div>
+            <div class="db-stat-lbl">LOG</div>
+          </div>
         </div>
       </div>
+
+      <!-- Tabellenliste -->
       <div class="card">
         <div class="db-topbar">
           <div class="db-title-row">
             <i class="fa-solid fa-database" style="color:#60a5fa;font-size:13px"></i>
             <span class="db-title">market_db</span>
-            <span class="db-pg-badge">PostgreSQL</span>
+            <span class="db-badge">PostgreSQL</span>
           </div>
           <input class="db-search" id="db-search" placeholder="Tabelle suchen…" type="text"/>
         </div>
-        <div id="db-tree" style="display:flex;flex-direction:column;gap:3px;padding:8px 10px;">
-          <div class="loading-spinner"><div class="spinner"></div>Lädt Tabellen...</div>
+        <div id="db-tree" style="display:flex;flex-direction:column;gap:3px;padding:8px 10px">
+          <div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>
         </div>
       </div>
+      <div style="height:6px;flex-shrink:0"></div>
     </section>
 
-    <!-- SCREEN: TABLE VIEWER -->
-    <section class="screen" id="scr-tableview">
-      <div class="tv-header card">
-        <div class="tv-header-inner">
-          <button class="tv-back-btn" id="tv-back"><i class="fa-solid fa-arrow-left"></i></button>
-          <div class="tv-title-block">
-            <div class="tv-table-name mono" id="tv-tname">--</div>
-            <div class="tv-meta mono" id="tv-tmeta">--</div>
-          </div>
-          <div class="tv-type-badge" id="tv-type-badge">--</div>
-        </div>
-        <div class="tv-quickstats" id="tv-quickstats"></div>
-      </div>
+    <!-- SCREEN 2: Table Viewer -->
+    <section class="screen" id="scr-viewer">
 
-      <!-- Zeitraum-Filter -->
-      <div class="card" id="tv-filter-card">
-        <div class="tv-filter-toggle" id="tv-filter-toggle">
-          <i class="fa-solid fa-calendar-range" style="color:#60a5fa;font-size:11px"></i>
-          <span class="kk" style="color:var(--soft)">Zeitraum-Filter</span>
-          <div id="tv-active-filters" style="display:flex;gap:4px;flex-wrap:wrap;flex:1"></div>
-          <i class="fa-solid fa-chevron-down tv-toggle-arrow" id="tv-toggle-arrow"></i>
+      <!-- Header Card -->
+      <div class="card">
+        <div class="tv-hdr-inner">
+          <button class="tv-back" id="tv-back"><i class="fa-solid fa-arrow-left"></i></button>
+          <div class="tv-title">
+            <div class="tv-tname" id="tv-tname">--</div>
+            <div class="tv-tmeta" id="tv-tmeta">--</div>
+          </div>
+          <div id="tv-badge" class="dbt-type fact">FACT</div>
         </div>
-        <div class="tv-filter-body" id="tv-filter-body" style="display:none">
-          <div class="tv-filter-fields">
-            <div class="sf-field" style="flex:1;min-width:140px">
-              <div class="sf-label">Von Datum</div>
-              <input class="sf-input" type="date" id="tvf-datefrom" value="2026-01-01"/>
-            </div>
-            <div class="sf-field" style="flex:1;min-width:140px">
-              <div class="sf-label">Bis Datum</div>
-              <input class="sf-input" type="date" id="tvf-dateto" value="2026-03-28"/>
-            </div>
-          </div>
-          <div class="sf-btn-row">
-            <button class="sf-btn-reset" id="tv-filter-reset">↺ Zurücksetzen</button>
-            <button class="sf-btn-apply" id="tv-filter-apply">▶ Filtern</button>
-          </div>
+        <div class="tv-qs" id="tv-qs">
+          <div class="tv-qs-i"><div class="tv-qs-l">Records</div><div class="tv-qs-v" id="qs-rows" style="color:#4ade80">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Spalten</div><div class="tv-qs-v" id="qs-cols" style="color:#93c5fd">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Seite</div><div class="tv-qs-v" id="qs-page" style="color:#fbbf24">--</div></div>
+          <div class="tv-qs-i"><div class="tv-qs-l">Zeige</div><div class="tv-qs-v" id="qs-show" style="color:#c084fc">--</div></div>
         </div>
       </div>
 
-      <!-- Datentabelle + Pagination -->
-      <div class="card tv-data-card">
-        <div class="tv-data-toolbar">
-          <span class="tv-data-info mono" id="tv-data-info">-- Zeilen</span>
-          <input class="tv-data-search" id="tv-data-search" placeholder="Schnellsuche…"/>
-          <div class="tv-page-ctrl">
-            <button class="tv-pg-btn" id="tv-pg-prev"><i class="fa-solid fa-chevron-left"></i></button>
-            <span class="tv-pg-num mono" id="tv-pg-num">1 / 1</span>
-            <button class="tv-pg-btn" id="tv-pg-next"><i class="fa-solid fa-chevron-right"></i></button>
+      <!-- Filter Card -->
+      <div class="card" id="tv-flt-card">
+        <div class="tv-flt-toggle" id="tv-flt-toggle">
+          <i class="fa-solid fa-filter" style="color:#60a5fa;font-size:11px"></i>
+          <span class="kk" style="color:var(--soft)">Filter</span>
+          <div id="tv-af-tags" style="display:flex;gap:4px;flex-wrap:wrap;flex:1;margin-left:4px"></div>
+          <i class="fa-solid fa-chevron-down tv-flt-arrow" id="tv-flt-arrow"></i>
+        </div>
+        <div class="tv-flt-body" id="tv-flt-body" style="display:none">
+          <div class="tv-flt-row" id="tv-flt-fields">
+            <!-- dynamisch befüllt -->
+          </div>
+          <div class="flt-btns">
+            <button class="btn-reset" id="tv-flt-reset">↺ Zurücksetzen</button>
+            <button class="btn-apply" id="tv-flt-apply">▶ Filtern</button>
           </div>
         </div>
-        <div class="tv-table-wrap" id="tv-table-wrap">
-          <div style="padding:40px;text-align:center;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:11px">
-            Tabelle auswählen…
-          </div>
-        </div>
-        <div class="tv-pagination" id="tv-pagination"></div>
       </div>
+
+      <!-- Data Card -->
+      <div class="card" style="overflow:hidden;flex-shrink:0">
+        <div class="tv-toolbar">
+          <span class="tv-info" id="tv-info">-- Zeilen</span>
+          <input class="tv-search" id="tv-search" placeholder="Schnellsuche…" type="text"/>
+          <div class="pg-ctrl">
+            <button class="pg-btn" id="pg-prev" disabled><i class="fa-solid fa-chevron-left"></i></button>
+            <span class="pg-lbl" id="pg-lbl">1 / 1</span>
+            <button class="pg-btn" id="pg-next" disabled><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+        </div>
+        <div class="tv-tbl-wrap" id="tv-tbl-wrap">
+          <div class="spin-wrap"><div class="spinner"></div>Lädt…</div>
+        </div>
+        <div class="tv-pages" id="tv-pages"></div>
+      </div>
+
+      <div style="height:6px;flex-shrink:0"></div>
     </section>
-  </div>
 
+  </div><!-- /screens -->
+
+  <!-- FOOTER -->
   <div class="footer-credit">
     <i class="fa-regular fa-copyright" style="font-size:10px;color:#3b82f6"></i>
     <strong>Milan Bikineh</strong>
     <span>· All Rights Reserved · 2025</span>
   </div>
 
+  <!-- NAV -->
   <div id="nav">
     <div class="nav-inner">
-      <div class="nb on" data-nav="watch"><i class="fa-solid fa-database"></i><span>Schema</span></div>
+      <div class="nb on" id="nav-schema" data-nav="schema">
+        <i class="fa-solid fa-database"></i><span>Schema</span>
+      </div>
     </div>
   </div>
-</div>
+
+</div><!-- /app -->
 
 <script>
-/* ═══════════ CONFIG ═══════════ */
-const API_BASE = 'http://localhost:5000/api'; // Deine Python Flask API
+'use strict';
+/* ══════════════════════════════════════
+   CONFIG
+══════════════════════════════════════ */
+const API = '';   // leer = gleicher Host (Render.com); oder: 'http://localhost:8080'
 
-/* ═══════════ NAVIGATION ═══════════ */
-let activeNav = "watch";
+/* ══════════════════════════════════════
+   STATE
+══════════════════════════════════════ */
+let activeScreen = 'schema';
 let busy = false;
-
-function setNav(id){
-  if(id === activeNav || busy) return;
-  busy = true;
-  
-  const prevEl = document.getElementById(id === "tableview" ? "scr-watch" : "scr-tableview");
-  const nextEl = document.getElementById(id === "tableview" ? "scr-tableview" : "scr-watch");
-  
-  if(!prevEl || !nextEl){busy = false; return;}
-  
-  prevEl.classList.remove("active");
-  nextEl.classList.add("active");
-  
-  setTimeout(() => {busy = false;}, 240);
-  activeNav = id;
-}
-
-document.getElementById("tv-back").addEventListener("click", () => setNav("watch"));
-
-/* ═══════════ API CALLS ═══════════ */
-async function fetchTables(){
-  try {
-    const res = await fetch(`${API_BASE}/tables`);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch(err) {
-    console.error("Fehler beim Laden der Tabellen:", err);
-    return null;
-  }
-}
-
-async function fetchTableData(tableName, page = 1, pageSize = 50, filters = {}){
-  try {
-    const params = new URLSearchParams({
-      page: page,
-      page_size: pageSize,
-      ...filters
-    });
-    const res = await fetch(`${API_BASE}/table/${tableName}?${params}`);
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    return await res.json();
-  } catch(err) {
-    console.error(`Fehler beim Laden von ${tableName}:`, err);
-    return null;
-  }
-}
-
-/* ═══════════ RENDER DB TREE ═══════════ */
-async function renderDbTree(filter = ""){
-  const tree = document.getElementById("db-tree");
-  if(!tree) return;
-  
-  tree.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Lädt Tabellen...</div>';
-  
-  const tables = await fetchTables();
-  
-  if(!tables || !tables.tables){
-    tree.innerHTML = '<div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i> Verbindung zur Datenbank fehlgeschlagen</div>';
-    return;
-  }
-  
-  // Stats
-  const dims = tables.tables.filter(t => t.type === 'dim').length;
-  const facts = tables.tables.filter(t => t.type === 'fact').length;
-  const logs = tables.tables.filter(t => t.type === 'log').length;
-  
-  document.getElementById("dim-count").textContent = dims;
-  document.getElementById("fact-count").textContent = facts;
-  document.getElementById("log-count").textContent = logs;
-  
-  // Filter
-  const q = (filter || "").toLowerCase().trim();
-  const filtered = q ? tables.tables.filter(t => t.name.includes(q)) : tables.tables;
-  
-  tree.innerHTML = filtered.map(t => {
-    const typeLabel = t.type === "dim" ? "DIM" : t.type === "fact" ? "FACT" : "LOG";
-    const typeCl = t.type;
-    return `<div class="dbl-item" data-tname="${t.name}">
-      <i class="fa-solid fa-table-cells dbl-icon"></i>
-      <div>
-        <div class="dbl-name">${t.name}</div>
-        <div class="dbl-desc">${t.description || 'Keine Beschreibung'} · ${t.column_count} Spalten</div>
-      </div>
-      <span class="dbt-type ${typeCl}">${typeLabel}</span>
-      <span class="dbl-count">${t.row_count.toLocaleString()}</span>
-      <i class="fa-solid fa-chevron-right dbl-arrow"></i>
-    </div>`;
-  }).join("");
-  
-  tree.querySelectorAll(".dbl-item").forEach(item => {
-    item.addEventListener("click", () => openTableViewer(item.dataset.tname));
-  });
-}
-
-document.getElementById("db-search").addEventListener("input", e => renderDbTree(e.target.value));
-
-/* ═══════════ TABLE VIEWER ═══════════ */
-const PAGE_SIZE = 50;
 let TV = {
-  tableName: null,
+  table: null,
+  cols: [],
   page: 1,
-  totalPages: 1,
+  pageSize: 50,
   totalRows: 0,
+  totalPages: 1,
   sortCol: null,
   sortDir: 'desc',
-  searchQ: "",
-  dateFrom: "2026-01-01",
-  dateTo: "2026-03-28"
+  search: '',
+  filters: {},
 };
 
-async function openTableViewer(tableName){
-  TV.tableName = tableName;
-  TV.page = 1;
-  TV.searchQ = "";
-  
-  // Header
-  document.getElementById("tv-tname").textContent = tableName;
-  
-  // Typ-Badge
-  let type = "FACT", typeCl = "fact";
-  if(tableName.startsWith("dim_")){type = "DIM"; typeCl = "dim";}
-  else if(tableName.startsWith("log_")){type = "LOG"; typeCl = "log";}
-  
-  const badge = document.getElementById("tv-type-badge");
-  badge.textContent = type;
-  badge.className = `tv-type-badge dbt-type ${typeCl}`;
-  
-  // Clear search
-  document.getElementById("tv-data-search").value = "";
-  
-  // Navigate
-  setNav("tableview");
-  
-  // Load data
-  await loadTableData();
+/* ══════════════════════════════════════
+   UTILS
+══════════════════════════════════════ */
+let toastT = null;
+function toast(msg, ok=true){
+  clearTimeout(toastT);
+  const el = document.getElementById('toast');
+  const ic = el.querySelector('i');
+  const sp = document.getElementById('toast-msg');
+  ic.className = ok ? 'fa-solid fa-check' : 'fa-solid fa-triangle-exclamation';
+  el.querySelector('.toast-in').style.background = ok
+    ? 'rgba(34,197,94,.15)' : 'rgba(239,68,68,.15)';
+  el.querySelector('.toast-in').style.borderColor = ok
+    ? 'rgba(34,197,94,.4)' : 'rgba(239,68,68,.4)';
+  el.querySelector('.toast-in').style.color = ok ? '#86efac' : '#fca5a5';
+  sp.textContent = msg;
+  el.classList.add('on');
+  toastT = setTimeout(()=>el.classList.remove('on'), 3000);
 }
 
-async function loadTableData(){
-  const wrap = document.getElementById("tv-table-wrap");
-  wrap.innerHTML = '<div class="loading-spinner"><div class="spinner"></div>Lädt Daten...</div>';
-  
-  const filters = {
-    search: TV.searchQ || undefined,
-    date_from: TV.dateFrom || undefined,
-    date_to: TV.dateTo || undefined,
-    sort_col: TV.sortCol || undefined,
-    sort_dir: TV.sortDir || 'desc'
-  };
-  
-  const data = await fetchTableData(TV.tableName, TV.page, PAGE_SIZE, filters);
-  
-  if(!data){
-    wrap.innerHTML = '<div class="error-msg"><i class="fa-solid fa-triangle-exclamation"></i> Fehler beim Laden der Daten</div>';
+function setLoading(show, label='Lädt…'){
+  const chip = document.getElementById('chip-active');
+  const lbl  = document.getElementById('s-active');
+  chip.style.display = show ? '' : 'none';
+  lbl.textContent = label;
+}
+
+function dtCls(dtype=''){
+  const d = dtype.toLowerCase();
+  if(d.includes('int') || d.includes('serial') || d.includes('bigint')) return 'c-num';
+  if(d.includes('numeric') || d.includes('float') || d.includes('decimal')) return 'c-num';
+  if(d.includes('timestamp') || d.includes('time zone') || d.includes('date')) return 'c-ts';
+  if(d.includes('bool')) return '';
+  if(d.includes('json')) return 'c-json';
+  return '';
+}
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+function goTo(id){
+  if(id === activeScreen || busy) return;
+  busy = true;
+
+  const prev = document.getElementById('scr-' + activeScreen);
+  const next = document.getElementById('scr-' + id);
+  if(!prev || !next){ busy = false; return; }
+
+  const fwd = id === 'viewer' ? 1 : -1;
+  prev.classList.remove('active');
+  prev.classList.add(fwd === 1 ? 's-out-l' : 's-out-r');
+
+  next.style.transition = 'none';
+  next.style.opacity = '0';
+  next.style.transform = `translateX(${fwd > 0 ? 40 : -40}px)`;
+  next.style.visibility = 'hidden';
+  next.classList.add('active');
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    next.style.transition = '';
+    next.style.opacity = '';
+    next.style.transform = '';
+    next.style.visibility = '';
+  }));
+
+  setTimeout(()=>{
+    prev.classList.remove('s-out-l','s-out-r');
+    busy = false;
+  }, 240);
+
+  activeScreen = id;
+}
+
+document.getElementById('tv-back').addEventListener('click', ()=> goTo('schema'));
+
+/* ══════════════════════════════════════
+   API
+══════════════════════════════════════ */
+async function apiFetch(path){
+  try {
+    const r = await fetch(API + path);
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await r.json();
+  } catch(e) {
+    console.error('API Error:', path, e);
+    return null;
+  }
+}
+
+/* ══════════════════════════════════════
+   SCHEMA SCREEN
+══════════════════════════════════════ */
+async function loadSchema(filter=''){
+  const tree = document.getElementById('db-tree');
+  if(!filter) tree.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>';
+  setLoading(true, 'Verbinde DB…');
+
+  const data = await apiFetch('/api/tables');
+  setLoading(false);
+
+  if(!data || !data.tables){
+    tree.innerHTML = `<div class="err-box">
+      <i class="fa-solid fa-triangle-exclamation"></i>
+      Verbindung zur Datenbank fehlgeschlagen.<br>
+      <small style="color:var(--faint)">Bitte API-Server prüfen</small>
+    </div>`;
+    document.getElementById('s-dot').style.background = 'var(--red)';
+    document.getElementById('s-lbl').textContent = 'OFFLINE';
     return;
   }
-  
-  // Meta
-  TV.totalRows = data.total;
-  TV.totalPages = Math.max(1, Math.ceil(data.total / PAGE_SIZE));
-  TV.page = Math.min(TV.page, TV.totalPages);
-  
-  document.getElementById("tv-tmeta").textContent = `${data.total.toLocaleString()} Zeilen · ${data.columns.length} Spalten`;
-  
-  // Quick stats
-  document.getElementById("tv-quickstats").innerHTML = `
-    <div class="tv-qs-item"><div class="tv-qs-lbl">Records</div><div class="tv-qs-val mono" style="color:#4ade80">${data.total.toLocaleString()}</div></div>
-    <div class="tv-qs-item"><div class="tv-qs-lbl">Spalten</div><div class="tv-qs-val mono" style="color:#93c5fd">${data.columns.length}</div></div>
-    <div class="tv-qs-item"><div class="tv-qs-lbl">Seite</div><div class="tv-qs-val mono" style="color:#fbbf24">${TV.page}/${TV.totalPages}</div></div>
-    <div class="tv-qs-item"><div class="tv-qs-lbl">Zeige</div><div class="tv-qs-val mono" style="color:#c084fc">${data.rows.length}</div></div>`;
-  
-  // Info
-  const start = (TV.page - 1) * PAGE_SIZE;
-  document.getElementById("tv-data-info").textContent = 
-    `${data.total.toLocaleString()} Zeilen · Seite ${TV.page} von ${TV.totalPages} · Records ${start + 1}–${Math.min(start + PAGE_SIZE, data.total)}`;
-  document.getElementById("tv-pg-num").textContent = `${TV.page} / ${TV.totalPages}`;
-  
-  // Render table
-  renderTable(data);
-  renderPagination();
-  
-  // Page buttons
-  const prev = document.getElementById("tv-pg-prev");
-  const next = document.getElementById("tv-pg-next");
-  prev.disabled = TV.page <= 1;
-  next.disabled = TV.page >= TV.totalPages;
+
+  document.getElementById('s-dot').style.background = 'var(--green)';
+  document.getElementById('s-lbl').textContent = 'CONNECTED';
+  document.getElementById('s-tables').textContent = data.tables.length + ' Tabellen';
+
+  const dims  = data.tables.filter(t=>t.type==='dim').length;
+  const facts = data.tables.filter(t=>t.type==='fact').length;
+  const logs  = data.tables.filter(t=>t.type==='log').length;
+  document.getElementById('cnt-dim').textContent  = dims;
+  document.getElementById('cnt-fact').textContent = facts;
+  document.getElementById('cnt-log').textContent  = logs;
+
+  const q = filter.toLowerCase().trim();
+  const list = q ? data.tables.filter(t=>t.name.toLowerCase().includes(q)) : data.tables;
+
+  if(!list.length){
+    tree.innerHTML = `<div style="padding:20px;text-align:center;color:var(--faint);font-family:'IBM Plex Mono',monospace;font-size:11px">Keine Treffer</div>`;
+    return;
+  }
+
+  tree.innerHTML = list.map(t=>{
+    const tl = t.type==='dim'?'DIM':t.type==='fact'?'FACT':'LOG';
+    const rows = typeof t.row_count==='number' ? t.row_count.toLocaleString('de-DE') : (t.row_count||'?');
+    const desc = t.description ? t.description : '';
+    return `<div class="dbl-item" data-t="${t.name}">
+      <i class="fa-solid fa-table-cells dbl-icon"></i>
+      <div style="min-width:0">
+        <div class="dbl-name">${t.name}</div>
+        <div class="dbl-desc">${desc ? desc + ' · ' : ''}${t.column_count||'?'} Spalten</div>
+      </div>
+      <span class="dbt-type ${t.type}">${tl}</span>
+      <span class="dbl-count">${rows}</span>
+      <i class="fa-solid fa-chevron-right dbl-arrow"></i>
+    </div>`;
+  }).join('');
+
+  tree.querySelectorAll('.dbl-item').forEach(el=>{
+    el.addEventListener('click', ()=> openViewer(el.dataset.t));
+  });
 }
 
+document.getElementById('db-search').addEventListener('input', e=> loadSchema(e.target.value));
+
+/* ══════════════════════════════════════
+   TABLE VIEWER
+══════════════════════════════════════ */
+async function openViewer(tableName){
+  TV.table    = tableName;
+  TV.page     = 1;
+  TV.search   = '';
+  TV.sortCol  = null;
+  TV.sortDir  = 'desc';
+  TV.filters  = {};
+  TV.cols     = [];
+
+  // Header sofort setzen
+  document.getElementById('tv-tname').textContent = tableName;
+  document.getElementById('tv-tmeta').textContent = 'Lädt…';
+  const tl = tableName.startsWith('dim_')?'DIM':tableName.startsWith('log_')?'LOG':'FACT';
+  const tc = tableName.startsWith('dim_')?'dim':tableName.startsWith('log_')?'log':'fact';
+  const badge = document.getElementById('tv-badge');
+  badge.textContent = tl;
+  badge.className = 'dbt-type ' + tc;
+
+  // Filter-Panel aufbauen
+  buildFilterPanel(tableName);
+
+  // Search leeren
+  document.getElementById('tv-search').value = '';
+  document.getElementById('tv-af-tags').innerHTML = '';
+
+  // Zum Viewer navigieren
+  goTo('viewer');
+
+  // Daten laden
+  await loadData();
+}
+
+/* ── Filter Panel ── */
+function buildFilterPanel(tName){
+  const fields = document.getElementById('tv-flt-fields');
+  let html = '';
+
+  // Zeitraum — immer
+  html += `<div class="sf-f" style="flex:1;min-width:140px">
+    <div class="sf-lbl">Von Datum</div>
+    <input class="sf-inp" type="date" id="fv-from" value="2024-01-01"/>
+  </div>
+  <div class="sf-f" style="flex:1;min-width:140px">
+    <div class="sf-lbl">Bis Datum</div>
+    <input class="sf-inp" type="date" id="fv-to" value="${new Date().toISOString().slice(0,10)}"/>
+  </div>`;
+
+  // Tabellen-spezifische Filter
+  const hasSym = ['fact_company_fundamental','fact_earnings_calendar',
+                  'fact_market_indicator','fact_market_quote','fact_market_timeseries'].includes(tName);
+  if(hasSym)
+    html += `<div class="sf-f"><div class="sf-lbl">Symbol ID</div>
+      <input class="sf-inp" type="number" id="fv-sym" placeholder="z. B. 1"/></div>`;
+
+  if(tName === 'fact_earnings_calendar')
+    html += `<div class="sf-f"><div class="sf-lbl">Quartal</div>
+      <select class="sf-sel" id="fv-quarter">
+        <option value="">-- Alle --</option>
+        <option>Q1</option><option>Q2</option><option>Q3</option><option>Q4</option>
+      </select></div>`;
+
+  if(tName === 'fact_market_indicator')
+    html += `<div class="sf-f"><div class="sf-lbl">Indicator ID</div>
+      <input class="sf-inp" type="number" id="fv-ind" placeholder="z. B. 1"/></div>`;
+
+  if(['fact_market_indicator','fact_market_timeseries'].includes(tName))
+    html += `<div class="sf-f"><div class="sf-lbl">Interval ID</div>
+      <input class="sf-inp" type="number" id="fv-itv" placeholder="z. B. 6"/></div>`;
+
+  if(tName === 'log_api_call'){
+    html += `<div class="sf-f"><div class="sf-lbl">Endpoint</div>
+      <input class="sf-inp" id="fv-ep" placeholder="/quote …"/></div>`;
+    html += `<div class="sf-f"><div class="sf-lbl">HTTP Status</div>
+      <input class="sf-inp" type="number" id="fv-st" placeholder="200"/></div>`;
+  }
+
+  fields.innerHTML = html;
+}
+
+/* ── Lade Tabellendaten von API ── */
+async function loadData(){
+  const wrap = document.getElementById('tv-tbl-wrap');
+  wrap.innerHTML = '<div class="spin-wrap"><div class="spinner"></div>Lädt Daten…</div>';
+  setLoading(true, TV.table + ' lädt…');
+
+  const params = new URLSearchParams({
+    page: TV.page,
+    page_size: TV.pageSize,
+  });
+  if(TV.search)              params.set('search', TV.search);
+  if(TV.sortCol)             params.set('sort_col', TV.sortCol);
+  if(TV.sortDir)             params.set('sort_dir', TV.sortDir);
+  if(TV.filters.date_from)   params.set('date_from', TV.filters.date_from);
+  if(TV.filters.date_to)     params.set('date_to',   TV.filters.date_to);
+  if(TV.filters.symbol_id)   params.set('symbol_id', TV.filters.symbol_id);
+  if(TV.filters.endpoint)    params.set('endpoint',  TV.filters.endpoint);
+  if(TV.filters.http_status) params.set('http_status', TV.filters.http_status);
+
+  const data = await apiFetch(`/api/table/${TV.table}?${params}`);
+  setLoading(false);
+
+  if(!data){
+    wrap.innerHTML = `<div class="err-box"><i class="fa-solid fa-triangle-exclamation"></i>Fehler beim Laden der Daten</div>`;
+    return;
+  }
+
+  TV.cols       = data.columns || [];
+  TV.totalRows  = data.total   || 0;
+  TV.totalPages = data.total_pages || Math.max(1, Math.ceil(data.total / TV.pageSize));
+  TV.page       = Math.min(TV.page, TV.totalPages);
+
+  // Meta
+  const st = (TV.page-1)*TV.pageSize + 1;
+  const en = Math.min(TV.page*TV.pageSize, TV.totalRows);
+  document.getElementById('tv-tmeta').textContent =
+    `${TV.totalRows.toLocaleString('de-DE')} Zeilen · ${TV.cols.length} Spalten`;
+
+  // Quick stats
+  document.getElementById('qs-rows').textContent = TV.totalRows.toLocaleString('de-DE');
+  document.getElementById('qs-cols').textContent = TV.cols.length;
+  document.getElementById('qs-page').textContent = `${TV.page}/${TV.totalPages}`;
+  document.getElementById('qs-show').textContent = data.rows ? data.rows.length : 0;
+
+  // Toolbar
+  document.getElementById('tv-info').textContent =
+    `${TV.totalRows.toLocaleString('de-DE')} Zeilen · Seite ${TV.page}/${TV.totalPages} · ${st}–${en}`;
+  document.getElementById('pg-lbl').textContent = `${TV.page} / ${TV.totalPages}`;
+  document.getElementById('pg-prev').disabled = TV.page <= 1;
+  document.getElementById('pg-next').disabled = TV.page >= TV.totalPages;
+
+  // Render
+  renderTable(data);
+  renderPages();
+}
+
+/* ── Tabelle rendern ── */
 function renderTable(data){
-  const wrap = document.getElementById("tv-table-wrap");
-  
-  // Header
-  const thead = data.columns.map(c => {
-    const cls = c.is_pk ? "th-pk" : c.is_fk ? "th-fk" : "";
-    const sortCls = TV.sortCol === c.name ? (TV.sortDir === "asc" ? "sort-asc" : "sort-desc") : "";
-    const icon = c.is_pk ? "🔑 " : c.is_fk ? "🔗 " : "";
-    return `<th class="${cls} ${sortCls}" data-col="${c.name}">${icon}${c.name}</th>`;
-  }).join("");
-  
-  // Body
-  const tbody = data.rows.map((row, ri) => {
-    const cells = data.columns.map(c => {
+  const wrap = document.getElementById('tv-tbl-wrap');
+  if(!data.rows || !data.columns){
+    wrap.innerHTML = `<div class="err-box">Keine Daten vorhanden</div>`;
+    return;
+  }
+
+  const thead = data.columns.map(c=>{
+    const pk = c.is_pk ? 'h-pk' : c.is_fk ? 'h-fk' : '';
+    const sc = TV.sortCol===c.name ? (TV.sortDir==='asc'?'s-asc':'s-desc') : '';
+    const ic = c.is_pk ? '🔑 ' : c.is_fk ? '🔗 ' : '';
+    return `<th class="${pk} ${sc}" data-col="${c.name}">${ic}${c.name}</th>`;
+  }).join('');
+
+  const tbody = data.rows.map((row, ri)=>{
+    const cells = data.columns.map(c=>{
       const val = row[c.name];
-      let txt, cls = "";
-      
+      let txt, cls = '';
       if(val === null || val === undefined){
-        txt = "NULL";
-        cls = "td-null";
-      } else if(typeof val === "boolean"){
-        txt = val ? "true" : "false";
-        cls = val ? "td-true" : "td-false";
-      } else if(typeof val === "number"){
-        txt = Number(val).toLocaleString("en-US", {maximumFractionDigits: 4});
-        cls = c.is_pk ? "td-pk" : c.is_fk ? "td-fk" : "td-num";
+        txt = 'NULL'; cls = 'c-null';
+      } else if(typeof val === 'boolean'){
+        txt = val ? 'true' : 'false'; cls = val ? 'c-true' : 'c-false';
+      } else if(typeof val === 'object'){
+        txt = JSON.stringify(val); cls = 'c-json';
       } else {
         txt = String(val);
-        cls = c.is_pk ? "td-pk" : c.is_fk ? "td-fk" : "";
+        cls = c.is_pk ? 'c-pk' : c.is_fk ? 'c-fk' : dtCls(c.dtype || '');
       }
-      
-      return `<td class="${cls}" title="${txt}">${txt}</td>`;
-    }).join("");
-    
-    return `<tr class="${ri % 2 === 0 ? "" : "tr-even"}">${cells}</tr>`;
-  }).join("") || `<tr><td colspan="${data.columns.length}" style="text-align:center;color:var(--faint);padding:20px">Keine Daten</td></tr>`;
-  
-  wrap.innerHTML = `<table class="tv-tbl"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
-  
-  // Sort click
-  wrap.querySelectorAll("th[data-col]").forEach(th => {
-    th.addEventListener("click", () => {
+      const disp = txt.length > 60 ? txt.slice(0,57)+'…' : txt;
+      return `<td class="${cls}" title="${txt.replace(/"/g,'&quot;')}">${disp}</td>`;
+    }).join('');
+    return `<tr class="${ri%2===0?'':'even'}">${cells}</tr>`;
+  }).join('') || `<tr><td colspan="${data.columns.length}" style="text-align:center;color:var(--faint);padding:20px">Keine Daten</td></tr>`;
+
+  wrap.innerHTML = `<table class="tv-t"><thead><tr>${thead}</tr></thead><tbody>${tbody}</tbody></table>`;
+
+  // Sort
+  wrap.querySelectorAll('th[data-col]').forEach(th=>{
+    th.addEventListener('click', ()=>{
       const col = th.dataset.col;
-      if(TV.sortCol === col){
-        TV.sortDir = TV.sortDir === "asc" ? "desc" : "asc";
-      } else {
-        TV.sortCol = col;
-        TV.sortDir = "desc";
-      }
+      TV.sortDir = TV.sortCol===col && TV.sortDir==='desc' ? 'asc' : 'desc';
+      TV.sortCol = col;
       TV.page = 1;
-      loadTableData();
+      loadData();
     });
   });
 }
 
-function renderPagination(){
-  const el = document.getElementById("tv-pagination");
+/* ── Pagination rendern ── */
+function renderPages(){
+  const el = document.getElementById('tv-pages');
   const p = TV.page, tp = TV.totalPages;
-  
-  if(tp <= 1){
-    el.innerHTML = "";
-    return;
-  }
-  
+  if(tp <= 1){ el.innerHTML=''; return; }
+
   let pills = [];
-  const addPill = n => {
-    if(n < 1 || n > tp) return;
-    pills.push(`<button class="tv-pg-pill${n === p ? " on" : ""}" data-p="${n}">${n}</button>`);
-  };
-  const addDots = () => pills.push(`<span class="tv-pg-dots">…</span>`);
-  
-  addPill(1);
-  if(p > 4) addDots();
-  for(let i = Math.max(2, p - 2); i <= Math.min(tp - 1, p + 2); i++) addPill(i);
-  if(p < tp - 3) addDots();
-  addPill(tp);
-  
-  el.innerHTML = pills.join("");
-  
-  el.querySelectorAll(".tv-pg-pill[data-p]").forEach(pill => {
-    pill.addEventListener("click", () => {
-      TV.page = +pill.dataset.p;
-      loadTableData();
-    });
+  const add = n=>{ if(n<1||n>tp) return; pills.push(`<button class="pg-pill${n===p?' on':''}" data-p="${n}">${n}</button>`); };
+  const dots = ()=> pills.push(`<span class="pg-dots">…</span>`);
+
+  add(1);
+  if(p > 4) dots();
+  for(let i=Math.max(2,p-2); i<=Math.min(tp-1,p+2); i++) add(i);
+  if(p < tp-3) dots();
+  add(tp);
+
+  el.innerHTML = pills.join('');
+  el.querySelectorAll('.pg-pill[data-p]').forEach(btn=>{
+    btn.addEventListener('click',()=>{ TV.page=+btn.dataset.p; loadData(); });
   });
 }
 
-/* ═══════════ FILTER ═══════════ */
-document.getElementById("tv-filter-toggle").addEventListener("click", () => {
-  const body = document.getElementById("tv-filter-body");
-  const arrow = document.getElementById("tv-toggle-arrow");
-  const open = body.style.display === "flex";
-  body.style.display = open ? "none" : "flex";
-  arrow.classList.toggle("open", !open);
+/* ══════════════════════════════════════
+   FILTER EVENTS
+══════════════════════════════════════ */
+document.getElementById('tv-flt-toggle').addEventListener('click', ()=>{
+  const body  = document.getElementById('tv-flt-body');
+  const arrow = document.getElementById('tv-flt-arrow');
+  const open  = body.style.display === 'flex';
+  body.style.display = open ? 'none' : 'flex';
+  arrow.classList.toggle('open', !open);
 });
 
-document.getElementById("tv-filter-apply").addEventListener("click", () => {
-  TV.dateFrom = document.getElementById("tvf-datefrom").value;
-  TV.dateTo = document.getElementById("tvf-dateto").value;
+document.getElementById('tv-flt-apply').addEventListener('click', ()=>{
+  TV.filters = {};
   TV.page = 1;
-  
-  // Show active filters
-  const tags = [];
-  if(TV.dateFrom) tags.push(`<span class="tv-af-tag">Von: ${TV.dateFrom}</span>`);
-  if(TV.dateTo) tags.push(`<span class="tv-af-tag">Bis: ${TV.dateTo}</span>`);
-  document.getElementById("tv-active-filters").innerHTML = tags.join("");
-  
-  loadTableData();
+
+  const from = document.getElementById('fv-from')?.value;
+  const to   = document.getElementById('fv-to')?.value;
+  if(from) TV.filters.date_from = from;
+  if(to)   TV.filters.date_to   = to;
+
+  const sym = document.getElementById('fv-sym')?.value;
+  if(sym) TV.filters.symbol_id = sym;
+
+  const ep  = document.getElementById('fv-ep')?.value;
+  if(ep) TV.filters.endpoint = ep;
+
+  const st = document.getElementById('fv-st')?.value;
+  if(st) TV.filters.http_status = st;
+
+  // Tags anzeigen
+  const tags = Object.entries(TV.filters)
+    .map(([k,v])=>`<span class="af-tag">${k}: ${v}</span>`).join('');
+  document.getElementById('tv-af-tags').innerHTML = tags;
+
+  loadData();
 });
 
-document.getElementById("tv-filter-reset").addEventListener("click", () => {
-  document.getElementById("tvf-datefrom").value = "2026-01-01";
-  document.getElementById("tvf-dateto").value = "2026-03-28";
-  TV.dateFrom = "2026-01-01";
-  TV.dateTo = "2026-03-28";
+document.getElementById('tv-flt-reset').addEventListener('click', ()=>{
+  document.querySelectorAll('#tv-flt-fields .sf-inp').forEach(el=>{
+    if(el.type==='date') el.value = '';
+    else el.value = '';
+  });
+  document.querySelectorAll('#tv-flt-fields .sf-sel').forEach(el=>el.selectedIndex=0);
+  TV.filters = {};
   TV.page = 1;
-  document.getElementById("tv-active-filters").innerHTML = "";
-  loadTableData();
+  document.getElementById('tv-af-tags').innerHTML = '';
+  loadData();
 });
 
-/* ═══════════ SEARCH ═══════════ */
-document.getElementById("tv-data-search").addEventListener("input", e => {
-  TV.searchQ = e.target.value.trim();
-  TV.page = 1;
-  loadTableData();
+/* ══════════════════════════════════════
+   SEARCH + PAGINATION EVENTS
+══════════════════════════════════════ */
+let searchTimer = null;
+document.getElementById('tv-search').addEventListener('input', e=>{
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(()=>{
+    TV.search = e.target.value.trim();
+    TV.page = 1;
+    loadData();
+  }, 350);
 });
 
-/* ═══════════ PAGINATION ═══════════ */
-document.getElementById("tv-pg-prev").addEventListener("click", () => {
-  if(TV.page > 1){
-    TV.page--;
-    loadTableData();
-  }
+document.getElementById('pg-prev').addEventListener('click', ()=>{
+  if(TV.page > 1){ TV.page--; loadData(); }
+});
+document.getElementById('pg-next').addEventListener('click', ()=>{
+  if(TV.page < TV.totalPages){ TV.page++; loadData(); }
 });
 
-document.getElementById("tv-pg-next").addEventListener("click", () => {
-  if(TV.page < TV.totalPages){
-    TV.page++;
-    loadTableData();
-  }
-});
-
-/* ═══════════ REFRESH ═══════════ */
+/* ══════════════════════════════════════
+   REFRESH BUTTON
+══════════════════════════════════════ */
 let spinning = false;
-document.getElementById("refreshBtn").addEventListener("click", () => {
+document.getElementById('refreshBtn').addEventListener('click', ()=>{
   if(spinning) return;
   spinning = true;
-  
-  const ic = document.getElementById("ref-ic");
-  ic.style.transition = "transform .6s";
-  ic.style.transform = "rotate(360deg)";
-  
-  if(activeNav === "watch") renderDbTree();
-  else if(activeNav === "tableview") loadTableData();
-  
-  setTimeout(() => {
-    ic.style.transform = "";
-    ic.style.transition = "";
-    spinning = false;
-  }, 700);
+  const ic = document.getElementById('ref-ic');
+  ic.style.transition = 'transform .6s';
+  ic.style.transform  = 'rotate(360deg)';
+  if(activeScreen === 'schema') loadSchema();
+  else if(activeScreen === 'viewer') loadData();
+  setTimeout(()=>{ ic.style.transform=''; ic.style.transition=''; spinning=false; }, 700);
 });
 
-/* ═══════════ TOPBAR TIME ═══════════ */
-setInterval(() => {
-  document.getElementById("s-time").textContent = new Date().toLocaleTimeString("de-DE", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit"
-  });
+/* ══════════════════════════════════════
+   CLOCK
+══════════════════════════════════════ */
+setInterval(()=>{
+  document.getElementById('s-time').textContent =
+    new Date().toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
 }, 1000);
 
-/* ═══════════ BOOT ═══════════ */
-renderDbTree();
+/* ══════════════════════════════════════
+   BOOT
+══════════════════════════════════════ */
+loadSchema();
 </script>
 </body>
 </html>

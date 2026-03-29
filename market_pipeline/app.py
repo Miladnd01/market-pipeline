@@ -1,13 +1,11 @@
 from pathlib import Path
 from flask import Flask, Response, jsonify, request
-from flask_cors import CORS
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 import os
 
 app = Flask(__name__)
-CORS(app)
 
 # ═══════════ FILE SERVING ═══════════
 BASE_DIR = Path(__file__).resolve().parent
@@ -55,8 +53,8 @@ DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'database': os.getenv('DB_NAME', 'market_db'),
     'user': os.getenv('DB_USER', 'postgres'),
-    'password': os.getenv('DB_PASSWORD', 'your_password'),
-    'port': os.getenv('DB_PORT', 5432)
+    'password': os.getenv('DB_PASSWORD', ''),
+    'port': int(os.getenv('DB_PORT', 5432))
 }
 
 def get_db():
@@ -64,7 +62,7 @@ def get_db():
     try:
         return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
     except Exception as e:
-        print(f"DB Connection Error: {e}")
+        print(f"❌ DB Connection Error: {e}")
         return None
 
 # ═══════════ API: TABELLEN LISTE ═══════════
@@ -78,7 +76,6 @@ def get_tables():
     try:
         cur = conn.cursor()
         
-        # Alle Tabellen mit Metadata
         cur.execute("""
             SELECT 
                 t.table_name as name,
@@ -119,6 +116,7 @@ def get_tables():
     except Exception as e:
         if conn:
             conn.close()
+        print(f"❌ Error in get_tables: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ═══════════ API: TABELLEN-DATEN ═══════════
@@ -139,14 +137,13 @@ def get_table_data(table_name):
         
         # ─── Parameter ───
         page = int(request.args.get('page', 1))
-        page_size = min(int(request.args.get('page_size', 50)), 500)  # Max 500
+        page_size = min(int(request.args.get('page_size', 50)), 500)
         search = request.args.get('search', '').strip()
         date_from = request.args.get('date_from', '').strip()
         date_to = request.args.get('date_to', '').strip()
         sort_col = request.args.get('sort_col', '').strip()
         sort_dir = request.args.get('sort_dir', 'desc').upper()
         
-        # Validierung sort_dir
         if sort_dir not in ['ASC', 'DESC']:
             sort_dir = 'DESC'
         
@@ -193,11 +190,10 @@ def get_table_data(table_name):
         ]
         timestamp_col = timestamp_cols[0] if timestamp_cols else None
         
-        # ─── WHERE Clause bauen ───
+        # ─── WHERE Clause ───
         where_parts = []
         params = []
         
-        # Suche über alle Spalten
         if search:
             search_parts = []
             for col in columns:
@@ -205,7 +201,6 @@ def get_table_data(table_name):
                 params.append(f'%{search}%')
             where_parts.append(f"({' OR '.join(search_parts)})")
         
-        # Datum-Filter
         if timestamp_col and date_from:
             where_parts.append(f"{timestamp_col} >= %s::timestamp")
             params.append(date_from)
@@ -217,7 +212,6 @@ def get_table_data(table_name):
         where_clause = f"WHERE {' AND '.join(where_parts)}" if where_parts else ""
         
         # ─── ORDER BY ───
-        # Standard: Timestamp DESC oder PK DESC
         if sort_col and sort_col in [c['name'] for c in columns]:
             order_clause = f"ORDER BY {sort_col} {sort_dir}"
         elif timestamp_col:
@@ -242,7 +236,7 @@ def get_table_data(table_name):
         cur.execute(data_query, params + [page_size, offset])
         rows = cur.fetchall()
         
-        # ─── JSON Serialization Fix ───
+        # ─── JSON Serialization ───
         for row in rows:
             for key, val in list(row.items()):
                 if isinstance(val, datetime):
@@ -265,6 +259,7 @@ def get_table_data(table_name):
     except Exception as e:
         if conn:
             conn.close()
+        print(f"❌ Error in get_table_data: {e}")
         return jsonify({'error': str(e)}), 500
 
 # ═══════════ ERROR HANDLERS ═══════════
@@ -293,7 +288,6 @@ if __name__ == "__main__":
     
     print(f"\n🗄️  Datenbank: {DB_CONFIG['database']} @ {DB_CONFIG['host']}")
     
-    # Test DB Connection
     test_conn = get_db()
     if test_conn:
         print("✅ Datenbankverbindung erfolgreich")

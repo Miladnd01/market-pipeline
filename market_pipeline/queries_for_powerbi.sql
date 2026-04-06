@@ -1,13 +1,3 @@
--- ============================================================
--- queries_for_powerbi.sql
--- Star Schema — کوئری‌ها و View های آماده برای Power BI
--- یک بار اجرا کن:  psql -d marketdb -f queries_for_powerbi.sql
--- ============================================================
-
-
--- ────────────────────────────────────────────
--- VIEW 1: آخرین قیمت هر سمبل  (کارت + KPI)
--- ────────────────────────────────────────────
 CREATE OR REPLACE VIEW vw_latest_quotes AS
 SELECT DISTINCT ON (s.symbol_code)
     s.symbol_code,
@@ -28,9 +18,7 @@ JOIN dim_symbol         s ON s.symbol_id = q.symbol_id
 ORDER BY s.symbol_code, q.fetched_at_utc DESC;
 
 
--- ────────────────────────────────────────────
--- VIEW 2: تاریخچه قیمت (نمودار خطی)
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_quote_history AS
 SELECT
     s.symbol_code,
@@ -47,9 +35,6 @@ WHERE q.quote_time_utc IS NOT NULL
 ORDER BY s.symbol_code, q.quote_time_utc;
 
 
--- ────────────────────────────────────────────
--- VIEW 3: کندل روزانه (نمودار شمعی)
--- ────────────────────────────────────────────
 CREATE OR REPLACE VIEW vw_candles_daily AS
 SELECT
     s.symbol_code,
@@ -67,9 +52,7 @@ WHERE i.interval_code = '1day'
 ORDER BY s.symbol_code, t.candle_time_utc DESC;
 
 
--- ────────────────────────────────────────────
--- VIEW 4: RSI تاریخچه
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_rsi_history AS
 SELECT
     s.symbol_code,
@@ -90,9 +73,7 @@ WHERE i.indicator_name = 'RSI'
 ORDER BY s.symbol_code, f.candle_time_utc DESC;
 
 
--- ────────────────────────────────────────────
--- VIEW 5: MACD تاریخچه
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_macd_history AS
 SELECT
     s.symbol_code,
@@ -114,9 +95,7 @@ WHERE i.indicator_name = 'MACD'
 ORDER BY s.symbol_code, f.candle_time_utc DESC;
 
 
--- ────────────────────────────────────────────
--- VIEW 6: EMA vs SMA overlay
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_ema_sma AS
 SELECT
     s.symbol_code,
@@ -135,9 +114,7 @@ JOIN dim_interval           iv ON  iv.interval_id     = e.interval_id
 ORDER BY s.symbol_code, e.candle_time_utc DESC;
 
 
--- ────────────────────────────────────────────
--- VIEW 7: داده‌های بنیادی (جدیدترین snapshot)
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_fundamentals AS
 SELECT DISTINCT ON (s.symbol_code)
     s.symbol_code,
@@ -164,9 +141,7 @@ JOIN dim_symbol               s ON s.symbol_id = f.symbol_id
 ORDER BY s.symbol_code, f.fetched_at_utc DESC;
 
 
--- ────────────────────────────────────────────
--- VIEW 8: تقویم سود آینده
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_earnings_upcoming AS
 SELECT
     s.symbol_code,
@@ -187,9 +162,7 @@ WHERE e.report_date >= CURRENT_DATE
 ORDER BY e.report_date, s.symbol_code;
 
 
--- ────────────────────────────────────────────
--- VIEW 9: داشبورد اصلی — همه چیز یکجا
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_dashboard_main AS
 SELECT
     s.symbol_code,
@@ -252,9 +225,7 @@ LEFT JOIN LATERAL (
 ) macd ON TRUE;
 
 
--- ────────────────────────────────────────────
--- VIEW 10: لاگ API calls (برای monitoring)
--- ────────────────────────────────────────────
+
 CREATE OR REPLACE VIEW vw_api_log AS
 SELECT
     l.called_at_utc,

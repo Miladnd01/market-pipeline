@@ -1,5 +1,4 @@
-/* ══ RESET ══ */
-*{
+{
   box-sizing:border-box;
   margin:0;
   padding:0;
@@ -16,20 +15,23 @@ button,select,input{
 
 /* ══ TOKENS ══ */
 :root{
-  --bg:#07101a;
-  --bg2:#09131f;
-  --panel:#0d1a27;
-  --panel2:#101e2c;
-  --border:#1c3048;
-  --border2:#162438;
-  --txt:#e0ecff;
-  --soft:#8aa4c8;
-  --muted:#4e6886;
-  --faint:#344d66;
-  --blue:#3b82f6;
-  --cyan:#22d3ee;
-  --green:#22c55e;
-  --red:#ef4444;
+  --bg:#121826;
+  --bg2:#182132;
+  --panel:#1d2738;
+  --panel2:#243146;
+  --border:#31425c;
+  --border2:#283750;
+
+  --txt:#ffffff;
+  --soft:#e5eefc;
+  --muted:#afbdd3;
+  --faint:#7d8faa;
+
+  --blue:#60a5fa;
+  --cyan:#67e8f9;
+  --green:#4ade80;
+  --red:#f87171;
+
   --sat:env(safe-area-inset-top,0px);
   --sab:env(safe-area-inset-bottom,0px);
   --sal:env(safe-area-inset-left,0px);

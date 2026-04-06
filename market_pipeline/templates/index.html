@@ -5,296 +5,158 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover,user-scalable=no" />
   <title>© Milan Bikineh · Market Terminal Pro</title>
 
+  <!-- Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 
-  <link rel="stylesheet" href="style.css" />
+  <!-- ✅ CSS FIX -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 
+  <!-- Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
+
 <body>
 
-  <div id="toast">
-    <div class="toast-in">
-      <i class="fa-solid fa-check"></i>
-      <span id="toast-msg"></span>
+<div id="toast">
+  <div class="toast-in">
+    <i class="fa-solid fa-check"></i>
+    <span id="toast-msg"></span>
+  </div>
+</div>
+
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <div class="tb-r">
+      <div class="brand">
+        <div class="b-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div>
+          <div class="b-name mono">MARKET TERMINAL PRO</div>
+          <div class="b-sub mono">Live Market · Pipeline · Tables</div>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="owner-badge">
+          <i class="fa-regular fa-copyright"></i>Milan Bikineh
+        </div>
+        <div class="tb-acts">
+          <button class="ib" id="refreshBtn">
+            <i class="fa-solid fa-rotate-right" id="ref-ic"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <div class="chip">
+        <span class="dot" id="s-dot" style="background:var(--green)"></span>
+        <span id="s-lbl">ONLINE</span>
+      </div>
+      <div class="chip">
+        <i class="fa-regular fa-clock"></i>
+        <span id="s-time">--:--:--</span>
+      </div>
+      <div class="chip">
+        <i class="fa-solid fa-layer-group"></i>
+        <span id="s-symbols">6 SYMBOLS</span>
+      </div>
+      <div class="chip" id="chip-load" style="display:none">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <span id="chip-load-lbl">Lädt…</span>
+      </div>
     </div>
   </div>
 
-  <div id="app">
+  <!-- SCREENS -->
+  <div id="screens">
 
-    <!-- ══ TOPBAR ══ -->
-    <div id="topbar">
-      <div class="tb-r">
-        <div class="brand">
-          <div class="b-icon"><i class="fa-solid fa-chart-line"></i></div>
+    <section class="screen active" id="scr-market">
+      <div class="card">
+        <div class="ch">
           <div>
-            <div class="b-name mono">MARKET TERMINAL PRO</div>
-            <div class="b-sub mono">Live Market · Pipeline · Tables</div>
+            <div class="kk">Compare Chart</div>
+            <div class="ht mono">3 Lines · Mouse/Touch Price</div>
           </div>
         </div>
 
-        <div style="display:flex;align-items:center;gap:6px">
-          <div class="owner-badge">
-            <i class="fa-regular fa-copyright"></i>Milan Bikineh
+        <div class="cb">
+          <div class="seg-row">
+            <div class="pill-group" id="mode-pg">
+              <button class="pb on" data-mode="real">REAL</button>
+              <button class="pb" data-mode="norm">NORMALIZED</button>
+            </div>
+
+            <div class="pill-group" id="range-pg">
+              <button class="pb on" data-range="24h">24H</button>
+              <button class="pb" data-range="12h">12H</button>
+              <button class="pb" data-range="6h">6H</button>
+              <button class="pb" data-range="3h">3H</button>
+              <button class="pb" data-range="1h">1H</button>
+            </div>
           </div>
-          <div class="tb-acts">
-            <button class="ib" id="refreshBtn" title="Refresh">
-              <i class="fa-solid fa-rotate-right" id="ref-ic"></i>
-            </button>
+
+          <div class="chart-btns">
+            <button class="gb" id="resetZoomBtn">Reset Zoom</button>
+            <button class="gb" id="fitViewBtn">Fit View</button>
           </div>
+
+          <div class="sym-row" id="sym-row">
+            <button class="sym-pill on" data-sym="AAPL">AAPL</button>
+            <button class="sym-pill on" data-sym="MSFT">MSFT</button>
+            <button class="sym-pill on" data-sym="GOOGL">GOOGL</button>
+          </div>
+        </div>
+
+        <div class="chart-outer">
+          <canvas id="mainChart"></canvas>
+        </div>
+
+        <div class="chart-legend" id="chart-legend"></div>
+      </div>
+    </section>
+
+    <section class="screen" id="scr-pipe">
+      <div class="card">
+        <div class="ch">
+          <div>
+            <div class="kk">Reliability</div>
+            <div class="ht mono">API Success</div>
+          </div>
+        </div>
+
+        <div class="cb" style="text-align:center">
+          <canvas id="ringChart"></canvas>
+          <div id="ring-pct">99%</div>
         </div>
       </div>
+    </section>
 
-      <div class="chips">
-        <div class="chip">
-          <span class="dot" id="s-dot" style="background:var(--green)"></span>
-          <span id="s-lbl">ONLINE</span>
-        </div>
-        <div class="chip">
-          <i class="fa-regular fa-clock"></i>
-          <span id="s-time">--:--:--</span>
-        </div>
-        <div class="chip">
-          <i class="fa-solid fa-layer-group"></i>
-          <span id="s-symbols">6 SYMBOLS</span>
-        </div>
-        <div class="chip" id="chip-load" style="display:none">
-          <i class="fa-solid fa-circle-notch fa-spin" style="font-size:9px"></i>
-          <span id="chip-load-lbl">Lädt…</span>
-        </div>
+    <section class="screen" id="scr-tables">
+      <div class="card">
+        <div id="db-tree">Loading...</div>
       </div>
-    </div>
+    </section>
 
-    <!-- ══ SCREENS ══ -->
-    <div id="screens">
+  </div>
 
-      <!-- ─ SCREEN 1: MARKET ─ -->
-      <section class="screen active" id="scr-market">
-        <div class="card">
-          <div class="ch">
-            <div>
-              <div class="kk">Compare Chart</div>
-              <div class="ht mono">3 Lines · Mouse/Touch Price</div>
-            </div>
-          </div>
-
-          <div class="cb" style="padding-bottom:8px">
-
-            <div class="seg-row">
-              <div class="pill-group" id="mode-pg">
-                <button class="pb on" data-mode="real">REAL</button>
-                <button class="pb" data-mode="norm">NORMALIZED</button>
-              </div>
-
-              <div class="pill-group" id="range-pg">
-                <button class="pb on" data-range="24h">24H</button>
-                <button class="pb" data-range="12h">12H</button>
-                <button class="pb" data-range="6h">6H</button>
-                <button class="pb" data-range="3h">3H</button>
-                <button class="pb" data-range="1h">1H</button>
-              </div>
-            </div>
-
-            <div class="chart-btns">
-              <button class="gb" id="resetZoomBtn"><i class="fa-solid fa-rotate-left"></i> Reset Zoom</button>
-              <button class="gb" id="fitViewBtn"><i class="fa-solid fa-expand"></i> Fit View</button>
-            </div>
-
-            <div class="sym-row" id="sym-row">
-              <button class="sym-pill on" data-sym="AAPL">
-                <span class="sdot" style="background:#3b82f6"></span>
-                AAPL
-                <i class="fa-solid fa-lock" style="font-size:9px;margin-left:2px"></i>
-              </button>
-              <button class="sym-pill on" data-sym="MSFT">
-                <span class="sdot" style="background:#22d3ee"></span>
-                MSFT
-              </button>
-              <button class="sym-pill on" data-sym="GOOGL">
-                <span class="sdot" style="background:#22c55e"></span>
-                GOOGL
-              </button>
-            </div>
-          </div>
-
-          <div class="chart-outer">
-            <div class="fpb" id="fpb"></div>
-            <div class="chart-canvas-wrap">
-              <canvas id="mainChart"></canvas>
-            </div>
-          </div>
-
-          <div class="chart-legend" id="chart-legend"></div>
-        </div>
-
-        <div style="height:6px;flex-shrink:0"></div>
-      </section>
-
-      <!-- ─ SCREEN 2: PIPELINE ─ -->
-      <section class="screen" id="scr-pipe">
-        <div class="card">
-          <div class="ch">
-            <div>
-              <div class="kk">Reliability</div>
-              <div class="ht mono">API Success</div>
-            </div>
-          </div>
-
-          <div class="cb" style="text-align:center;padding-top:20px;padding-bottom:20px">
-            <div class="ring-wrap">
-              <canvas id="ringChart"></canvas>
-              <div class="ring-center">
-                <div class="ring-val" id="ring-pct">99%</div>
-                <div class="ring-lbl">Integrity</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="ch">
-            <div>
-              <div class="kk">Pipeline Metrics</div>
-              <div class="ht mono">Latency Log</div>
-            </div>
-          </div>
-
-          <div class="cb">
-            <div class="pipe-log" id="pipe-log">
-              ⚡ Avg round-trip: --ms<br>
-              📡 Refresh: --:--:--<br>
-              🔄 Pipeline: -- req/s<br>
-              📊 Active streams: --<br>
-              ✓&nbsp; Connection: --<br>
-              🎯 Success rate: --%
-            </div>
-          </div>
-        </div>
-
-        <div style="height:6px;flex-shrink:0"></div>
-      </section>
-
-      <!-- ─ SCREEN 3: TABLES ─ -->
-      <section class="screen" id="scr-tables">
-
-        <div class="card">
-          <div class="db-stats">
-            <div class="db-stat">
-              <div class="db-stat-val" id="cnt-dim" style="color:#c084fc">--</div>
-              <div class="db-stat-lbl">DIM</div>
-            </div>
-            <div class="db-stat">
-              <div class="db-stat-val" id="cnt-fact" style="color:#4ade80">--</div>
-              <div class="db-stat-lbl">FACT</div>
-            </div>
-            <div class="db-stat">
-              <div class="db-stat-val" id="cnt-log" style="color:#fbbf24">--</div>
-              <div class="db-stat-lbl">LOG</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card" id="tbl-list-card">
-          <div class="db-topbar">
-            <div class="db-title-row">
-              <i class="fa-solid fa-database" style="color:#60a5fa;font-size:13px"></i>
-              <span class="db-title">market_db</span>
-              <span class="db-badge">PostgreSQL</span>
-            </div>
-            <input class="db-search" id="db-search" placeholder="Tabelle suchen…" type="text" />
-          </div>
-
-          <div id="db-tree" style="display:flex;flex-direction:column;gap:3px;padding:8px 10px">
-            <div class="spin-wrap"><div class="spinner"></div>Lädt Tabellen…</div>
-          </div>
-        </div>
-
-        <div class="card" id="tbl-viewer-card" style="display:none">
-          <div class="tv-hdr-inner">
-            <button class="tv-back" id="tv-back"><i class="fa-solid fa-arrow-left"></i></button>
-
-            <div class="tv-title">
-              <div class="tv-tname" id="tv-tname">--</div>
-              <div class="tv-tmeta" id="tv-tmeta">--</div>
-            </div>
-
-            <div id="tv-badge" class="dbt-type fact">FACT</div>
-          </div>
-
-          <div class="tv-qs" id="tv-qs">
-            <div class="tv-qs-i">
-              <div class="tv-qs-l">Records</div>
-              <div class="tv-qs-v" id="qs-rows" style="color:#4ade80">--</div>
-            </div>
-            <div class="tv-qs-i">
-              <div class="tv-qs-l">Spalten</div>
-              <div class="tv-qs-v" id="qs-cols" style="color:#93c5fd">--</div>
-            </div>
-            <div class="tv-qs-i">
-              <div class="tv-qs-l">Seite</div>
-              <div class="tv-qs-v" id="qs-page" style="color:#fbbf24">--</div>
-            </div>
-            <div class="tv-qs-i">
-              <div class="tv-qs-l">Zeige</div>
-              <div class="tv-qs-v" id="qs-show" style="color:#c084fc">--</div>
-            </div>
-          </div>
-
-          <div style="margin:8px;border:1px solid var(--border2);border-radius:12px;overflow:hidden">
-            <div class="tv-flt-toggle" id="tv-flt-toggle">
-              <i class="fa-solid fa-filter" style="color:#60a5fa;font-size:11px"></i>
-              <span class="kk" style="color:var(--soft)">Filter</span>
-              <div id="tv-af-tags" style="display:flex;gap:4px;flex-wrap:wrap;flex:1;margin-left:4px"></div>
-              <i class="fa-solid fa-chevron-down tv-flt-arrow" id="tv-flt-arrow"></i>
-            </div>
-
-            <div class="tv-flt-body" id="tv-flt-body" style="display:none">
-              <div class="tv-flt-row" id="tv-flt-fields"></div>
-              <div class="flt-btns">
-                <button class="btn-reset" id="tv-flt-reset" type="button">↺ Zurücksetzen</button>
-                <button class="btn-apply" id="tv-flt-apply" type="button">▶ Filtern</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="tv-toolbar">
-            <span class="tv-info" id="tv-info">-- Zeilen</span>
-            <input class="tv-search" id="tv-search" placeholder="Schnellsuche…" type="text" />
-            <div class="pg-ctrl">
-              <button class="pg-btn" id="pg-prev" disabled type="button"><i class="fa-solid fa-chevron-left"></i></button>
-              <span class="pg-lbl" id="pg-lbl">1 / 1</span>
-              <button class="pg-btn" id="pg-next" disabled type="button"><i class="fa-solid fa-chevron-right"></i></button>
-            </div>
-          </div>
-
-          <div class="tv-tbl-wrap" id="tv-tbl-wrap">
-            <div class="spin-wrap"><div class="spinner"></div>Lädt…</div>
-          </div>
-
-          <div class="tv-pages" id="tv-pages"></div>
-        </div>
-
-        <div style="height:6px;flex-shrink:0"></div>
-      </section>
-    </div>
-
-    <div class="footer-credit">
-      <i class="fa-regular fa-copyright" style="font-size:10px;color:#3b82f6"></i>
-      <strong>Milan Bikineh</strong>
-      <span>· All Rights Reserved · 2025</span>
-    </div>
-
-    <div id="nav">
-      <div class="nav-inner">
-        <div class="nb on" data-nav="market"><i class="fa-solid fa-chart-line"></i><span>Market</span></div>
-        <div class="nb" data-nav="pipe"><i class="fa-solid fa-server"></i><span>Pipeline</span></div>
-        <div class="nb" data-nav="tables"><i class="fa-solid fa-table-list"></i><span>Tables</span></div>
-      </div>
+  <div id="nav">
+    <div class="nav-inner">
+      <div class="nb on" data-nav="market">Market</div>
+      <div class="nb" data-nav="pipe">Pipeline</div>
+      <div class="nb" data-nav="tables">Tables</div>
     </div>
   </div>
 
-  <script src="app.js"></script>
+</div>
+
+<!-- ✅ JS FIX -->
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+
 </body>
 </html>
